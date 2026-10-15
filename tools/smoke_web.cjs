@@ -14,6 +14,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  page.on('response',r=>{if(/index\.(wasm|pck)$/.test(r.url()))responses[r.url().split('/').pop()]=r.status();});
  const state=()=>page.evaluate(()=>window.svfQA);
  const wait=fn=>page.waitForFunction(fn,null,{timeout:25000});
+ const pausedShot=async file=>{await page.keyboard.press('Escape');await wait(()=>window.svfQA?.paused===true);const png=await page.screenshot(file?{path:file}:{});await page.keyboard.press('Enter');await wait(()=>window.svfQA?.paused===false);return png;};
  const green=(r,g,b)=>g>150&&g>r*1.8&&g>b*1.25;
  const addedGreen=(before,after)=>{const a=PNG.sync.read(before),b=PNG.sync.read(after);let count=0;for(let y=170;y<635;y++)for(let x=100;x<1180;x++){const i=(y*b.width+x)*4;if(green(b.data[i],b.data[i+1],b.data[i+2])&&!green(a.data[i],a.data[i+1],a.data[i+2]))count++;}return count;};
  await page.goto('http://127.0.0.1:8061/StreetVicente/?qa=1',{timeout:120000});
@@ -40,8 +41,10 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  assert((await state()).hp[1]<before.hp[1],'Soco aplica dano');await page.screenshot({path:'test-results/04-contact.png'});
  await delay(500);await page.keyboard.press('g');await delay(160);await page.screenshot({path:'test-results/05-kick.png'});await delay(600);
  await page.keyboard.down('s');await page.keyboard.press('g');await delay(200);assert.equal((await state()).pose,'low');await page.screenshot({path:'test-results/06-low.png'});await page.keyboard.up('s');
- await page.keyboard.press('r');await delay(200);const baseFx=await page.screenshot();await page.keyboard.press('t');await wait(()=>window.svfQA?.projectiles>0);
- const codeFx=await page.screenshot({path:'test-results/07-code.png'});const codePixels=addedGreen(baseFx,codeFx);
+ // Freeze through the player's normal pause control for both images. Software
+ // WebGL screenshot latency must not let the projectile hit and disappear first.
+ await page.keyboard.press('r');await delay(200);const baseFx=await pausedShot();await page.keyboard.press('t');await wait(()=>window.svfQA?.projectiles>0);
+ const codeFx=await pausedShot('test-results/07-code.png');const codePixels=addedGreen(baseFx,codeFx);
  assert(codePixels>300,'Onda de código deve estar visível em pixels, não apenas existir na simulação');await delay(900);
  await page.keyboard.press('u');await wait(()=>window.svfQA?.projectiles>=5);
  assert.equal((await state()).meter[0],0,'Super consome barra');
