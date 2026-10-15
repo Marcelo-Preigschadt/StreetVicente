@@ -1,12 +1,12 @@
 class_name FightHUD
 extends Control
+const MINT := Color("4fe5cd")
+const GOLD := Color("ffad52")
 var sim: FightSimulation
 var dummy_mode: int = 0
 var paused: bool = false
 var debug_boxes: bool = false
 var effects: Array = []
-const MINT := Color("4fe5cd")
-const GOLD := Color("ffad52")
 
 
 func _ready() -> void:
@@ -48,7 +48,7 @@ func _draw() -> void:
 		_text(Vector2(x, 62), "LUTADOR 0%d" % (i + 1), 22, tint)
 		draw_rect(Rect2(x, 76, 540, 18), Color("24354a"))
 		var health_width := 536.0 * sim.fighters[i].health / sim.fighters[i].character.max_health
-		var fill_x := x + 2 if i == 0 else x + 538 - health_width
+		var fill_x: float = x + 2 if i == 0 else x + 538 - health_width
 		draw_rect(Rect2(fill_x, 78, health_width, 14), tint)
 		var f := sim.fighters[i]
 		var caption: String = FighterState.NAMES[f.state]

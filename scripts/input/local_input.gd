@@ -1,9 +1,9 @@
 class_name LocalCombatInput
 extends Node
 ## Captura edges via eventos e polling; não perde um tap curto entre ticks.
+const NAMES := ["left", "right", "down", "up", "punch", "kick", "guard"]
 var pending: Array[int] = [0, 0]
 var previous: Array[int] = [0, 0]
-const NAMES := ["left", "right", "down", "up", "punch", "kick", "guard"]
 
 
 func _input(event: InputEvent) -> void:
@@ -32,4 +32,6 @@ func sample(slot: int) -> CombatInput:
 func clear() -> void:
 	pending = [0, 0]
 	previous = [0, 0]
-	Input.release_pressed_events()
+	for slot in 2:
+		for action in NAMES:
+			Input.action_release("p%d_%s" % [slot + 1, action])
