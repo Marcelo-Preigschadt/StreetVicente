@@ -205,7 +205,12 @@ func _draw_burst(b: Dictionary) -> void:
 	var color := c.color
 	draw_set_transform(origin)
 	var theme := PowerArt.theme(b.character, b.effect)
-	if theme in ["code", "smoke", "fork", "book"] and b.kind == "hit":
+	if b.effect == "sentinelLaser" and b.kind == "hit":
+		# The drone fires light: use a compact hot core and sparks, not the
+		# character's separate code-wave drawing on every beam contact.
+		draw_circle(Vector2.ZERO, 10 * alpha, Color(0.8, 1, 0.9, alpha))
+		draw_circle(Vector2.ZERO, 4 * alpha, Color(1, 1, 1, alpha))
+	elif theme in ["code", "smoke", "fork", "book"] and b.kind == "hit":
 		PowerArt.draw(self, theme, int(phase * 4), 0.5 + phase * 0.3, Color(1, 1, 1, alpha))
 	for i in 10:
 		var angle := float(i) * TAU / 10 + phase
