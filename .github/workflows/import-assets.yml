@@ -1,0 +1,36 @@
+name: Import approved legacy assets
+on:
+  push:
+    branches: [main]
+    paths: ['tools/import_legacy.mjs', 'data/legacy/source-lock.json', '.github/workflows/import-assets.yml']
+  workflow_dispatch:
+jobs:
+  import:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Import pinned source artwork and frame data
+        run: node tools/import_legacy.mjs
+      - name: Save migrated assets in StreetVicente
+        run: |
+          git config user.name 'StreetVicente Migration'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/legacy data/legacy/catalog.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Import approved roster, frame data, voices and story assets into Godot'
+            git push origin HEAD:main
+          fi
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .tools/godot
+            ~/.local/share/godot/export_templates
+          key: godot-web-linux-4.5.1-v1
+      - run: bash tools/setup_godot.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Godot-validation-runtime
+          path: .tools/godot
+          retention-days: 1
