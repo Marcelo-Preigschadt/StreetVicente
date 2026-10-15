@@ -20,7 +20,9 @@ def components(file,rows,threshold):
 pixels,labels,items=components('assets/source/marcelo-air-v2/air-kick.png',2,100)
 packed=Image.new('RGBA',(2240,1120));frames=[]
 # Register pelvis, not the lowest boot: the model owns world height and jump arc.
-anchors=[242,680,1113,1550,243,680,1112,1550]
+# Source-cell centers are not anatomical pivots: extension moves the silhouette
+# far to the right. These are manually reviewed pelvis coordinates in the source.
+anchors=[223,663,1063,1453,195,687,1096,1478]
 pelvis_y=[263,263,263,263,675,675,675,675]
 scale=300/391
 for index,component,b in items:

@@ -27,6 +27,9 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  let moved=await state();assert(moved.x[0]>before.x[0]+40*256,'Movimento real no WASM');
  await page.keyboard.press('w');await wait(()=>window.svfQA?.state==='JUMP');
  assert((await state()).y[0]<625*256,'Salto altera altura');await page.screenshot({path:'test-results/03-jump.png'});
+ // Screenshots can take longer than a whole jump on software WebGL. Capture the
+ // first jump, then issue the kick immediately on a second jump before capturing.
+ await wait(()=>window.svfQA?.state==='IDLE');await page.keyboard.press('w');await wait(()=>window.svfQA?.state==='JUMP');
  await page.keyboard.press('g');await wait(()=>window.svfQA?.pose==='air'&&window.svfQA?.pose_index>=3);
  assert.equal((await state()).moves[0],'airKick:1');await page.screenshot({path:'test-results/03a-air-kick.png'});
  await wait(()=>window.svfQA?.state==='LANDING'||window.svfQA?.state==='IDLE');await delay(120);

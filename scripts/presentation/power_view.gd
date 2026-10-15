@@ -54,6 +54,9 @@ func _draw() -> void:
 	for f in world.power_actors():
 		_draw_charge(f)
 	for p in world.projectiles:
+		# Each entity starts in world space. A beam must not inherit the preceding
+		# drone's translation or facing transform.
+		draw_set_transform(Vector2.ZERO)
 		var origin := Vector2(
 			float(p.x) / FighterModel.SCALE - camera_x, float(p.y) / FighterModel.SCALE
 		)

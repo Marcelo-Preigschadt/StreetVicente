@@ -36,7 +36,7 @@ O jogo seleciona os desenhos em `PilotArt` pela fase do golpe e tick autoritativ
 
 `CombatImpact` consome eventos com IDs para faíscas, flash de contato, escurecimento de super e abalo visual. `SpriteFighterView` cria rastros a partir das próprias poses. Hitstop, hitstun e blockstun pertencem à simulação. `PowerView` desenha código animado, rotores/laser de drones e efeitos próprios por personagem; entidades de projétil têm ID, idade, delay e TTL restauráveis.
 
-As vozes PT-BR anteriores foram preservadas. A nova arte é do Marcelo. Fumaça, garfos e livros são efeitos procedurais sobre o elenco importado; os outros personagens ainda precisam do mesmo trabalho de redesenho e revisão de animação.
+As vozes PT-BR anteriores foram preservadas. A nova arte de lutador é do Marcelo. Código, drones, fumaça, garfos e livros usam desenhos animados próprios sobre o elenco importado; os outros personagens ainda precisam do mesmo trabalho de redesenho e revisão de animação corporal.
 
 ## Limites e revisão
 
