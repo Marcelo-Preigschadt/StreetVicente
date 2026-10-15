@@ -77,6 +77,9 @@ func begin_tick(opponent_x: int) -> void:
 		vy = -3072  # -1440 px/s.
 		vx = jump_vx
 		transition(FighterState.Id.JUMP)
+		x += vx
+		_integrate_air()
+		return
 	if state == FighterState.Id.LANDING:
 		if state_tick < 8:
 			return

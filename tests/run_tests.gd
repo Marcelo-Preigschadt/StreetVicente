@@ -271,6 +271,12 @@ func _test_roster() -> void:
 	check(sim.fighters[0].state == FighterState.Id.PREJUMP, "Espaço inicia prejump de 3f")
 	neutral(sim, 6)
 	check(not sim.fighters[0].grounded(), "Prejump lança corpo após 6 ticks")
+	check(
+		sim.fighters[0].state == FighterState.Id.JUMP,
+		"Saída de prejump mantém estado aéreo, sem cair no idle do chão"
+	)
+	neutral(sim, 8)
+	check(sim.fighters[0].state == FighterState.Id.JUMP, "Estado Jump persiste durante o voo")
 	neutral(sim, 120)
 	check(sim.fighters[0].grounded(), "Novo personagem aterrissa na origem dos pés")
 

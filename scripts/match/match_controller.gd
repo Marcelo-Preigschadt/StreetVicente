@@ -116,6 +116,12 @@ func confirm_selection() -> void:
 
 func _start_fight() -> void:
 	ai = CombatAI.new()
+	PilotArt.load_data()
+	for atlas in PilotArt.data.sheets.values():
+		LegacyRoster.texture(atlas.image)
+	for id in selected:
+		for atlas in LegacyRoster.get_character(id).legacy.atlases.values():
+			LegacyRoster.texture(atlas.image)
 	sim = FightSimulation.new(
 		LegacyRoster.get_character(selected[0]), LegacyRoster.get_character(selected[1])
 	)
