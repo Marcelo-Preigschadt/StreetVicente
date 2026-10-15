@@ -6,5 +6,6 @@ extends Resource
 @export_range(0, 240) var first_frame: int = 4
 @export_range(1, 240) var end_frame: int = 7
 
+
 func active(tick: int) -> bool:
 	return tick >= first_frame * 2 and tick < end_frame * 2

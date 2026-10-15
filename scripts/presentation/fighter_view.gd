@@ -11,10 +11,12 @@ var debug_boxes: bool = false
 var accent := Color("4fe5cd")
 var visual_facing: int = 1
 
+
 func setup(value: FighterModel, tint: Color) -> void:
 	model = value
 	accent = tint
 	sync(true)
+
 
 func sync(snap: bool = false) -> void:
 	previous_position = current_position
@@ -26,6 +28,7 @@ func sync(snap: bool = false) -> void:
 		previous_position = current_position
 		previous_distance = distance
 
+
 func _process(_delta: float) -> void:
 	if model == null:
 		return
@@ -34,12 +37,24 @@ func _process(_delta: float) -> void:
 	visual_facing = model.facing
 	queue_redraw()
 
+
 func _draw() -> void:
 	if model == null:
 		return
-	var phase := lerpf(previous_distance, distance, Engine.get_physics_interpolation_fraction()) / 150.0 * TAU
+	var phase := (
+		lerpf(previous_distance, distance, Engine.get_physics_interpolation_fraction())
+		/ 150.0
+		* TAU
+	)
 	var walking := model.state == FighterState.Id.WALK
-	var low := model.state == FighterState.Id.CROUCH or (model.input.has(CombatInput.DOWN) and model.grounded() and model.state == FighterState.Id.BLOCK)
+	var low := (
+		model.state == FighterState.Id.CROUCH
+		or (
+			model.input.has(CombatInput.DOWN)
+			and model.grounded()
+			and model.state == FighterState.Id.BLOCK
+		)
+	)
 	var bob := sin(phase * 2.0) * 3.0 if walking else sin(model.state_tick / 120.0 * 3.8) * 1.8
 	var pelvis := Vector2(-5, -93 if not low else -52) + Vector2(0, bob)
 	var shoulder := pelvis + Vector2(6, -60 if not low else -44)
@@ -116,6 +131,7 @@ func _draw() -> void:
 		for rect in model.attack_boxes():
 			_debug_rect(rect, Color(1.0, 0.25, 0.3, 0.95))
 
+
 func _gait_foot(phase: float, side: float) -> Vector2:
 	# Stance percorre para trás à velocidade da raiz; swing devolve o pé à frente.
 	var q := fposmod(phase / TAU, 1.0)
@@ -130,7 +146,16 @@ func _gait_foot(phase: float, side: float) -> Vector2:
 	var travel_sign := float(signi(model.vx)) * model.facing
 	return Vector2(local_x * travel_sign + side * 7, -4 - lift)
 
-func _limb(root_point: Vector2, tip: Vector2, upper: float, lower: float, bend: int, tint: Color, width: float) -> void:
+
+func _limb(
+	root_point: Vector2,
+	tip: Vector2,
+	upper: float,
+	lower: float,
+	bend: int,
+	tint: Color,
+	width: float
+) -> void:
 	var delta := tip - root_point
 	var length := clampf(delta.length(), 0.01, upper + lower - 0.01)
 	var along := (upper * upper - lower * lower + length * length) / (2 * length)
@@ -143,7 +168,11 @@ func _limb(root_point: Vector2, tip: Vector2, upper: float, lower: float, bend: 
 	draw_circle(joint, width * 0.48, tint.lightened(0.12))
 	draw_circle(tip, width * 0.5, tint)
 
+
 func _debug_rect(rect: Rect2i, tint: Color) -> void:
-	var visual := Rect2(Vector2(rect.position) / FighterModel.SCALE - position, Vector2(rect.size) / FighterModel.SCALE)
+	var visual := Rect2(
+		Vector2(rect.position) / FighterModel.SCALE - position,
+		Vector2(rect.size) / FighterModel.SCALE
+	)
 	draw_rect(visual, Color(tint, 0.12), true)
 	draw_rect(visual, tint, false, 2)

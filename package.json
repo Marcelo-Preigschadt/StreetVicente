@@ -1,0 +1,6 @@
+{
+  "name": "streetvicente-godot-qa",
+  "private": true,
+  "scripts": {"test:web": "node tools/smoke_web.cjs"},
+  "devDependencies": {"playwright": "1.62.1", "pngjs": "7.0.0"}
+}

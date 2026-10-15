@@ -49,9 +49,9 @@ Transporte proposto: **WebRTC DataChannel**, sinalização HTTPS/WSS externa par
 
 Canal de inputs unordered com retransmissão limitada, redundância de inputs recentes, frame e acknowledgments; canal confiável separado para handshake/controle. Validar tamanho, slot, tick futuro/passado e build/hash de dados. WebSocket pode servir como relay, com head-of-line blocking e latência a medir.
 
-Ponto inicial experimental: input delay de 2–4 frames de design (4–8 ticks) e janela de rollback de 6–8 frames (12–16 ticks). **Medir**, sem prometer que esses valores servem à rede real. Histórico de diagnóstico pode ser maior; não ress imular 180 ticks no caminho crítico Web. A 120 Hz há 8,33 ms nominais por tick, mas replay disputa o orçamento com renderização: medir p95/p99 no hardware alvo.
+Ponto inicial experimental: input delay de 2–4 frames de design (4–8 ticks) e janela de rollback de 6–8 frames (12–16 ticks). **Medir**, sem prometer que esses valores servem à rede real. Histórico de diagnóstico pode ser maior; não ressimular 180 ticks no caminho crítico Web. A 120 Hz há 8,33 ms nominais por tick, mas replay disputa o orçamento com renderização: medir p95/p99 no hardware alvo.
 
-Por tick: capturar input local futuro, prever held remoto anterior com pressed=0, salvar estado anterior, simular e guardar hash. Input real divergente restaura o estado mais antigo afetado e ress imula ambos em ordem fixa. Efeitos confirmados ou previstos precisam IDs e deduplicação; não repetir áudio a cada replay.
+Por tick: capturar input local futuro, prever held remoto anterior com pressed=0, salvar estado anterior, simular e guardar hash. Input real divergente restaura o estado mais antigo afetado e ressimula ambos em ordem fixa. Efeitos confirmados ou previstos precisam IDs e deduplicação; não repetir áudio a cada replay.
 
 Adicionar checksums de ticks confirmados, dump no primeiro desync e política de resync/desconexão. Não aceitar snapshot remoto arbitrário sem validar sessão/versão/conteúdo. Aba suspensa ou dívida acima do limite exige pausa coordenada e handshake de retomada; não simular minutos de catch-up nem manter um peer jogando sozinho.
 

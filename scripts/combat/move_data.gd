@@ -16,8 +16,10 @@ enum Level { MID, LOW, OVERHEAD }
 @export var airborne: bool = false
 @export var hitboxes: Array[HitboxData] = []
 
+
 func total_ticks() -> int:
 	return (startup + active + recovery) * 2
+
 
 func phase(tick: int) -> String:
 	if tick < startup * 2:
@@ -26,10 +28,15 @@ func phase(tick: int) -> String:
 		return "ACTIVE"
 	return "RECOVERY"
 
+
 func validate() -> bool:
 	if id.is_empty() or damage < 0 or hitstun < 1 or blockstun < 1 or hitstop < 0:
 		return false
 	for box in hitboxes:
-		if box.first_frame < startup or box.end_frame > startup + active or box.end_frame <= box.first_frame:
+		if (
+			box.first_frame < startup
+			or box.end_frame > startup + active
+			or box.end_frame <= box.first_frame
+		):
 			return false
 	return not hitboxes.is_empty()

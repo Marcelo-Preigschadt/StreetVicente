@@ -4,8 +4,8 @@ extends RefCounted
 ## Não usa delta variável, física de nós, relógio, RNG global ou animação como autoridade.
 const SCALE := 256
 const FLOOR_Y := 590 * SCALE
-const GRAVITY := 64 # 3600 px/s², integrado a 120 Hz.
-const JUMP_SPEED := -2560 # -1200 px/s.
+const GRAVITY := 64  # 3600 px/s², integrado a 120 Hz.
+const JUMP_SPEED := -2560  # -1200 px/s.
 var character: CharacterData
 var slot: int
 var x: int
@@ -23,6 +23,7 @@ var hit_targets: Array = []
 var input := CombatInput.new()
 var buffer := CommandBuffer.new()
 
+
 func _init(data: CharacterData, player_slot: int, spawn_x: int) -> void:
 	character = data
 	slot = player_slot
@@ -30,20 +31,25 @@ func _init(data: CharacterData, player_slot: int, spawn_x: int) -> void:
 	facing = 1 if slot == 0 else -1
 	health = data.max_health
 
+
 func grounded() -> bool:
 	return y >= FLOOR_Y
+
 
 func transition(next: FighterState.Id) -> void:
 	if state != next:
 		state = next
 		state_tick = 0
 
+
 func current_move() -> MoveData:
 	return character.move_for(move_id)
+
 
 func record_input(value: CombatInput, tick: int) -> void:
 	input = value
 	buffer.record(value, tick)
+
 
 func begin_tick(opponent_x: int) -> void:
 	if state == FighterState.Id.KO:
@@ -69,7 +75,13 @@ func begin_tick(opponent_x: int) -> void:
 	if not FighterState.actionable(state):
 		return
 	if buffer.consume(CombatInput.KICK):
-		_start_move(character.air_kick if not grounded() else (character.sweep if input.has(CombatInput.DOWN) else character.kick))
+		_start_move(
+			(
+				character.air_kick
+				if not grounded()
+				else (character.sweep if input.has(CombatInput.DOWN) else character.kick)
+			)
+		)
 	elif grounded() and buffer.consume(CombatInput.PUNCH):
 		_start_move(character.jab)
 	elif grounded() and buffer.consume(CombatInput.UP):
@@ -89,6 +101,7 @@ func begin_tick(opponent_x: int) -> void:
 	x += vx
 	_integrate_air()
 
+
 func _integrate_air() -> void:
 	if not grounded() or vy < 0:
 		vy += GRAVITY
@@ -100,6 +113,7 @@ func _integrate_air() -> void:
 			if state == FighterState.Id.JUMP:
 				transition(FighterState.Id.IDLE)
 
+
 func _start_move(move: MoveData) -> void:
 	move_id = move.id
 	move_tick = 0
@@ -108,10 +122,12 @@ func _start_move(move: MoveData) -> void:
 		vx = 0
 	transition(FighterState.Id.ATTACK)
 
+
 func end_tick() -> void:
 	state_tick += 1
 	if state == FighterState.Id.ATTACK:
 		move_tick += 1
+
 
 func hurtboxes() -> Array[Rect2i]:
 	if state == FighterState.Id.KO:
@@ -119,10 +135,14 @@ func hurtboxes() -> Array[Rect2i]:
 	var low := grounded() and input.has(CombatInput.DOWN) and state != FighterState.Id.ATTACK
 	var boxes: Array[Rect2i] = []
 	# Cabeça, tronco, pernas separados; perfis por quadro podem substituir este protótipo.
-	for rect in ([Rect2i(-22, -112, 44, 36), Rect2i(-30, -78, 60, 42), Rect2i(-36, -38, 72, 38)] if low else
-		[Rect2i(-22, -192, 44, 42), Rect2i(-28, -150, 56, 84), Rect2i(-34, -66, 68, 66)]):
+	for rect in (
+		[Rect2i(-22, -112, 44, 36), Rect2i(-30, -78, 60, 42), Rect2i(-36, -38, 72, 38)]
+		if low
+		else [Rect2i(-22, -192, 44, 42), Rect2i(-28, -150, 56, 84), Rect2i(-34, -66, 68, 66)]
+	):
 		boxes.append(BoxMath.world_rect(rect, x, y, facing))
 	return boxes
+
 
 func attack_boxes() -> Array[Rect2i]:
 	var result: Array[Rect2i] = []
@@ -132,6 +152,7 @@ func attack_boxes() -> Array[Rect2i]:
 		if box.active(move_tick):
 			result.append(BoxMath.world_rect(box.rect, x, y, facing))
 	return result
+
 
 func blocking(level: MoveData.Level) -> bool:
 	if not grounded() or stun_ticks > 0 and state != FighterState.Id.BLOCK:
@@ -147,6 +168,7 @@ func blocking(level: MoveData.Level) -> bool:
 		return not input.has(CombatInput.DOWN)
 	return true
 
+
 func receive_hit(move: MoveData, direction: int, guarded: bool) -> void:
 	move_id = ""
 	vx = 0
@@ -159,12 +181,28 @@ func receive_hit(move: MoveData, direction: int, guarded: bool) -> void:
 		stun_ticks = move.hitstun * 2
 		transition(FighterState.Id.KO if health == 0 else FighterState.Id.HITSTUN)
 
+
 func snapshot() -> Dictionary:
-	return {"slot": slot, "character": character.id, "x": x, "y": y, "vx": vx, "vy": vy,
-		"facing": facing, "health": health, "state": int(state), "state_tick": state_tick,
-		"stun_ticks": stun_ticks, "move_id": move_id, "move_tick": move_tick,
-		"hit_targets": hit_targets.duplicate(), "held": input.held, "pressed": input.pressed,
-		"buffer": buffer.snapshot()}
+	return {
+		"slot": slot,
+		"character": character.id,
+		"x": x,
+		"y": y,
+		"vx": vx,
+		"vy": vy,
+		"facing": facing,
+		"health": health,
+		"state": int(state),
+		"state_tick": state_tick,
+		"stun_ticks": stun_ticks,
+		"move_id": move_id,
+		"move_tick": move_tick,
+		"hit_targets": hit_targets.duplicate(),
+		"held": input.held,
+		"pressed": input.pressed,
+		"buffer": buffer.snapshot()
+	}
+
 
 func restore(data: Dictionary) -> void:
 	assert(data.character == character.id and data.slot == slot)

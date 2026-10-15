@@ -1,6 +1,6 @@
 {
   "name": "StreetVicente · Godot Web",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "build": {"dockerfile": "Dockerfile"},
   "forwardPorts": [8060],
   "portsAttributes": {"8060": {"label": "Godot Web", "onAutoForward": "notify"}},
   "postCreateCommand": "bash tools/setup_godot.sh",

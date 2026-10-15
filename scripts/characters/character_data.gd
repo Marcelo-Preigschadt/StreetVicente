@@ -11,6 +11,7 @@ extends Resource
 @export var sweep: MoveData
 @export var air_kick: MoveData
 
+
 func move_for(id_value: String) -> MoveData:
 	for move in [jab, kick, sweep, air_kick]:
 		if move != null and move.id == id_value:

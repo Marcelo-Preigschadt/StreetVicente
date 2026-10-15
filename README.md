@@ -43,6 +43,7 @@ No desktop: instale **Godot 4.5.1 Standard**, importe `project.godot` e pression
 - HUD, HP, timer, reset, treino, interpolação visual e manequim com membros articulados.
 - Snapshot/restore, hash de estado e histórico **local** com correção/replay para testes. **Sem transporte ou sessão rollback online.**
 - Pipeline de testes, exportação e deployment; pacote independente `StreetVicente-Web` nos artefatos do Actions.
+- Teste de navegador do WASM com movimento, salto, ataque/dano, pausa e resize sob `/StreetVicente/`; screenshots no artefato `StreetVicente-Web-QA`. Node/Playwright são ferramentas de QA, sem dependência no jogo publicado.
 
 ## Organização
 

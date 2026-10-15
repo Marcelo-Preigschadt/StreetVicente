@@ -10,11 +10,13 @@ var fighters: Array[FighterModel] = []
 var tick: int = 0
 var remaining_ticks: int = 99 * TICK_RATE
 var freeze_ticks: int = 0
-var winner: int = -1 # -1 em curso; 0/1 vencedor; 2 empate.
+var winner: int = -1  # -1 em curso; 0/1 vencedor; 2 empate.
 var events: Array = []
+
 
 func _init(p1: CharacterData, p2: CharacterData) -> void:
 	fighters = [FighterModel.new(p1, 0, 410), FighterModel.new(p2, 1, 870)]
+
 
 func step(inputs: Array[CombatInput]) -> void:
 	assert(inputs.size() == 2)
@@ -46,8 +48,15 @@ func step(inputs: Array[CombatInput]) -> void:
 					connected = true
 		if connected:
 			var move := attacker.current_move()
-			contacts.append({"attacker": i, "defender": 1 - i, "move": move,
-				"facing": attacker.facing, "blocked": defender.blocking(move.level)})
+			contacts.append(
+				{
+					"attacker": i,
+					"defender": 1 - i,
+					"move": move,
+					"facing": attacker.facing,
+					"blocked": defender.blocking(move.level)
+				}
+			)
 	# Coleta completa antes de aplicar: golpes simultâneos fazem trade.
 	for contact in contacts:
 		var attacker := fighters[int(contact.attacker)]
@@ -56,16 +65,28 @@ func step(inputs: Array[CombatInput]) -> void:
 		attacker.hit_targets.append(defender.slot)
 		defender.receive_hit(move, contact.facing, contact.blocked)
 		freeze_ticks = maxi(freeze_ticks, move.hitstop * 2)
-		events.append({"id": "%d:%d:%d" % [tick, attacker.slot, defender.slot],
-			"tick": tick, "kind": "block" if contact.blocked else "hit", "slot": defender.slot,
-			"x": defender.x, "y": defender.y - 110 * FighterModel.SCALE})
+		events.append(
+			{
+				"id": "%d:%d:%d" % [tick, attacker.slot, defender.slot],
+				"tick": tick,
+				"kind": "block" if contact.blocked else "hit",
+				"slot": defender.slot,
+				"x": defender.x,
+				"y": defender.y - 110 * FighterModel.SCALE
+			}
+		)
 	_resolve_bodies()
 	for fighter in fighters:
 		fighter.end_tick()
 	remaining_ticks = maxi(0, remaining_ticks - 1)
 	if fighters[0].health <= 0 or fighters[1].health <= 0 or remaining_ticks == 0:
-		winner = 2 if fighters[0].health == fighters[1].health else (0 if fighters[0].health > fighters[1].health else 1)
+		winner = (
+			2
+			if fighters[0].health == fighters[1].health
+			else (0 if fighters[0].health > fighters[1].health else 1)
+		)
 	tick += 1
+
 
 func _resolve_bodies() -> void:
 	for fighter in fighters:
@@ -90,10 +111,17 @@ func _resolve_bodies() -> void:
 		left.x -= right.x - RIGHT_WALL
 		right.x = RIGHT_WALL
 
+
 func snapshot() -> Dictionary:
-	return {"schema": 1, "tick": tick, "remaining_ticks": remaining_ticks,
-		"freeze_ticks": freeze_ticks, "winner": winner,
-		"fighters": [fighters[0].snapshot(), fighters[1].snapshot()]}
+	return {
+		"schema": 1,
+		"tick": tick,
+		"remaining_ticks": remaining_ticks,
+		"freeze_ticks": freeze_ticks,
+		"winner": winner,
+		"fighters": [fighters[0].snapshot(), fighters[1].snapshot()]
+	}
+
 
 func restore(data: Dictionary) -> void:
 	assert(data.schema == 1)
@@ -104,6 +132,7 @@ func restore(data: Dictionary) -> void:
 	for i in 2:
 		fighters[i].restore(data.fighters[i])
 	events.clear()
+
 
 func state_hash() -> String:
 	# Ordem de campos fixa. Usar versão/build idênticos na comparação entre peers.

@@ -2,7 +2,7 @@
 
 `LocalCombatInput` transforma eventos/polling em `CombatInput(held, pressed)`. `FightSimulation.step` recebe dois slots, registra buffers, resolve hitstop, atualiza ambos a partir das posições anteriores, resolve pushboxes, coleta contatos, aplica impactos, resolve paredes e avança contadores. Coletar antes de aplicar permite trades sem prioridade implícita de P1.
 
-`FighterModel` não é Node, não chama Input, não lê relógio e não usa `move_and_slide`. Colisões não dependem de Area2D/PhysicsServer: AABBs são inteiros com origem nos pés e ordem fixa. Isso permite ress imulação síncrona sem depender do passo do servidor de física.
+`FighterModel` não é Node, não chama Input, não lê relógio e não usa `move_and_slide`. Colisões não dependem de Area2D/PhysicsServer: AABBs são inteiros com origem nos pés e ordem fixa. Isso permite ressimulação síncrona sem depender do passo do servidor de física.
 
 Posições e velocidades têm escala 256; velocidade é deslocamento por tick. Gravidade de 64 unidades/tick² = 3600 px/s²; 3 px/tick = 360 px/s. O núcleo não usa delta variável.
 

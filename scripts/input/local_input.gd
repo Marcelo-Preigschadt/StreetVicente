@@ -5,13 +5,18 @@ var pending: Array[int] = [0, 0]
 var previous: Array[int] = [0, 0]
 const NAMES := ["left", "right", "down", "up", "punch", "kick", "guard"]
 
+
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.echo:
+		return
+	# Analógico contínuo usa a borda do polling, sem repetir UP por ruído de eixo.
+	if event is InputEventJoypadMotion:
 		return
 	for slot in 2:
 		for bit in NAMES.size():
 			if event.is_action_pressed("p%d_%s" % [slot + 1, NAMES[bit]]):
 				pending[slot] |= 1 << bit
+
 
 func sample(slot: int) -> CombatInput:
 	var held := 0
@@ -22,6 +27,7 @@ func sample(slot: int) -> CombatInput:
 	pending[slot] = 0
 	previous[slot] = held
 	return result
+
 
 func clear() -> void:
 	pending = [0, 0]

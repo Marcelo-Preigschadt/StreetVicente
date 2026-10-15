@@ -31,6 +31,18 @@ jobs:
         run: bash tools/test.sh
       - name: Export single-thread Web
         run: bash tools/export_web.sh
+      - name: Browser smoke test (WASM under /StreetVicente/)
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          npm run test:web
+      - name: Upload browser verification
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: StreetVicente-Web-QA
+          path: test-results/
+          if-no-files-found: ignore
       - name: Upload playable Web package
         uses: actions/upload-artifact@v4
         with:

@@ -4,8 +4,10 @@ const DATA: CharacterData = preload("res://data/characters/prototype.tres")
 var failures: int = 0
 var checks: int = 0
 
+
 func _initialize() -> void:
 	call_deferred("_run")
+
 
 func check(condition: bool, label: String) -> void:
 	checks += 1
@@ -13,15 +15,18 @@ func check(condition: bool, label: String) -> void:
 		failures += 1
 		printerr("FAIL: " + label)
 
+
 func neutral(sim: FightSimulation, count: int = 1) -> void:
 	for _i in count:
 		sim.step([CombatInput.new(), CombatInput.new()])
+
 
 func close_sim() -> FightSimulation:
 	var sim := FightSimulation.new(DATA, DATA)
 	sim.fighters[0].x = 500 * FighterModel.SCALE
 	sim.fighters[1].x = 610 * FighterModel.SCALE
 	return sim
+
 
 func _run() -> void:
 	for move in [DATA.jab, DATA.kick, DATA.sweep, DATA.air_kick]:
@@ -35,6 +40,7 @@ func _run() -> void:
 	print("COMBAT TESTS: %d checks, %d failures" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 
+
 func _test_input() -> void:
 	check(CombatInput.new(CombatInput.LEFT | CombatInput.RIGHT).axis_x() == 0, "SOCD neutro")
 	var buffer := CommandBuffer.new()
@@ -46,6 +52,7 @@ func _test_input() -> void:
 	buffer.record(CombatInput.new(), 32)
 	check(not buffer.consume(CombatInput.PUNCH), "Buffer expira exatamente em 12 ticks")
 
+
 func _test_movement() -> void:
 	var sim := FightSimulation.new(DATA, DATA)
 	var start := sim.fighters[0].x
@@ -53,21 +60,29 @@ func _test_movement() -> void:
 	check(sim.fighters[0].x == start + 3 * FighterModel.SCALE, "Velocidade de 360 px/s")
 	sim.step([CombatInput.new(CombatInput.DOWN), CombatInput.new()])
 	check(sim.fighters[0].state == FighterState.Id.CROUCH, "Estado agachar")
-	sim.step([CombatInput.new(CombatInput.RIGHT | CombatInput.UP, CombatInput.UP), CombatInput.new()])
+	sim.step(
+		[CombatInput.new(CombatInput.RIGHT | CombatInput.UP, CombatInput.UP), CombatInput.new()]
+	)
 	check(sim.fighters[0].y < FighterModel.FLOOR_Y, "Salto inicia no mesmo tick")
 	var jump_x := sim.fighters[0].x
 	for _i in 8:
 		sim.step([CombatInput.new(), CombatInput.new()])
 	check(sim.fighters[0].x == jump_x + 24 * FighterModel.SCALE, "Drift aéreo constante")
 	neutral(sim, 90)
-	check(sim.fighters[0].y == FighterModel.FLOOR_Y and sim.fighters[0].vy == 0, "Aterrissagem exata")
+	check(
+		sim.fighters[0].y == FighterModel.FLOOR_Y and sim.fighters[0].vy == 0, "Aterrissagem exata"
+	)
 	sim.fighters[0].x = FightSimulation.LEFT_WALL
 	sim.fighters[1].x = FightSimulation.LEFT_WALL + 10
 	neutral(sim)
-	check(sim.fighters[1].x - sim.fighters[0].x >= FightSimulation.BODY_WIDTH, "Pushboxes não atravessam na parede")
+	check(
+		sim.fighters[1].x - sim.fighters[0].x >= FightSimulation.BODY_WIDTH,
+		"Pushboxes não atravessam na parede"
+	)
 	check(sim.fighters[0].x >= FightSimulation.LEFT_WALL, "Parede preservada após push")
 	var mirrored := BoxMath.world_rect(Rect2i(20, -50, 80, 20), 0, 0, -1)
 	check(mirrored.position.x == -100 * FighterModel.SCALE, "Espelhamento inclui largura do AABB")
+
 
 func _test_frames() -> void:
 	var sim := FightSimulation.new(DATA, DATA)
@@ -75,7 +90,10 @@ func _test_frames() -> void:
 	check(sim.fighters[0].move_tick == 1, "Primeiro tick do golpe é zero na resolução")
 	check(sim.fighters[0].attack_boxes().is_empty(), "Sem hitbox no startup")
 	neutral(sim, 6)
-	check(sim.fighters[0].move_tick == 7 and sim.fighters[0].attack_boxes().is_empty(), "Startup 4f ocupa ticks 0–7")
+	check(
+		sim.fighters[0].move_tick == 7 and sim.fighters[0].attack_boxes().is_empty(),
+		"Startup 4f ocupa ticks 0–7"
+	)
 	neutral(sim)
 	check(not sim.fighters[0].attack_boxes().is_empty(), "Active inicia no tick 8")
 	neutral(sim, 5)
@@ -86,6 +104,7 @@ func _test_frames() -> void:
 	check(sim.fighters[0].move_tick == 32, "4+3+9 frames = 32 ticks")
 	neutral(sim)
 	check(sim.fighters[0].state == FighterState.Id.IDLE, "Retorna a idle após recovery")
+
 
 func _test_contacts() -> void:
 	var sim := close_sim()
@@ -100,7 +119,12 @@ func _test_contacts() -> void:
 	check(sim.fighters[1].health == 956, "Um acerto por alvo por golpe")
 	sim = close_sim()
 	for tick in 24:
-		sim.step([CombatInput.new(0, CombatInput.PUNCH if tick == 0 else 0), CombatInput.new(CombatInput.RIGHT)])
+		sim.step(
+			[
+				CombatInput.new(0, CombatInput.PUNCH if tick == 0 else 0),
+				CombatInput.new(CombatInput.RIGHT)
+			]
+		)
 	check(sim.fighters[1].health == 1000, "Segurar para trás bloqueia mid")
 	# Validação direta de níveis, sem depender de espaçamento ou startup.
 	var target := sim.fighters[1]
@@ -114,7 +138,10 @@ func _test_contacts() -> void:
 	sim = close_sim()
 	sim.step([CombatInput.new(0, CombatInput.PUNCH), CombatInput.new(0, CombatInput.PUNCH)])
 	neutral(sim, 8)
-	check(sim.fighters[0].health == 956 and sim.fighters[1].health == 956, "Golpes simultâneos geram trade")
+	check(
+		sim.fighters[0].health == 956 and sim.fighters[1].health == 956,
+		"Golpes simultâneos geram trade"
+	)
 	sim = close_sim()
 	sim.fighters[1].health = 1
 	sim.step([CombatInput.new(0, CombatInput.PUNCH), CombatInput.new()])
@@ -124,24 +151,32 @@ func _test_contacts() -> void:
 	neutral(sim, 30)
 	check(sim.fighters[1].health == hp, "Partida encerrada não aplica novos golpes")
 
+
 func _test_buffer() -> void:
 	var sim := FightSimulation.new(DATA, DATA)
 	sim.step([CombatInput.new(0, CombatInput.PUNCH), CombatInput.new()])
 	neutral(sim, 26)
 	sim.step([CombatInput.new(0, CombatInput.KICK), CombatInput.new()])
 	neutral(sim, 5)
-	check(sim.fighters[0].move_id == "kick", "Input no fim de recovery executa na primeira janela livre")
+	check(
+		sim.fighters[0].move_id == "kick",
+		"Input no fim de recovery executa na primeira janela livre"
+	)
 	sim = FightSimulation.new(DATA, DATA)
 	sim.step([CombatInput.new(CombatInput.PUNCH, CombatInput.PUNCH), CombatInput.new()])
 	for _i in 90:
 		sim.step([CombatInput.new(CombatInput.PUNCH), CombatInput.new()])
 	check(sim.fighters[0].state == FighterState.Id.IDLE, "Hold não repete ataque sem novo edge")
 
+
 func _scripted_input(frame: int) -> Array[CombatInput]:
 	var p1 := CombatInput.RIGHT if frame % 200 < 60 else 0
 	var p2 := CombatInput.LEFT if frame % 200 < 60 else CombatInput.GUARD
-	return [CombatInput.new(p1, CombatInput.PUNCH if frame % 53 == 0 else 0),
-		CombatInput.new(p2, CombatInput.KICK if frame % 89 == 0 else 0)]
+	return [
+		CombatInput.new(p1, CombatInput.PUNCH if frame % 53 == 0 else 0),
+		CombatInput.new(p2, CombatInput.KICK if frame % 89 == 0 else 0)
+	]
+
 
 func _test_replay() -> void:
 	var sim := FightSimulation.new(DATA, DATA)
@@ -166,9 +201,18 @@ func _test_replay() -> void:
 			inputs[1] = CombatInput.new(CombatInput.LEFT, CombatInput.UP)
 		reference.step(inputs)
 		timeline.advance(sim, _scripted_input(frame))
-	check(timeline.correct_and_replay(sim, 20, 1, CombatInput.new(CombatInput.LEFT, CombatInput.UP)), "Correção local aceita input atrasado")
-	check(sim.state_hash() == reference.state_hash(), "Replay corrigido coincide com referência sem atraso")
+	check(
+		timeline.correct_and_replay(sim, 20, 1, CombatInput.new(CombatInput.LEFT, CombatInput.UP)),
+		"Correção local aceita input atrasado"
+	)
+	check(
+		sim.state_hash() == reference.state_hash(),
+		"Replay corrigido coincide com referência sem atraso"
+	)
 	for frame in range(80, 360):
 		timeline.advance(sim, _scripted_input(frame))
 	check(timeline.history.size() <= ReplayTimeline.CAPACITY + 1, "Histórico tem limite de memória")
-	check(not timeline.correct_and_replay(sim, 0, 1, CombatInput.new()), "Rejeita correção fora do histórico")
+	check(
+		not timeline.correct_and_replay(sim, 0, 1, CombatInput.new()),
+		"Rejeita correção fora do histórico"
+	)

@@ -10,6 +10,7 @@ var focus_lost: bool = false
 var dummy_mode: int = 0
 var debug_boxes: bool = false
 
+
 func _ready() -> void:
 	add_child(TrainingStage.new())
 	input_source = LocalCombatInput.new()
@@ -26,6 +27,7 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(_fit_viewport)
 	_fit_viewport()
 
+
 func _fit_viewport() -> void:
 	# Viewport lógico fixo e letterbox preservam coordenadas de combate em qualquer tela.
 	var area := get_viewport_rect().size
@@ -35,6 +37,7 @@ func _fit_viewport() -> void:
 	# CanvasLayer não herda o transform do Node2D.
 	hud.scale = Vector2.ONE * factor
 	hud.position = position
+
 
 func _reset() -> void:
 	sim = FightSimulation.new(PROTOTYPE, PROTOTYPE)
@@ -46,6 +49,7 @@ func _reset() -> void:
 	focus_lost = false
 	hud.paused = false
 	input_source.clear()
+
 
 func _physics_process(_delta: float) -> void:
 	if paused or focus_lost:
@@ -63,6 +67,7 @@ func _physics_process(_delta: float) -> void:
 		view.sync()
 	hud.show_events(sim.events)
 
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("reset_match"):
 		_reset()
@@ -78,9 +83,17 @@ func _unhandled_input(event: InputEvent) -> void:
 		focus_lost = false
 		hud.paused = paused
 		input_source.clear()
+		_snap_views()
 	elif event.is_action_pressed("fullscreen"):
 		var mode := DisplayServer.window_get_mode()
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if mode == DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_FULLSCREEN)
+		DisplayServer.window_set_mode(
+			(
+				DisplayServer.WINDOW_MODE_WINDOWED
+				if mode == DisplayServer.WINDOW_MODE_FULLSCREEN
+				else DisplayServer.WINDOW_MODE_FULLSCREEN
+			)
+		)
+
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and is_instance_valid(input_source):
@@ -88,3 +101,9 @@ func _notification(what: int) -> void:
 		paused = true
 		hud.paused = true
 		input_source.clear()
+		_snap_views()
+
+
+func _snap_views() -> void:
+	for view in views:
+		view.sync(true)
