@@ -43,8 +43,12 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.keyboard.press('r');await delay(200);const baseFx=await page.screenshot();await page.keyboard.press('t');await wait(()=>window.svfQA?.projectiles>0);
  const codeFx=await page.screenshot({path:'test-results/07-code.png'});const codePixels=addedGreen(baseFx,codeFx);
  assert(codePixels>300,'Onda de código deve estar visível em pixels, não apenas existir na simulação');await delay(900);
- await page.keyboard.press('u');await wait(()=>window.svfQA?.projectiles>=5);await page.screenshot({path:'test-results/08-drones.png'});
- assert.equal((await state()).meter[0],0,'Super consome barra');await wait(()=>window.svfQA?.power_kinds?.includes('laser'));await page.screenshot({path:'test-results/08a-drone-laser.png'});
+ await page.keyboard.press('u');await wait(()=>window.svfQA?.projectiles>=5);
+ assert.equal((await state()).meter[0],0,'Super consome barra');
+ // Observe the beam before any screenshot can consume its flight window. A
+ // separate Q cast gives the stationary drone a longer, two-second windup shot.
+ await wait(()=>window.svfQA?.power_positions?.some(p=>p.kind==='laser'&&p.age>=5));await page.screenshot({path:'test-results/08a-drone-laser.png'});
+ await page.keyboard.press('r');await delay(150);await page.keyboard.press('q');await wait(()=>window.svfQA?.power_kinds?.includes('drone'));await page.screenshot({path:'test-results/08-drones.png'});
  await page.keyboard.press('F4');await wait(()=>window.svfQA?.new_art===false);await page.screenshot({path:'test-results/09-old-art-comparison.png'});await page.keyboard.press('F4');
  await page.keyboard.press('Escape');await delay(100);before=await state();await delay(250);assert.equal((await state()).tick,before.tick,'Pausa congela simulação');
  await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');

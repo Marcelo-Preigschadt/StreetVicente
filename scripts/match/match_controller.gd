@@ -249,6 +249,7 @@ func _publish_qa() -> void:
 					"x": float(p.x) / 256.0,
 					"y": float(p.y) / 256.0,
 					"kind": p.kind,
+					"age": p.age,
 					"effect": p.effect
 				}
 		)
