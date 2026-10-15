@@ -59,8 +59,10 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.keyboard.press('ArrowDown');await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='selection');
  await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='story');await delay(400);
  assert((await state()).story.enemies>=3);await page.keyboard.press('Space');await delay(180);await page.screenshot({path:'test-results/11-story.png'});await delay(800);
- await page.keyboard.press('t');await wait(()=>window.svfQA?.story?.projectiles>0);assert.equal((await state()).story.power_sprites,true);await page.screenshot({path:'test-results/11a-story-code.png'});await delay(900);
- await page.keyboard.press('q');await wait(()=>window.svfQA?.story?.power_kinds?.includes('drone'));await page.screenshot({path:'test-results/11b-story-drone.png'});
+ // Restart each campaign check through R: screenshot latency must not let the
+ // approaching enemies interrupt the next cast before its startup completes.
+ await page.keyboard.press('r');await delay(100);await page.keyboard.press('t');await wait(()=>window.svfQA?.story?.projectiles>0);assert.equal((await state()).story.power_sprites,true);await page.screenshot({path:'test-results/11a-story-code.png'});
+ await page.keyboard.press('r');await delay(100);await page.keyboard.press('q');await wait(()=>window.svfQA?.story?.power_kinds?.includes('drone'));await page.screenshot({path:'test-results/11b-story-drone.png'});
  await page.keyboard.press('Escape');await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');
  // Visual review playback, actual commands into the same simulation as the player.
  await page.keyboard.press('ArrowUp');await page.keyboard.press('ArrowUp');await page.keyboard.press('ArrowUp');await page.keyboard.press('Enter');

@@ -400,6 +400,10 @@ func _demo_inputs() -> Array[CombatInput]:
 		pressed = CombatInput.KICK
 	elif t == 690:
 		pressed = CombatInput.UPPERCUT
+	elif t == 790:
+		pressed = CombatInput.UP
+	elif t == 810:
+		pressed = CombatInput.KICK
 	elif t == 990:
 		pressed = CombatInput.SPECIAL
 	elif t == 1100:
