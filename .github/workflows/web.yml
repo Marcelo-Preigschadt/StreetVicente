@@ -1,0 +1,61 @@
+name: Godot · Validate, export and deploy Web
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read pinned engine version
+        id: version
+        run: echo "value=$(cat tools/godot_version.txt)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .tools
+            ~/.local/share/godot/export_templates
+          key: godot-web-linux-${{ steps.version.outputs.value }}-v1
+      - name: Install Godot and Web templates
+        run: bash tools/setup_godot.sh
+      - name: Import and test combat / replay
+        run: bash tools/test.sh
+      - name: Export single-thread Web
+        run: bash tools/export_web.sh
+      - name: Upload playable Web package
+        uses: actions/upload-artifact@v4
+        with:
+          name: StreetVicente-Web
+          path: build/web/
+          include-hidden-files: true
+      - name: Prepare Pages artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web/
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

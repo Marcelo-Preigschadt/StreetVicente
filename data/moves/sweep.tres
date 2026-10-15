@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/combat/hitbox_data.gd" id="2"]
+[sub_resource type="Resource" id="Hit"]
+script = ExtResource("2")
+rect = Rect2i(10, -42, 164, 36)
+first_frame = 10
+end_frame = 15
+[resource]
+script = ExtResource("1")
+id = "sweep"
+display_name = "Rasteira"
+startup = 10
+active = 5
+recovery = 21
+damage = 90
+hitstun = 26
+blockstun = 15
+hitstop = 4
+push_pixels = 30
+level = 1
+hitboxes = Array[ExtResource("2")]([SubResource("Hit")])

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/combat/hitbox_data.gd" id="2"]
+[sub_resource type="Resource" id="Hit"]
+script = ExtResource("2")
+rect = Rect2i(24, -156, 112, 38)
+first_frame = 4
+end_frame = 7
+[resource]
+script = ExtResource("1")
+id = "jab"
+display_name = "Soco direto"
+startup = 4
+active = 3
+recovery = 9
+damage = 44
+hitstun = 17
+blockstun = 10
+hitstop = 3
+push_pixels = 18
+hitboxes = Array[ExtResource("2")]([SubResource("Hit")])

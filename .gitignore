@@ -1,0 +1,9 @@
+.godot/
+build/
+.tools/
+export_credentials.cfg
+*.tmp
+test-results/
+__pycache__/
+*.pyc
+node_modules/

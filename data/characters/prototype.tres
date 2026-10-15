@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=6 format=3]
+[ext_resource type="Script" path="res://scripts/characters/character_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/moves/jab.tres" id="2"]
+[ext_resource type="Resource" path="res://data/moves/kick.tres" id="3"]
+[ext_resource type="Resource" path="res://data/moves/sweep.tres" id="4"]
+[ext_resource type="Resource" path="res://data/moves/air_kick.tres" id="5"]
+[resource]
+script = ExtResource("1")
+id = "prototype"
+display_name = "LUTADOR 01"
+color = Color(0.31, 0.9, 0.8, 1)
+max_health = 1000
+speed_pixels_per_tick = 3
+jab = ExtResource("2")
+kick = ExtResource("3")
+sweep = ExtResource("4")
+air_kick = ExtResource("5")

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/combat/hitbox_data.gd" id="2"]
+[sub_resource type="Resource" id="Hit"]
+script = ExtResource("2")
+rect = Rect2i(18, -113, 158, 48)
+first_frame = 8
+end_frame = 12
+[resource]
+script = ExtResource("1")
+id = "kick"
+display_name = "Chute lateral"
+startup = 8
+active = 4
+recovery = 17
+damage = 80
+hitstun = 23
+blockstun = 13
+hitstop = 4
+push_pixels = 30
+hitboxes = Array[ExtResource("2")]([SubResource("Hit")])
