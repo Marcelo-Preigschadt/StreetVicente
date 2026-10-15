@@ -115,6 +115,7 @@ func confirm_selection() -> void:
 
 
 func _start_fight() -> void:
+	impact.clear()
 	ai = CombatAI.new()
 	PilotArt.load_data()
 	for atlas in PilotArt.data.sheets.values():
@@ -137,13 +138,17 @@ func _start_fight() -> void:
 		views[i].setup(sim.fighters[i], sim.fighters[i].character.color)
 		views[i].camera_x = 0
 		views[i].show()
-	power_view.sim = sim
+	power_view.setup(sim)
 	power_view.show()
 	story_view.hide()
 	audio.play(LegacyRoster.catalog.sounds.get("announcer-fight", ""), "voice")
 
 
 func _start_story() -> void:
+	impact.clear()
+	PilotArt.load_data()
+	for atlas in PilotArt.data.sheets.values():
+		LegacyRoster.texture(atlas.image)
 	story = StorySimulation.new(LegacyRoster.get_character(selected[0]))
 	screen = "story"
 	paused = false
@@ -154,7 +159,8 @@ func _start_story() -> void:
 	views[1].hide()
 	story_view.world = story
 	story_view.show()
-	power_view.hide()
+	power_view.setup(story)
+	power_view.show()
 
 
 func _physics_process(_delta: float) -> void:
@@ -178,6 +184,7 @@ func _physics_process(_delta: float) -> void:
 			sim.fighters[0].health = 1000
 		sim.step(inputs)
 		impact.consume(sim.events, sim)
+		power_view.consume(sim.events)
 		if mode == "training" and sim.winner < 0:
 			sim.remaining_ticks = 99 * 120
 		for i in 2:
@@ -187,10 +194,13 @@ func _physics_process(_delta: float) -> void:
 		audio.consume(sim.events)
 	elif screen == "story":
 		story.step(input_source.sample(0))
+		if views[0].model != story.hero:
+			views[0].setup(story.hero, story.hero.character.color)
 		views[0].camera_x = story.camera_x
 		views[0].sync()
 		audio.consume(story.events)
 		impact.consume(story.events, null)
+		power_view.consume(story.events)
 	if qa:
 		_publish_qa()
 
@@ -206,6 +216,7 @@ func _process(_delta: float) -> void:
 	for view in views:
 		view.impact_offset = impact.offset()
 	impact.camera_x = story.camera_x if screen == "story" else 0.0
+	power_view.camera_x = impact.camera_x
 	queue_redraw()
 	if qa and (paused or screen not in ["fight", "story"]):
 		_publish_qa()
@@ -219,6 +230,7 @@ func _publish_qa() -> void:
 		"cursor": cursor,
 		"slot": selection_slot,
 		"roster": LegacyRoster.ids().size(),
+		"roster_ids": LegacyRoster.ids(),
 		"paused": paused
 	}
 	if screen == "fight" and sim != null:
@@ -229,6 +241,22 @@ func _publish_qa() -> void:
 		data.moves = [sim.fighters[0].move_id, sim.fighters[1].move_id]
 		data.meter = [sim.fighters[0].meter, sim.fighters[1].meter]
 		data.projectiles = sim.projectiles.size()
+		data.power_kinds = sim.projectiles.map(func(p: Dictionary) -> String: return str(p.kind))
+		data.power_sprites = power_view.visible
+		data.power_positions = sim.projectiles.map(
+			func(p: Dictionary) -> Dictionary:
+				return {
+					"x": float(p.x) / 256.0,
+					"y": float(p.y) / 256.0,
+					"kind": p.kind,
+					"effect": p.effect
+				}
+		)
+		data.pose_index = (
+			PilotArt.frame(sim.fighters[0]).index
+			if sim.fighters[0].character.id == "marcelo"
+			else 0
+		)
 		data.hash = sim.state_hash()
 		data.new_art = views[0].use_new_art
 		data.pose = (
@@ -242,7 +270,12 @@ func _publish_qa() -> void:
 			"act": story.act_index,
 			"wave": story.wave_index,
 			"enemies": story.enemies.size(),
-			"hp": story.hero.health
+			"hp": story.hero.health,
+			"projectiles": story.projectiles.size(),
+			"power_sprites": power_view.visible,
+			"power_kinds": story.projectiles.map(func(p: Dictionary) -> String: return str(p.kind)),
+			"x": story.hero.x,
+			"y": story.hero.y
 		}
 	JavaScriptBridge.eval("window.svfQA = " + JSON.stringify(data), true)
 

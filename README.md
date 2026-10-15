@@ -6,7 +6,7 @@ Projeto em Godot 4.5.1 / GDScript, 1280×720, simulação a 120 Hz e exportaçã
 
 ## Nova arte do Marcelo
 
-No menu, **TESTAR MARCELO / NOVA ARTE** abre o piloto jogável. Há **56 desenhos novos** para soco, chute, caminhada, defesa, salto, reações, ascendente, golpes baixos e emissão de poderes. **F3** demonstra os movimentos; **F4** compara com a arte anterior. [Detalhes e prévia animada](docs/ART_PILOT.md).
+No menu, **TESTAR MARCELO / NOVA ARTE** abre o piloto jogável. Há **64 desenhos novos** para soco, chute, caminhada, defesa, salto, reações, ascendente, golpes baixos e emissão de poderes. A voadora tem 8 chaves aéreas próprias. Há 16 chaves de VFX para código, drones, fumaça, garfos e livros. **F3** demonstra os movimentos; **F4** compara com a arte anterior. [Detalhes e prévia animada](docs/ART_PILOT.md).
 
 Os outros 12 personagens usam a arte importada. Redesenhar e revisar o restante do elenco é uma etapa posterior; não se trata de uma renovação visual já concluída de todo o jogo.
 
@@ -17,7 +17,7 @@ Os outros 12 personagens usam a arte importada. Redesenhar e revisar o restante 
 | Seleção | 13 personagens; professores/alunos; retratos, frases e vozes preservados |
 | Combate | CPU, 2 jogadores locais e treinamento; forças leve/média/forte; golpes baixos/aéreos, cancels básicos, defesa, agarrão, dizzy e queda/levantada |
 | Rounds | Melhor de três; barra super preservada entre rounds |
-| Poderes | Projéteis e efeitos por personagem; código e drones/enxame do Marcelo |
+| Poderes | Projéteis e efeitos por personagem; código e drones/enxame do Marcelo; VFX animados e lasers independentes; compartilhados com o História |
 | Arte nova | Piloto do Marcelo; demais personagens com arte anterior |
 | História | Base offline com quatro atos, ondas, inimigos, chefes, profundidade, câmera e objetos quebráveis; ainda sem paridade completa com o original |
 | Rollback | Snapshot/replay local verificado; online permanece indisponível até implementação e testes reais de sessão/rede |

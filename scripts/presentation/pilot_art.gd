@@ -10,6 +10,9 @@ static func load_data() -> void:
 		data = JSON.parse_string(
 			FileAccess.get_file_as_string("res://data/characters/marcelo-art-v1.json")
 		)
+		data.sheets.air = JSON.parse_string(
+			FileAccess.get_file_as_string("res://data/characters/marcelo-air-v2.json")
+		)
 
 
 static func frame(f: FighterModel) -> Dictionary:
@@ -49,7 +52,12 @@ static func frame(f: FighterModel) -> Dictionary:
 			var active_keys: Array = [3, 4]
 			var recovery_keys: Array = [5, 6, 7]
 			sheet = "punch"
-			if name in ["kick", "airKick"]:
+			if name == "airKick":
+				sheet = "air"
+				start_keys = [0, 1, 2]
+				active_keys = [3, 4]
+				recovery_keys = [5, 6, 7]
+			elif name == "kick":
 				sheet = "combat"
 			elif name == "crouchPunch":
 				sheet = "low"

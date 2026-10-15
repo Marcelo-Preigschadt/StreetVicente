@@ -41,6 +41,8 @@ func _run() -> void:
 	_test_pilot_art()
 	_test_powers_rounds()
 	_test_story()
+	_test_air_kick_v2()
+	_test_shared_powers()
 	print("COMBAT TESTS: %d checks, %d failures" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 
@@ -292,7 +294,7 @@ func _test_pilot_art() -> void:
 				frame.rect[2] > 0 and frame.rect[3] > 0 and frame.scale > 0,
 				"Desenho completo com registro e escala"
 			)
-	check(drawings == 56, "56 desenhos novos, sem inbetweens artificiais")
+	check(drawings == 64, "64 desenhos novos, incluindo oito chaves aéreas dedicadas")
 	var f := FighterModel.new(LegacyRoster.get_character("marcelo"), 0, 500)
 	for state in FighterState.Id.values():
 		if state == FighterState.Id.ATTACK:
@@ -368,3 +370,138 @@ func _test_story() -> void:
 			world.tick > 100 and not world.snapshot().enemies.is_empty(),
 			"Ato simula IA e estado serializável"
 		)
+
+
+func _test_air_kick_v2() -> void:
+	var c := LegacyRoster.get_character("marcelo")
+	for facing in [1, -1]:
+		for start in [8, 30, 65]:
+			var sim := FightSimulation.new(c, LegacyRoster.get_character("rafael"))
+			sim.fighters[0].x = (350 if facing == 1 else 950) * 256
+			sim.fighters[1].x = (1150 if facing == 1 else 100) * 256
+			sim.step([CombatInput.new(0, CombatInput.JUMP), CombatInput.new()])
+			neutral(sim, start)
+			sim.step([CombatInput.new(0, CombatInput.KICK), CombatInput.new()])
+			var f := sim.fighters[0]
+			check(f.move_id == "airKick:1", "Voadora contextual na subida/ápice/descida")
+			check(PilotArt.frame(f).key == "air", "Voadora usa apenas o novo atlas aéreo")
+			var before_y := f.y
+			var before_vy := f.vy
+			neutral(sim)
+			check(
+				f.y - before_y == before_vy + 77 or f.grounded(),
+				"Golpe não teleporta root nem reinicia arco do pulo"
+			)
+			check(f.facing == facing, "Direção da voadora é preservada")
+			var guard := 0
+			while not f.grounded() and guard < 160:
+				if f.state == FighterState.Id.ATTACK:
+					check(
+						PilotArt.frame(f).key == "air",
+						"Nenhuma pose de chute no chão durante o voo"
+					)
+				neutral(sim)
+				guard += 1
+			check(
+				f.state == FighterState.Id.LANDING,
+				"Contato com piso termina golpe e entra em aterrissagem"
+			)
+			check(
+				f.move_id == "" and f.attack_boxes().is_empty(),
+				"Aterrissagem limpa hitboxes e move aéreo"
+			)
+			neutral(sim, 12)
+			check(
+				f.state == FighterState.Id.IDLE,
+				"Retorno limpo à guarda sem segundo chute automático"
+			)
+	var f := FighterModel.new(c, 0, 300)
+	f.y -= 150 * 256
+	f.state = FighterState.Id.JUMP
+	f.air_normal_used = true
+	f.record_input(CombatInput.new(0, CombatInput.KICK), 0)
+	f.begin_tick(900 * 256)
+	check(
+		f.state == FighterState.Id.JUMP,
+		"Segundo normal aéreo não cai no fallback de golpe terrestre"
+	)
+	f.move_id = "airKick:1"
+	f.state = FighterState.Id.ATTACK
+	f.move_tick = c.get_move("airKick").startup * 2
+	var hit := f.attack_boxes()[0]
+	check(hit.position.y - f.y == -210 * 256, "Hitbox acompanha altura do novo pé estendido")
+
+
+func _test_shared_powers() -> void:
+	PowerArt.load_data()
+	check(
+		PowerArt.data.frames.size() == 16, "16 chaves de VFX: código, drone, fumaça, garfo e livro"
+	)
+	check(ResourceLoader.exists(PowerArt.data.image), "Atlas de poderes disponível no pacote")
+	for id in ["marcelo", "gustavo", "khauany", "dienes"]:
+		var sim := FightSimulation.new(
+			LegacyRoster.get_character(id), LegacyRoster.get_character("rafael")
+		)
+		sim.step([CombatInput.new(0, CombatInput.SPECIAL), CombatInput.new()])
+		neutral(sim, 40)
+		check(not sim.projectiles.is_empty(), "Especial é entidade real: " + id)
+		check(sim.projectiles[0].kind == "projectile", "Projétil normal separado de drones/lasers")
+		check(
+			int(sim.projectiles[0].origin_x) > 410 * 256 + 90 * 256,
+			"Emissão sai na posição da mão: " + id
+		)
+	var sim := FightSimulation.new(
+		LegacyRoster.get_character("marcelo"), LegacyRoster.get_character("rafael")
+	)
+	sim.step([CombatInput.new(0, CombatInput.DRONE), CombatInput.new()])
+	neutral(sim, 40)
+	var drone: Dictionary = sim.projectiles[0]
+	var anchor_x := int(drone.x)
+	var anchor_y := int(drone.y)
+	neutral(sim, 100)
+	check(
+		int(drone.x) == anchor_x and int(drone.y) == anchor_y,
+		"Sentinela permanece posicionada durante carregamento"
+	)
+	var found_laser := false
+	for i in 160:
+		neutral(sim)
+		for p in sim.projectiles:
+			found_laser = found_laser or p.kind == "laser"
+	check(found_laser, "Sentinela emite entidade de laser separada")
+	check(sim.fighters[1].health < 1000, "Laser acerta alvo abaixo do drone")
+	var world := StorySimulation.new(LegacyRoster.get_character("marcelo"))
+	world.step(CombatInput.new(0, CombatInput.SPECIAL))
+	for i in 30:
+		world.step(CombatInput.new())
+	check(
+		not world.projectiles.is_empty(),
+		"História usa projétil com trajeto, sem dano instantâneo de área"
+	)
+	var saved := world.snapshot()
+	for i in 180:
+		world.step(CombatInput.new())
+	var expected := var_to_bytes(world.snapshot()).hex_encode().sha256_text()
+	world.restore(saved)
+	for i in 180:
+		world.step(CombatInput.new())
+	check(
+		var_to_bytes(world.snapshot()).hex_encode().sha256_text() == expected,
+		"Snapshot/replay do História preserva entidades, IA e projéteis"
+	)
+	# A lane mismatch must not damage a target even when screen-space AABBs overlap.
+	var source := FighterModel.new(LegacyRoster.get_character("marcelo"), 0, 1500)
+	var target := FighterModel.new(LegacyRoster.get_character("rafael"), 1, 1700)
+	target.ground_y = 500 * 256
+	target.y = target.ground_y
+	var system := PowerSystem.new()
+	source.move_id = "special:1"
+	source.state = FighterState.Id.ATTACK
+	source.move_tick = source.current_move().startup * 2
+	system.emit(source, 0, true)
+	var actors: Array[FighterModel] = [source, target]
+	var contacts := 0
+	for i in 20:
+		contacts += system.advance(actors, 3600, i).size()
+	check(contacts == 0, "Projéteis do História respeitam profundidade de lane")
+	check(not system.projectiles.is_empty(), "Projétil do História permanece válido após X=1380")

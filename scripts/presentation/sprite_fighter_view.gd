@@ -8,6 +8,12 @@ var trails: Array = []
 var trail_clock: float = 0.0
 
 
+func setup(value: FighterModel, tint: Color) -> void:
+	trails.clear()
+	trail_clock = 0.0
+	super.setup(value, tint)
+
+
 func _process(_delta: float) -> void:
 	if model == null:
 		return

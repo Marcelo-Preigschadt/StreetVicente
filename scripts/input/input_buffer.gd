@@ -37,3 +37,7 @@ func snapshot() -> Array:
 
 func restore(data: Array) -> void:
 	entries = data.duplicate(true)
+
+
+func discard(mask: int) -> void:
+	entries = entries.filter(func(e: Array) -> bool: return (int(e[0]) & mask) == 0)

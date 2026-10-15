@@ -6,9 +6,9 @@ Foram inspecionados diretamente `src/locomotion.js` e `src/netplay.js`. O origin
 
 ## Estado desta implementação
 
-O catálogo já importa 13 personagens, 432 definições de golpes e 151 assets. O combate Godot usa esses dados, projéteis, barra, rounds, CPU e seleção. Marcelo ganhou 56 desenhos novos como piloto: [arte e limites](ART_PILOT.md). Os demais usam os desenhos existentes.
+O catálogo já importa 13 personagens, 432 definições de golpes e 151 assets. O combate Godot usa esses dados, projéteis, barra, rounds, CPU e seleção. Marcelo ganhou 64 desenhos novos como piloto: [arte e limites](ART_PILOT.md). Os demais usam os desenhos existentes.
 
-A campanha offline tem os quatro atos, ondas/chefes, lane, câmera e objetos quebráveis. Ainda faltam objetos carregáveis/arremessáveis, perigos específicos, comportamento completo de cada chefe, diálogos em fluxo, checkpoints persistentes e coop. Os poderes no História ainda usam área por lane em parte dos casos; não têm a mesma implementação de entidades do Versus. Esta etapa não declara paridade com o original.
+A campanha offline tem os quatro atos, ondas/chefes, lane, câmera e objetos quebráveis. Ainda faltam objetos carregáveis/arremessáveis, perigos específicos, comportamento completo de cada chefe, diálogos em fluxo, checkpoints persistentes e coop. Os poderes do herói agora usam PowerSystem compartilhado com o Versus, com trajeto, tolerância de lane, drones estacionários e lasers separados. Snapshot/restore do História inclui inimigos, cooldowns, objetos, contador de IDs e projéteis. Esta etapa não declara paridade com o original.
 
 O online continua bloqueado na UI. Replay local não substitui lobby, transporte, handshake, confirmação, rollback em rede e reconexão.
 

@@ -54,5 +54,7 @@ func consume(events: Array) -> void:
 					"heavy" if e.get("move", "").begins_with("super") else "light", ""
 				)
 			)
+		elif e.kind == "laser":
+			play(LegacyRoster.catalog.sounds.get("special", ""))
 		elif e.kind == "round":
 			play(LegacyRoster.catalog.sounds.get("announcer-fight", ""), "voice")

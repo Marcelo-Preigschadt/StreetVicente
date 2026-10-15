@@ -6,8 +6,17 @@ const TICK_RATE := 120
 const LEFT_WALL := 60 * FighterModel.SCALE
 const RIGHT_WALL := 1220 * FighterModel.SCALE
 const BODY_WIDTH := 76 * FighterModel.SCALE
-var projectiles: Array = []
-var projectile_seq: int = 0
+var powers := PowerSystem.new()
+var projectiles: Array:
+	get:
+		return powers.projectiles
+	set(value):
+		powers.projectiles = value
+var projectile_seq: int:
+	get:
+		return powers.sequence
+	set(value):
+		powers.sequence = value
 var wins: Array = [0, 0]
 var round_number: int = 1
 var round_wait: int = 0
@@ -27,6 +36,7 @@ func _init(p1: CharacterData, p2: CharacterData) -> void:
 func step(inputs: Array[CombatInput]) -> void:
 	assert(inputs.size() == 2)
 	events.clear()
+	powers.events.clear()
 	for i in 2:
 		fighters[i].record_input(inputs[i], tick)
 	if winner >= 0:
@@ -105,14 +115,17 @@ func step(inputs: Array[CombatInput]) -> void:
 		freeze_ticks = maxi(freeze_ticks, move.hitstop * 2)
 		events.append(
 			{
-				"id": "%d:%d:%d" % [tick, attacker.slot, defender.slot],
+				"id":
+				"%d:%d:%d:%d" % [tick, attacker.slot, defender.slot, int(contact.get("entity", 0))],
 				"tick": tick,
 				"kind": "block" if contact.blocked else "hit",
 				"move": move.id,
 				"character": attacker.character.id,
 				"slot": defender.slot,
-				"x": defender.x,
-				"y": defender.y - 110 * FighterModel.SCALE
+				"effect": str(contact.get("effect", "")),
+				"power_kind": str(contact.get("power_kind", "")),
+				"x": int(contact.get("impact_x", defender.x)),
+				"y": int(contact.get("impact_y", defender.y - 190 * FighterModel.SCALE))
 			}
 		)
 	_resolve_bodies()
@@ -194,99 +207,19 @@ func state_hash() -> String:
 	return var_to_bytes(snapshot()).hex_encode().sha256_text()
 
 
+func power_actors() -> Array[FighterModel]:
+	return fighters
+
+
 func _emit_powers() -> void:
 	for f in fighters:
-		if f.state != FighterState.Id.ATTACK:
-			continue
-		var move := f.current_move()
-		if move.legacy.is_empty():
-			continue
-		var m := move.legacy
-		if f.move_tick == 0:
-			events.append(
-				{
-					"id": "%d:voice:%d" % [tick, f.slot],
-					"kind": "voice",
-					"character": f.character.id,
-					"move": m.name,
-					"tick": tick,
-					"slot": f.slot,
-					"x": f.x,
-					"y": f.y
-				}
-			)
-			if m.name == "super":
-				freeze_ticks = maxi(freeze_ticks, 20)
-		if not m.get("projectile", false) and not m.get("summon", false):
-			continue
-		var waves := int(m.get("waves", 3 if m.name == "super" else 1))
-		if f.character.id == "marcelo" and m.name in ["super", "drone"]:
-			waves = 5 if m.name == "super" else 1
-		var release_tick := move.startup * 2 + f.emitted_waves * 10
-		if f.emitted_waves >= waves or f.move_tick < release_tick:
-			continue
-		projectile_seq += 1
-		var drone: bool = f.character.id == "marcelo" and m.name in ["super", "drone"]
-		projectiles.append(
-			{
-				"id": projectile_seq,
-				"owner": f.slot,
-				"character": f.character.id,
-				"move": move.id,
-				"x": f.x + f.facing * 70 * FighterModel.SCALE,
-				"y":
-				f.y - (140 + (f.emitted_waves % 3) * 35 if drone else 185) * FighterModel.SCALE,
-				"vx": f.facing * roundi(float(m.get("speed", 720)) * FighterModel.SCALE / 120.0),
-				"age": 0,
-				"ttl": 600,
-				"delay": (80 if m.name == "super" else 240) if drone else 0,
-				"warmup": 80 if m.name == "super" else 240,
-				"drone": drone,
-				"radius": int(m.get("radius", 26)),
-				"effect": str(m.get("effect", f.character.id)),
-				"lane": 0
-			}
-		)
-		f.emitted_waves += 1
+		if powers.emit(f, tick):
+			freeze_ticks = maxi(freeze_ticks, 20)
+	events.append_array(powers.events)
+	powers.events.clear()
 
 
 func _projectile_contacts(contacts: Array) -> void:
-	var alive: Array = []
-	for p in projectiles:
-		p.age += 1
-		if p.age > p.ttl:
-			continue
-		if p.delay > 0:
-			p.delay -= 1
-			alive.append(p)
-			continue
-		var attacker := fighters[int(p.owner)]
-		var defender := fighters[1 - int(p.owner)]
-		if p.drone:
-			# Disparo acompanha a altura do alvo; sentinela no chão não perde o adversário.
-			p.y = defender.y - 145 * FighterModel.SCALE
-		p.x += p.vx
-		if p.x < -100 * FighterModel.SCALE or p.x > 1380 * FighterModel.SCALE:
-			continue
-		var radius := int(p.radius) * FighterModel.SCALE
-		var hit := Rect2i(int(p.x) - radius, int(p.y) - radius, radius * 2, radius * 2)
-		var found := false
-		var move := attacker.character.move_for(p.move)
-		for hurt in defender.hurtboxes():
-			if BoxMath.overlap(hit, hurt):
-				found = true
-		if found:
-			contacts.append(
-				{
-					"attacker": attacker.slot,
-					"defender": defender.slot,
-					"move": move,
-					"facing": signi(int(p.vx)),
-					"blocked":
-					move.legacy.get("level", "") != "throw" and defender.blocking(move.level),
-					"projectile": true
-				}
-			)
-		else:
-			alive.append(p)
-	projectiles = alive
+	contacts.append_array(powers.advance(fighters, 1280, tick))
+	events.append_array(powers.events)
+	powers.events.clear()

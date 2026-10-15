@@ -21,6 +21,7 @@ var has_contact: bool = false
 var emitted_waves: int = 0
 var move_motion_started: bool = false
 var jump_vx: int = 0
+var air_normal_used: bool = false
 var character: CharacterData
 var slot: int
 var x: int
@@ -76,6 +77,7 @@ func begin_tick(opponent_x: int) -> void:
 			return
 		vy = -3072  # -1440 px/s.
 		vx = jump_vx
+		air_normal_used = false
 		transition(FighterState.Id.JUMP)
 		x += vx
 		_integrate_air()
@@ -146,7 +148,7 @@ func begin_tick(opponent_x: int) -> void:
 		return
 	if not character.legacy.is_empty() and _legacy_command(false):
 		pass
-	elif buffer.consume(CombatInput.KICK):
+	elif character.legacy.is_empty() and buffer.consume(CombatInput.KICK):
 		_start_move(
 			(
 				character.air_kick
@@ -154,7 +156,7 @@ func begin_tick(opponent_x: int) -> void:
 				else (character.sweep if input.has(CombatInput.DOWN) else character.kick)
 			)
 		)
-	elif grounded() and buffer.consume(CombatInput.PUNCH):
+	elif character.legacy.is_empty() and grounded() and buffer.consume(CombatInput.PUNCH):
 		_start_move(character.jab)
 	elif grounded() and (buffer.consume(CombatInput.UP) or buffer.consume(CombatInput.JUMP)):
 		if character.legacy.is_empty():
@@ -187,6 +189,11 @@ func _integrate_air() -> void:
 			y = ground_y
 			vy = 0
 			vx = 0
+			air_normal_used = false
+			buffer.discard(CombatInput.PUNCH | CombatInput.KICK)
+			if state == FighterState.Id.ATTACK and not character.legacy.is_empty():
+				if current_move().airborne:
+					hit_targets.clear()
 			if state == FighterState.Id.JUMP:
 				transition(
 					FighterState.Id.IDLE if character.legacy.is_empty() else FighterState.Id.LANDING
@@ -198,6 +205,8 @@ func _integrate_air() -> void:
 
 
 func _start_move(move: MoveData) -> void:
+	if not grounded() and move.airborne:
+		air_normal_used = true
 	move_id = move.id
 	move_tick = 0
 	hit_targets.clear()
@@ -246,6 +255,11 @@ func hurtboxes() -> Array[Rect2i]:
 func attack_boxes() -> Array[Rect2i]:
 	var result: Array[Rect2i] = []
 	if state != FighterState.Id.ATTACK:
+		return result
+	if not current_move().hitboxes.is_empty():
+		for box in current_move().hitboxes:
+			if box.active(move_tick):
+				result.append(BoxMath.world_rect(box.rect, x, y, facing))
 		return result
 	if not current_move().legacy.is_empty():
 		var move := current_move()
@@ -332,6 +346,7 @@ func snapshot() -> Dictionary:
 		"emitted_waves": emitted_waves,
 		"move_motion_started": move_motion_started,
 		"jump_vx": jump_vx,
+		"air_normal_used": air_normal_used,
 		"slot": slot,
 		"character": character.id,
 		"x": x,
@@ -367,7 +382,8 @@ func restore(data: Dictionary) -> void:
 		"has_contact",
 		"emitted_waves",
 		"move_motion_started",
-		"jump_vx"
+		"jump_vx",
+		"air_normal_used"
 	]:
 		set(field, data[field])
 	x = data.x
@@ -416,6 +432,8 @@ func _legacy_command(cancel: bool) -> bool:
 					else name
 				)
 			)
+		if not grounded() and air_normal_used and name in ["punch", "kick"]:
+			continue
 		if not grounded() and name in ["uppercut", "throw"]:
 			continue
 		var move := character.get_move(resolved, strength)

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="HitboxData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/hitbox_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+rect = Rect2i(45, -210, 180, 65)
+first_frame = 5
+end_frame = 23

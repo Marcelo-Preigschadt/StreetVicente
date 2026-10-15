@@ -16,7 +16,10 @@ var events: Array = []
 var camera_x: float = 0.0
 var next_id: int = 1
 var freeze_ticks: int = 0
-var power_world: FightSimulation
+var powers := PowerSystem.new()
+var projectiles: Array:
+	get:
+		return powers.projectiles
 
 
 func _init(character: CharacterData, first_act: int = 0) -> void:
@@ -34,11 +37,16 @@ func act() -> Dictionary:
 func _start_act() -> void:
 	enemies.clear()
 	props.clear()
+	powers.projectiles.clear()
+	var charge := hero.meter
+	var life := mini(1000, hero.health + 300)
+	hero = FighterModel.new(hero.character, 0, 220)
+	hero.health = life
+	hero.meter = charge
 	wave_index = 0
 	hero.x = 220 * UNIT
 	hero.y = 625 * UNIT
 	hero.ground_y = 625 * UNIT
-	hero.health = mini(1000, hero.health + 300)
 	hero.transition(FighterState.Id.IDLE)
 	for i in 6:
 		props.append(
@@ -60,14 +68,7 @@ func _spawn_wave() -> void:
 	for i in kinds.size():
 		var kind: String = kinds[i]
 		var p: Dictionary = LegacyRoster.catalog.story.enemies[kind]
-		var c := CharacterData.new()
-		c.id = "enemy_" + kind
-		c.max_health = int(p.hp)
-		c.speed_pixels_per_tick = maxi(1, roundi(float(p.speed) / 120.0))
-		c.jab = PROTOTYPE.jab
-		c.kick = PROTOTYPE.kick
-		c.sweep = PROTOTYPE.sweep
-		c.air_kick = PROTOTYPE.air_kick
+		var c := _enemy_character(kind)
 		var f := FighterModel.new(c, next_id, mini(3400, 650 + wave_index * 820 + i * 130))
 		f.ground_y = (580 + i % 3 * 30) * UNIT
 		f.y = f.ground_y
@@ -81,6 +82,7 @@ func _spawn_wave() -> void:
 
 func step(value: CombatInput) -> void:
 	events.clear()
+	powers.events.clear()
 	if completed or defeated:
 		return
 	if freeze_ticks > 0:
@@ -106,29 +108,18 @@ func step(value: CombatInput) -> void:
 			best = absi(f.x - hero.x)
 			nearest_x = f.x
 	hero.record_input(CombatInput.new(held, pressed), tick)
+	var old_x := hero.x
 	hero.begin_tick(nearest_x)
 	var gate := mini(3560, 880 + wave_index * 820) * UNIT
 	hero.x = clampi(hero.x, 70 * UNIT, gate)
+	if hero.state == FighterState.Id.WALK:
+		hero.walk_distance += absi(hero.x - old_x)
 	var boxes := hero.attack_boxes()
 	var power := hero.current_move() if hero.state == FighterState.Id.ATTACK else null
-	if power != null and hero.move_tick == 0:
-		events.append(
-			{
-				"id": "%d:voice" % tick,
-				"kind": "voice",
-				"character": hero.character.id,
-				"move": power.legacy.get("name", "punch"),
-				"slot": 0,
-				"x": hero.x,
-				"y": hero.y
-			}
-		)
-	var area_power: bool = (
-		power != null
-		and power.legacy.get("projectile", false)
-		and hero.move_tick >= power.startup * 2
-		and hero.move_tick < (power.startup + power.active) * 2
-	)
+	if powers.emit(hero, tick, true):
+		freeze_ticks = maxi(freeze_ticks, 20)
+	events.append_array(powers.events)
+	powers.events.clear()
 	var alive := 0
 	for enemy in enemies:
 		var f: FighterModel = enemy.fighter
@@ -159,35 +150,14 @@ func step(value: CombatInput) -> void:
 		f.record_input(CombatInput.new(enemy_input, enemy_edge), tick)
 		f.begin_tick(hero.x)
 		if absi(delta_lane) <= 50 * UNIT:
-			var contact: bool = (
-				area_power
-				and distance < (700 if power.legacy.name == "super" else 390) * UNIT
-				and signi(f.x - hero.x) == hero.facing
-			)
+			var contact := false
 			for hit in boxes:
 				for hurt in f.hurtboxes():
 					if BoxMath.overlap(hit, hurt):
 						contact = true
 			if contact and not enemy.id in hero.hit_targets:
 				hero.hit_targets.append(enemy.id)
-				hero.has_contact = true
-				hero.meter = mini(100, hero.meter + 10)
-				hero.combo += 1
-				hero.combo_ticks = 100
-				f.receive_hit(power, hero.facing, false)
-				freeze_ticks = 4
-				score += power.damage
-				events.append(
-					{
-						"id": "%d:hit:%d" % [tick, enemy.id],
-						"kind": "hit",
-						"character": hero.character.id,
-						"move": power.id,
-						"slot": 1,
-						"x": f.x,
-						"y": f.y - 130 * UNIT
-					}
-				)
+				_apply_hero_hit(f, power, hero.facing, false, f.x, f.y - 130 * UNIT, "", 0)
 			for hit in f.attack_boxes():
 				if 0 in f.hit_targets:
 					continue
@@ -198,6 +168,21 @@ func step(value: CombatInput) -> void:
 							f.current_move(), f.facing, hero.blocking(MoveData.Level.MID)
 						)
 		f.end_tick()
+	for contact in powers.advance(power_actors(), 3600, tick):
+		var target := _enemy(int(contact.defender))
+		if target != null:
+			_apply_hero_hit(
+				target,
+				contact.move,
+				int(contact.facing),
+				contact.blocked,
+				int(contact.impact_x),
+				int(contact.impact_y),
+				contact.effect,
+				int(contact.entity)
+			)
+	events.append_array(powers.events)
+	powers.events.clear()
 	for prop in props:
 		if prop.hp <= 0:
 			continue
@@ -247,5 +232,91 @@ func snapshot() -> Dictionary:
 		"score": score,
 		"completed": completed,
 		"defeated": defeated,
-		"freeze": freeze_ticks
+		"freeze": freeze_ticks,
+		"powers": powers.snapshot(),
+		"next_id": next_id
 	}
+
+
+func power_actors() -> Array[FighterModel]:
+	var result: Array[FighterModel] = [hero]
+	for enemy in enemies:
+		result.append(enemy.fighter)
+	return result
+
+
+func _enemy(slot: int) -> FighterModel:
+	for enemy in enemies:
+		if int(enemy.id) == slot:
+			return enemy.fighter
+	return null
+
+
+func _apply_hero_hit(
+	target: FighterModel,
+	move: MoveData,
+	facing: int,
+	blocked: bool,
+	x: int,
+	y: int,
+	effect: String,
+	entity: int
+) -> void:
+	hero.has_contact = true
+	if not blocked:
+		hero.meter = mini(100, hero.meter + int(move.legacy.get("meter", 8)))
+		hero.combo += 1
+		hero.combo_ticks = 100
+		score += move.damage
+	target.receive_hit(move, facing, blocked)
+	freeze_ticks = maxi(freeze_ticks, move.hitstop * 2)
+	events.append(
+		{
+			"id": "%d:hit:%d:%d" % [tick, target.slot, entity],
+			"kind": "block" if blocked else "hit",
+			"tick": tick,
+			"character": hero.character.id,
+			"move": move.id,
+			"slot": target.slot,
+			"x": x,
+			"y": y,
+			"effect": effect,
+			"power_kind": "projectile" if entity > 0 else ""
+		}
+	)
+
+
+static func _enemy_character(kind: String) -> CharacterData:
+	var p: Dictionary = LegacyRoster.catalog.story.enemies[kind]
+	var c := CharacterData.new()
+	c.id = "enemy_" + kind
+	c.max_health = int(p.hp)
+	c.speed_pixels_per_tick = maxi(1, roundi(float(p.speed) / 120.0))
+	c.jab = PROTOTYPE.jab
+	c.kick = PROTOTYPE.kick
+	c.sweep = PROTOTYPE.sweep
+	c.air_kick = PROTOTYPE.air_kick
+	return c
+
+
+func restore(data: Dictionary) -> void:
+	tick = int(data.tick)
+	act_index = int(data.act)
+	wave_index = int(data.wave)
+	score = int(data.score)
+	completed = data.completed
+	defeated = data.defeated
+	freeze_ticks = int(data.freeze)
+	next_id = int(data.next_id)
+	hero.restore(data.hero)
+	enemies.clear()
+	for raw in data.enemies:
+		var e: Dictionary = raw.duplicate(true)
+		var f := FighterModel.new(_enemy_character(e.kind), int(e.id), 0)
+		f.restore(raw.fighter)
+		e.fighter = f
+		enemies.append(e)
+	props = data.props.duplicate(true)
+	powers.restore(data.powers)
+	camera_x = clampf(float(hero.x) / UNIT - 420, 0, 2320)
+	events.clear()

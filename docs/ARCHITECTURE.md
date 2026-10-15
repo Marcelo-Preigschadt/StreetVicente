@@ -16,6 +16,8 @@ O controlador avança em `_physics_process` a 120 Hz. Até 16 passos de catch-up
 | CombatInput/CommandBuffer | Held, edges e comandos consumíveis | Sim |
 | FighterModel | Root, velocidade, facing, FSM, HP, stun, move e alvos atingidos | Sim |
 | FightSimulation | Tick, timer, hitstop e resultado | Sim |
+| PowerSystem | Projéteis, formação/carregamento de drones, lasers, IDs e TTL; compartilhado com StorySimulation | Sim |
+| StorySimulation | Herói, inimigos/cooldowns, objetos, ondas e projéteis; restore offline | Sim |
 | ReplayTimeline | Inputs e snapshots, 240 ticks | Externo ao estado do mundo |
 | SpriteFighterView/GameScreen/CombatImpact | Interpolação, desenho por chave, partículas | Não |
 | AppSettings | InputMap e dispositivo | Não |
@@ -32,6 +34,6 @@ Hitstop congela combate e timer, mantendo amostragem de input; buffer expira pel
 
 ## Apresentação
 
-Views interpolam posições anterior/atual com `Engine.get_physics_interpolation_fraction()`. Não adicionar interpolação automática aos mesmos nós. Após reset/correção, chamar `sync(true)` e reconstruir apresentação. O manequim de referência conserva IK de dois segmentos. A apresentação do elenco usa atlas; Marcelo usa PilotArt com 56 novos desenhos e exposição das chaves conforme fase/tick. Caminhada avança pela distância efetiva após paredes/pushboxes. IK visual não decide hurtboxes.
+Views interpolam posições anterior/atual com `Engine.get_physics_interpolation_fraction()`. Não adicionar interpolação automática aos mesmos nós. Após reset/correção, chamar `sync(true)` e reconstruir apresentação. O manequim de referência conserva IK de dois segmentos. A apresentação do elenco usa atlas; Marcelo usa PilotArt com 64 novos desenhos e exposição das chaves conforme fase/tick. Caminhada avança pela distância efetiva após paredes/pushboxes. IK visual não decide hurtboxes.
 
 Eventos são `{id,tick,kind,slot,x,y}`. O modo local os consome uma vez por passo. Rollback futuro deve confirmar e deduplicar áudio/partículas/câmera por ID para não reapresentar efeitos a cada replay.

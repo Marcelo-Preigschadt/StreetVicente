@@ -153,8 +153,8 @@ func _hud() -> void:
 	text_at(
 		Vector2(24, 687),
 		(
-			"P1 A/D · W pulo · S baixo · F/G golpes · T código · Y ascendente"
-			+ " · U enxame · E agarrar · Q drone"
+			"P1 A/D · W pulo · S baixo · F/G golpes · T especial · Y ascendente"
+			+ " · U super · E agarrar · Q sentinela (Marcelo)"
 		),
 		15,
 		MINT
