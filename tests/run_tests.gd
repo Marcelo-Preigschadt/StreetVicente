@@ -37,6 +37,10 @@ func _run() -> void:
 	_test_contacts()
 	_test_buffer()
 	_test_replay()
+	_test_roster()
+	_test_pilot_art()
+	_test_powers_rounds()
+	_test_story()
 	print("COMBAT TESTS: %d checks, %d failures" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 
@@ -216,3 +220,145 @@ func _test_replay() -> void:
 		not timeline.correct_and_replay(sim, 0, 1, CombatInput.new()),
 		"Rejeita correção fora do histórico"
 	)
+
+
+func _test_roster() -> void:
+	LegacyRoster.load_catalog()
+	check(LegacyRoster.ids().size() == 13, "13 personagens do repositório de origem")
+	var move_count := 0
+	for id in LegacyRoster.ids():
+		var c := LegacyRoster.get_character(id)
+		check(not c.legacy.voices.is_empty(), "Voz aprovada: " + id)
+		check(ResourceLoader.exists(c.legacy.portrait), "Retrato disponível: " + id)
+		for move in c.moves.values():
+			move_count += 1
+			check(move.validate(), "Frame data importada: " + id + "/" + move.id)
+			var valid := true
+			for f in move.legacy.frames:
+				valid = valid and c.legacy.atlases.has(f.pose[0])
+				if valid:
+					valid = (
+						int(f.pose[1]) >= 0
+						and int(f.pose[1]) < c.legacy.atlases[f.pose[0]].frames.size()
+					)
+			check(valid, "Todos os quadros possuem desenho: " + id + "/" + move.id)
+	check(move_count == 432, "432 definições de golpes importadas")
+	var sim := FightSimulation.new(
+		LegacyRoster.get_character("marcelo"), LegacyRoster.get_character("rafael")
+	)
+	var initial := sim.fighters[0].x
+	sim.step([CombatInput.new(CombatInput.RIGHT), CombatInput.new()])
+	check(
+		sim.fighters[0].x - initial == roundi(324.0 * 256 / 120),
+		"Velocidade do Marcelo convertida para ponto fixo"
+	)
+	check(
+		sim.fighters[0].walk_distance == sim.fighters[0].x - initial,
+		"Gait acompanha deslocamento corrigido"
+	)
+	sim.fighters[0].x = FightSimulation.RIGHT_WALL
+	sim.fighters[1].x = 800 * 256
+	var stride := sim.fighters[0].walk_distance
+	sim.step([CombatInput.new(CombatInput.RIGHT), CombatInput.new()])
+	check(
+		sim.fighters[0].walk_distance == stride,
+		"Pé não avança ciclo quando root está preso na parede"
+	)
+	sim = FightSimulation.new(
+		LegacyRoster.get_character("marcelo"), LegacyRoster.get_character("rafael")
+	)
+	sim.step([CombatInput.new(0, CombatInput.JUMP), CombatInput.new()])
+	check(sim.fighters[0].state == FighterState.Id.PREJUMP, "Espaço inicia prejump de 3f")
+	neutral(sim, 6)
+	check(not sim.fighters[0].grounded(), "Prejump lança corpo após 6 ticks")
+	neutral(sim, 120)
+	check(sim.fighters[0].grounded(), "Novo personagem aterrissa na origem dos pés")
+
+
+func _test_pilot_art() -> void:
+	PilotArt.load_data()
+	var drawings := 0
+	for sheet in PilotArt.data.sheets.values():
+		check(ResourceLoader.exists(sheet.image), "Atlas novo incluído: " + str(sheet.image))
+		for frame in sheet.frames:
+			drawings += 1
+			check(
+				frame.rect[2] > 0 and frame.rect[3] > 0 and frame.scale > 0,
+				"Desenho completo com registro e escala"
+			)
+	check(drawings == 56, "56 desenhos novos, sem inbetweens artificiais")
+	var f := FighterModel.new(LegacyRoster.get_character("marcelo"), 0, 500)
+	for state in FighterState.Id.values():
+		if state == FighterState.Id.ATTACK:
+			continue
+		f.state = state
+		check(
+			not PilotArt.frame(f).is_empty(), "Apresentação do estado " + FighterState.NAMES[state]
+		)
+	for move in f.character.moves.values():
+		f.state = FighterState.Id.ATTACK
+		f.move_id = move.id
+		for t in move.total_ticks():
+			f.move_tick = t
+			check(not PilotArt.frame(f).is_empty(), "Arte cobre tick do golpe " + move.id)
+
+
+func _test_powers_rounds() -> void:
+	var marcelo := LegacyRoster.get_character("marcelo")
+	var rafael := LegacyRoster.get_character("rafael")
+	var sim := FightSimulation.new(marcelo, rafael)
+	sim.fighters[0].meter = 100
+	sim.step([CombatInput.new(0, CombatInput.SUPER), CombatInput.new()])
+	check(sim.fighters[0].meter == 0, "Enxame consome 100 de barra")
+	neutral(sim, 90)
+	check(sim.projectiles.size() == 5, "Super gera cinco drones independentes")
+	var saved := sim.snapshot()
+	var saved_hash := sim.state_hash()
+	neutral(sim, 190)
+	var expected := sim.state_hash()
+	check(sim.fighters[1].health < 1000, "Drones disparam e acertam o alvo")
+	sim.restore(saved)
+	check(sim.state_hash() == saved_hash, "Snapshot restaura IDs, delay e posição dos drones")
+	neutral(sim, 190)
+	check(sim.state_hash() == expected, "Replay com drones preserva hash")
+	sim = FightSimulation.new(marcelo, rafael)
+	sim.fighters[0].x = 500 * 256
+	sim.fighters[1].x = 600 * 256
+	sim.step([CombatInput.new(0, CombatInput.THROW), CombatInput.new(CombatInput.GUARD)])
+	neutral(sim, 20)
+	check(sim.fighters[1].health < 1000, "Agarrão conecta contra defesa")
+	sim = FightSimulation.new(marcelo, rafael)
+	sim.fighters[0].meter = 73
+	sim.fighters[1].health = 0
+	neutral(sim)
+	check(sim.wins[0] == 1, "Round contabiliza vencedor")
+	neutral(sim, 240)
+	check(sim.round_number == 2 and sim.winner == -1, "Próximo round reinicia lutadores")
+	check(sim.fighters[0].meter == 73, "Barra super preservada entre rounds")
+	sim.fighters[1].health = 0
+	neutral(sim)
+	check(sim.match_over and sim.wins[0] == 2, "Melhor de três encerra ao vencer dois rounds")
+
+
+func _test_story() -> void:
+	for act_index in 4:
+		var world := StorySimulation.new(LegacyRoster.get_character("marcelo"), act_index)
+		check(
+			world.enemies.size() == world.act().waves[0].size(),
+			"Primeira onda do ato %d" % act_index
+		)
+		var lane := world.hero.ground_y
+		world.step(CombatInput.new(CombatInput.UP))
+		check(
+			world.hero.ground_y < lane and world.hero.grounded(), "Profundidade é separada do salto"
+		)
+		world.step(CombatInput.new(0, CombatInput.JUMP))
+		for i in 8:
+			world.step(CombatInput.new())
+		check(not world.hero.grounded(), "Espaço salta na campanha")
+		for i in 120:
+			world.step(CombatInput.new(CombatInput.RIGHT, CombatInput.PUNCH if i % 40 == 0 else 0))
+		check(
+			world.tick > 100 and not world.snapshot().enemies.is_empty(),
+			"Ato simula IA e estado serializável"
+		)

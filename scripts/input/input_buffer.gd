@@ -2,7 +2,17 @@ class_name CommandBuffer
 extends RefCounted
 ## Buffer de 100 ms = 12 ticks. Faz parte do snapshot, inclusive consumo.
 const WINDOW_TICKS := 12
-const COMMANDS := [CombatInput.KICK, CombatInput.PUNCH, CombatInput.UP]
+const COMMANDS := [
+	CombatInput.SUPER,
+	CombatInput.SPECIAL,
+	CombatInput.UPPERCUT,
+	CombatInput.THROW,
+	CombatInput.DRONE,
+	CombatInput.KICK,
+	CombatInput.PUNCH,
+	CombatInput.UP,
+	CombatInput.JUMP
+]
 var entries: Array = []
 
 

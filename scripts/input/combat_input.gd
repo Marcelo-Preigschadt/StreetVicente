@@ -8,7 +8,15 @@ const UP := 8
 const PUNCH := 16
 const KICK := 32
 const GUARD := 64
-const ALL := 127
+const SPECIAL := 128
+const SUPER := 256
+const UPPERCUT := 512
+const THROW := 1024
+const DRONE := 2048
+const STRONG := 4096
+const LIGHT := 8192
+const JUMP := 16384
+const ALL := 32767
 
 var held: int = 0
 var pressed: int = 0

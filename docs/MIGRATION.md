@@ -4,6 +4,14 @@ Origem consultada em modo de leitura: `Marcelo-Preigschadt/Street-Vicente-Fighte
 
 Foram inspecionados diretamente `src/locomotion.js` e `src/netplay.js`. O original mantém física a 120 Hz e frame data a 60 Hz. RollbackGame salva snapshots e inputs, prevê held remoto anterior sem repetir ataques, corrige a partir do primeiro input divergente e limita o histórico a 180 ticks. A nova base não converte esses módulos automaticamente.
 
+## Estado desta implementação
+
+O catálogo já importa 13 personagens, 432 definições de golpes e 151 assets. O combate Godot usa esses dados, projéteis, barra, rounds, CPU e seleção. Marcelo ganhou 56 desenhos novos como piloto: [arte e limites](ART_PILOT.md). Os demais usam os desenhos existentes.
+
+A campanha offline tem os quatro atos, ondas/chefes, lane, câmera e objetos quebráveis. Ainda faltam objetos carregáveis/arremessáveis, perigos específicos, comportamento completo de cada chefe, diálogos em fluxo, checkpoints persistentes e coop. Os poderes no História ainda usam área por lane em parte dos casos; não têm a mesma implementação de entidades do Versus. Esta etapa não declara paridade com o original.
+
+O online continua bloqueado na UI. Replay local não substitui lobby, transporte, handshake, confirmação, rollback em rede e reconexão.
+
 ## Etapas e critérios
 
 | Etapa | Implementação | Critério de aceite |

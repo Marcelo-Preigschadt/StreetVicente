@@ -1,8 +1,24 @@
 class_name FighterState
 extends RefCounted
 ## FSM só contém estados de gameplay; não depende de AnimationTree/SceneTree.
-enum Id { IDLE, WALK, CROUCH, JUMP, ATTACK, HITSTUN, BLOCK, KO }
-const NAMES := ["IDLE", "WALK", "CROUCH", "JUMP", "ATTACK", "HITSTUN", "BLOCK", "KO"]
+enum Id {
+	IDLE, WALK, CROUCH, JUMP, ATTACK, HITSTUN, BLOCK, KO, KNOCKDOWN, WAKEUP, DIZZY, PREJUMP, LANDING
+}
+const NAMES := [
+	"IDLE",
+	"WALK",
+	"CROUCH",
+	"JUMP",
+	"ATTACK",
+	"HITSTUN",
+	"BLOCK",
+	"KO",
+	"KNOCKDOWN",
+	"WAKEUP",
+	"DIZZY",
+	"PREJUMP",
+	"LANDING"
+]
 
 
 static func actionable(state: Id) -> bool:

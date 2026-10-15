@@ -1,0 +1,97 @@
+class_name PilotArt
+extends RefCounted
+## New drawings are presentation only. Combat tick and phase select the exposed key.
+## No mesh deformation/interpolated invented poses; root interpolation stays separate.
+static var data: Dictionary = {}
+
+
+static func load_data() -> void:
+	if data.is_empty():
+		data = JSON.parse_string(
+			FileAccess.get_file_as_string("res://data/characters/marcelo-art-v1.json")
+		)
+
+
+static func frame(f: FighterModel) -> Dictionary:
+	load_data()
+	var sheet := "states"
+	var index := 0
+	match f.state:
+		FighterState.Id.IDLE:
+			index = [0, 1, 0, 1][(f.state_tick / 28) % 4]
+		FighterState.Id.WALK:
+			sheet = "walk"
+			index = posmod(int(f.walk_distance * 8 / (160 * FighterModel.SCALE)), 8)
+			if f.input.axis_x() == -f.facing:
+				index = 7 - index
+		FighterState.Id.CROUCH, FighterState.Id.PREJUMP:
+			index = 4
+		FighterState.Id.BLOCK:
+			index = 5 if f.input.has(CombatInput.DOWN) else 2
+		FighterState.Id.JUMP:
+			index = 6 if f.vy < -450 else 7 if f.vy < 500 else 8
+		FighterState.Id.LANDING:
+			index = 9
+		FighterState.Id.HITSTUN:
+			index = (
+				11 if f.stun_gauge > 110 and f.state_tick < 12 else 10 if f.state_tick < 12 else 12
+			)
+		FighterState.Id.DIZZY:
+			index = 13
+		FighterState.Id.KNOCKDOWN, FighterState.Id.KO:
+			index = 14
+		FighterState.Id.WAKEUP:
+			index = 14 if f.state_tick < 10 else 9 if f.state_tick < 24 else 4
+		FighterState.Id.ATTACK:
+			var move := f.current_move()
+			var name: String = move.legacy.name
+			var start_keys: Array = [0, 1, 2]
+			var active_keys: Array = [3, 4]
+			var recovery_keys: Array = [5, 6, 7]
+			sheet = "punch"
+			if name in ["kick", "airKick"]:
+				sheet = "combat"
+			elif name == "crouchPunch":
+				sheet = "low"
+				start_keys = [0, 1]
+				active_keys = [2]
+				recovery_keys = [3, 0]
+			elif name == "sweep":
+				sheet = "low"
+				start_keys = [4, 5]
+				active_keys = [6]
+				recovery_keys = [7, 4]
+			elif name == "uppercut":
+				sheet = "combat"
+				start_keys = [8, 9]
+				active_keys = [9, 10]
+				recovery_keys = [10, 11, 0]
+			elif name in ["special", "super", "drone"]:
+				sheet = "combat"
+				start_keys = [12, 13]
+				active_keys = [14]
+				recovery_keys = [14, 15, 0]
+			index = move_key(f.move_tick, move, start_keys, active_keys, recovery_keys)
+	var atlas: Dictionary = data.sheets[sheet]
+	return {"sheet": atlas, "frame": atlas.frames[index], "key": sheet, "index": index}
+
+
+static func move_key(
+	tick: int, move: MoveData, startup: Array, active: Array, recovery: Array
+) -> int:
+	var keys: Array
+	var offset: int
+	var duration: int
+	if tick < move.startup * 2:
+		keys = startup
+		offset = tick
+		duration = move.startup * 2
+	elif tick < (move.startup + move.active) * 2:
+		keys = active
+		offset = tick - move.startup * 2
+		duration = move.active * 2
+	else:
+		keys = recovery
+		offset = tick - (move.startup + move.active) * 2
+		duration = move.recovery * 2
+	return int(keys[clampi(int(offset * keys.size() / maxi(1, duration)), 0, keys.size() - 1)])

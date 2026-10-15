@@ -15,6 +15,7 @@ enum Level { MID, LOW, OVERHEAD }
 @export var level: Level = Level.MID
 @export var airborne: bool = false
 @export var hitboxes: Array[HitboxData] = []
+var legacy: Dictionary = {}
 
 
 func total_ticks() -> int:
@@ -30,6 +31,8 @@ func phase(tick: int) -> String:
 
 
 func validate() -> bool:
+	if not legacy.is_empty():
+		return not legacy.frames.is_empty() and total_ticks() == legacy.frames.size()
 	if id.is_empty() or damage < 0 or hitstun < 1 or blockstun < 1 or hitstop < 0:
 		return false
 	for box in hitboxes:

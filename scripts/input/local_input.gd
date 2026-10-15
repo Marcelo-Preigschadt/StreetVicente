@@ -1,7 +1,23 @@
 class_name LocalCombatInput
 extends Node
 ## Captura edges via eventos e polling; não perde um tap curto entre ticks.
-const NAMES := ["left", "right", "down", "up", "punch", "kick", "guard"]
+const NAMES := [
+	"left",
+	"right",
+	"down",
+	"up",
+	"punch",
+	"kick",
+	"guard",
+	"special",
+	"super",
+	"uppercut",
+	"throw",
+	"drone",
+	"strong",
+	"light",
+	"jump"
+]
 var pending: Array[int] = [0, 0]
 var previous: Array[int] = [0, 0]
 
