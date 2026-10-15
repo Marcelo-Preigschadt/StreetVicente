@@ -5,12 +5,12 @@ const fs=require('node:fs');const path=require('node:path');const {spawn}=requir
 process.chdir(path.resolve(__dirname,'..'));fs.mkdirSync('test-results',{recursive:true});
 if(!fs.existsSync('build/StreetVicente'))fs.symlinkSync('web','build/StreetVicente');
 const server=spawn('python3',['-m','http.server','8061','--directory','build','--bind','127.0.0.1']);
-const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser;
+const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[];
 (async()=>{
  for(let i=0;i<50;i++){try{if((await fetch('http://127.0.0.1:8061/StreetVicente/')).ok)break;}catch{}await delay(100);}
  browser=await chromium.launch({headless:true,args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
- const page=await browser.newPage({viewport:{width:1280,height:720},recordVideo:{dir:'test-results/video',size:{width:1280,height:720}}});
- const errors=[],responses={};page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(/SCRIPT ERROR|Parse Error|Failed to load|ERROR:/i.test(m.text()))errors.push(m.text());});
+ page=await browser.newPage({viewport:{width:1280,height:720},recordVideo:{dir:'test-results/video',size:{width:1280,height:720}}});
+ const responses={};page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(/SCRIPT ERROR|Parse Error|Failed to load|ERROR:|observer enabled/i.test(m.text())){console.log('BROWSER',m.text());if(!/observer enabled/i.test(m.text()))errors.push(m.text());}});
  page.on('response',r=>{if(/index\.(wasm|pck)$/.test(r.url()))responses[r.url().split('/').pop()]=r.status();});
  const state=()=>page.evaluate(()=>window.svfQA);
  const wait=fn=>page.waitForFunction(fn,null,{timeout:25000});
@@ -52,4 +52,4 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser;
  assert.equal(responses['index.wasm'],200);assert.equal(responses['index.pck'],200);assert.deepEqual(errors,[],'Console Web sem erros');
  fs.writeFileSync('test-results/web-smoke.json',JSON.stringify({status:'passed',checks:['WASM/PCK sob /StreetVicente/','13 personagens','nova arte por estados','movimento','prejump/salto','soco com dano','chute','rasteira','código','cinco drones','comparação de arte','pausa','seleção','história','demonstração','resize','console sem erros'],responses},null,2));
  await page.close();console.log('WEB SMOKE PASSED: novo Marcelo + combate/poderes + roster + história');
-})().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();server.kill();});
+})().catch(async e=>{console.error(e);console.error('Browser errors:',JSON.stringify(errors));if(page&&!page.isClosed()){await page.screenshot({path:'test-results/failure.png'}).catch(()=>{});const status=await page.evaluate(()=>({url:location.href,qa:window.svfQA,status:document.getElementById('status')?.innerText})).catch(()=>({}));console.error('Browser state:',JSON.stringify(status));fs.writeFileSync('test-results/failure.json',JSON.stringify({error:String(e),errors,status},null,2));}process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();server.kill();});

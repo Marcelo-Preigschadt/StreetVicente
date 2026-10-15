@@ -58,7 +58,10 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(_fit_viewport)
 	_fit_viewport()
 	if OS.has_feature("web"):
-		qa = JavaScriptBridge.eval("window.location.search.includes('qa=1')") == true
+		qa = (
+			int(JavaScriptBridge.eval("window.location.search.includes('qa=1') ? 1 : 0", true)) == 1
+		)
+		print("Web observer enabled: ", qa)
 
 
 func _fit_viewport() -> void:
@@ -112,6 +115,7 @@ func confirm_selection() -> void:
 
 
 func _start_fight() -> void:
+	ai = CombatAI.new()
 	sim = FightSimulation.new(
 		LegacyRoster.get_character(selected[0]), LegacyRoster.get_character(selected[1])
 	)
@@ -197,7 +201,7 @@ func _process(_delta: float) -> void:
 		view.impact_offset = impact.offset()
 	impact.camera_x = story.camera_x if screen == "story" else 0.0
 	queue_redraw()
-	if qa and screen not in ["fight", "story"]:
+	if qa and (paused or screen not in ["fight", "story"]):
 		_publish_qa()
 
 
@@ -234,7 +238,7 @@ func _publish_qa() -> void:
 			"enemies": story.enemies.size(),
 			"hp": story.hero.health
 		}
-	JavaScriptBridge.eval("window.svfQA = " + JSON.stringify(data))
+	JavaScriptBridge.eval("window.svfQA = " + JSON.stringify(data), true)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -296,7 +300,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				paused = false
 				input_source.clear()
 			elif screen == "fight" and sim.match_over:
-				choose_menu(MENU.find("VERSUS / CPU") if mode == "cpu" else 1)
+				choose_menu(1 if mode == "cpu" else 4 if mode == "training" else 2)
 			elif screen == "story" and story.completed:
 				screen = "menu"
 				_hide_world()

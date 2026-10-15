@@ -57,15 +57,16 @@ func _menu() -> void:
 		)
 	text_at(Vector2(78, 674), "W/S ou setas: navegar    Enter: selecionar    F11: tela cheia", 16)
 	text_at(Vector2(78, 626), "F3: demonstração no treino · F4: comparar arte", 16, GOLD)
-	var c := LegacyRoster.get_character("marcelo")
-	var pose: Dictionary = c.legacy.atlases.base.frames[0]
+	PilotArt.load_data()
+	var atlas: Dictionary = PilotArt.data.sheets.states
+	var pose: Dictionary = atlas.frames[0]
 	var r: Array = pose.rect
-	var s := float(pose.get("scale", c.legacy.atlases.base.scale)) * 1.5
+	var s := float(pose.scale) * 1.3
 	draw_texture_rect_region(
-		LegacyRoster.texture(c.legacy.atlases.base.image),
+		LegacyRoster.texture(atlas.image),
 		Rect2(
-			960 + (float(pose.x) - float(pose.anchor)) * s,
-			680 + (float(pose.y) - float(pose.bottom)) * s,
+			960 - float(pose.anchor) * s,
+			680 - float(pose.bottom) * s,
 			float(r[2]) * s,
 			float(r[3]) * s
 		),
@@ -174,6 +175,19 @@ func _hud() -> void:
 			17,
 			GOLD
 		)
+	if game.mode == "training" and not story_mode:
+		text_at(
+			Vector2(28, 145),
+			(
+				"ALVO: "
+				+ ["JOGADOR 2", "PARADO", "DEFESA ALTA", "DEFESA BAIXA"][game.dummy_mode]
+				+ " / F2"
+			),
+			16,
+			GOLD
+		)
+		if game.demo:
+			text_at(Vector2(28, 170), "DEMONSTRAÇÃO / F3 para assumir controle", 16, MINT)
 	if a.combo >= 2:
 		text_at(Vector2(100, 183), "%d HITS" % a.combo, 32, MINT)
 	if b != null and b.combo >= 2:
