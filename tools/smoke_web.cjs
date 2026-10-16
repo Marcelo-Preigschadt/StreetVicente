@@ -128,11 +128,13 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.keyboard.press('Escape');await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');
  // CPU score is earned by real gameplay, then verified after reloading WASM.
  for(let i=0;i<3;i++)await page.keyboard.press('ArrowUp');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='selection');
+ q=await state();for(let i=0;i<(q.roster_ids.indexOf('marcelo')-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
  await page.keyboard.press('Enter');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight');
  assert.equal((await state()).arcade.opponents.length,12);
- for(let attempt=0;attempt<20&&((await state()).arcade?.score??0)===0;attempt++){
-  q=await state();if(q.x[1]-q.x[0]>180*256){await page.keyboard.down('d');await delay(200);await page.keyboard.up('d');}
-  await page.keyboard.press(attempt%3===0?'g':'f');await delay(360);
+ // The CPU stops outside jab range and attacks with long kicks. Cast the
+ // actual zero-cost code projectile from neutral instead of whiffing jabs.
+ for(let attempt=0;attempt<8&&((await state()).arcade?.score??0)===0;attempt++){
+  await page.keyboard.press('t');await delay(400);
  }
  q=await state();assert(q.arcade.score>0,'Acerto real concede pontos no circuito');const earned=q.arcade.score;
  await pausedShot('test-results/16-arcade-score.png');await delay(1200);
