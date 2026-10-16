@@ -48,7 +48,7 @@ func consume(events: Array) -> void:
 			var cue := str(e.cue)
 			play(
 				LegacyRoster.catalog.sounds.get(cue if cue == "ko" else "announcer-" + cue, ""),
-				"voice"
+				"effect" if cue == "ko" else "voice"
 			)
 		elif e.kind == "voice":
 			var c := LegacyRoster.get_character(e.character)

@@ -117,13 +117,13 @@ static func _rounds(s: SceneTree) -> void:
 	)
 	var expected := sim.state_hash()
 	sim.restore(saved)
-	for tick in 132:
+	for tick in FightSimulation.INTRO_TICKS - 60:
 		sim.step([CombatInput.new(CombatInput.RIGHT, CombatInput.PUNCH), CombatInput.new()])
 	s.check(sim.state_hash() == expected, "Snapshot mantém o relógio da chamada")
 	s.neutral(sim)
 	s.check(sim.fighters[0].move_id == "", "Botões da chamada não vazam para o combate")
 	sim.winner = 0
-	sim.round_wait = 239
+	sim.round_wait = FightSimulation.ROUND_WAIT_TICKS - 1
 	s.neutral(sim)
 	s.check(
 		sim.round_number == 2 and sim.intro_ticks == FightSimulation.INTRO_TICKS,

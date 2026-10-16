@@ -346,7 +346,7 @@ func _test_powers_rounds() -> void:
 	sim.fighters[1].health = 0
 	neutral(sim)
 	check(sim.wins[0] == 1, "Round contabiliza vencedor")
-	neutral(sim, 240)
+	neutral(sim, FightSimulation.ROUND_WAIT_TICKS)
 	check(sim.round_number == 2 and sim.winner == -1, "Próximo round reinicia lutadores")
 	check(sim.fighters[0].meter == 73, "Barra super preservada entre rounds")
 	sim.fighters[1].health = 0

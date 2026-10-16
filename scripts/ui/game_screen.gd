@@ -398,9 +398,12 @@ func _round_call() -> void:
 	var color := GOLD
 	var slide := 0.0
 	if sim.intro_ticks > 0:
-		var fight := sim.intro_ticks <= 72
+		var fight := sim.intro_ticks <= FightSimulation.FIGHT_TICKS
 		label = "FIGHT!" if fight else "ROUND %d" % sim.round_number
-		var elapsed := (72 if fight else FightSimulation.INTRO_TICKS) - sim.intro_ticks
+		var elapsed := (
+			(FightSimulation.FIGHT_TICKS if fight else FightSimulation.INTRO_TICKS)
+			- sim.intro_ticks
+		)
 		slide = pow(maxf(0, 1.0 - elapsed / 18.0), 3) * (680 if fight else -680)
 		color = PAPER if fight else GOLD
 	elif sim.winner >= 0 and sim.round_wait < 90:

@@ -6,7 +6,9 @@ const TICK_RATE := 120
 const LEFT_WALL := 60 * FighterModel.SCALE
 const RIGHT_WALL := 1220 * FighterModel.SCALE
 const BODY_WIDTH := 76 * FighterModel.SCALE
-const INTRO_TICKS := 192  # ROUND (1 s), FIGHT (0.6 s), then input unlocks.
+const INTRO_TICKS := 336  # Full original voice clips: Round 1.165s, number 0.766s, Fight 0.682s.
+const FIGHT_TICKS := 96
+const ROUND_WAIT_TICKS := 408  # Allows You/Win/Perfect to finish without cutting syllables.
 var powers := PowerSystem.new()
 var projectiles: Array:
 	get:
@@ -57,9 +59,9 @@ func step(inputs: Array[CombatInput]) -> void:
 			f.state_tick += 1
 		if intro_ticks == INTRO_TICKS:
 			_announce("round")
-		elif intro_ticks == INTRO_TICKS - 48:
+		elif intro_ticks == INTRO_TICKS - 144:
 			_announce(str(mini(round_number, 9)))
-		elif intro_ticks == 72:
+		elif intro_ticks == FIGHT_TICKS:
 			_announce("fight")
 		intro_ticks -= 1
 		tick += 1
@@ -80,12 +82,12 @@ func step(inputs: Array[CombatInput]) -> void:
 			_announce("ko")
 		elif round_wait == 90 and winner != 2:
 			_announce("you")
-		elif round_wait == 127 and winner != 2:
+		elif round_wait == 198 and winner != 2:
 			_announce("win" if winner == 0 else "lose")
-		elif round_wait == 180 and winner != 2:
+		elif round_wait == 288 and winner != 2:
 			if fighters[winner].health == fighters[winner].character.max_health:
 				_announce("perfect")
-		if round_wait >= 240 and not match_over:
+		if round_wait >= ROUND_WAIT_TICKS and not match_over:
 			var charge := [fighters[0].meter, fighters[1].meter]
 			fighters = [
 				FighterModel.new(fighters[0].character, 0, 410),

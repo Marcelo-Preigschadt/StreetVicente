@@ -41,8 +41,8 @@ O cenário cobre o viewport expandido, mantendo y625 como chão da luta e sem
 esticar os lutadores. A revisão visual inclui 1280×720, 1720×720 e 1024×768.
 HUD e limites físicos continuam no espaço lógico de 1280×720.
 
-Abertura: ROUND + número, depois FIGHT, com as gravações já existentes. São 192
-ticks de abertura; movimento, ataques e cronômetro aguardam o término. Os botões
+Abertura: ROUND + número, depois FIGHT, com as gravações já existentes. São 336
+ticks (2,8 s) de abertura, com intervalo suficiente para cada gravação terminar; movimento, ataques e cronômetro aguardam o término. Os botões
 pressionados nessa fase não vazam para o início da luta. R no treino reinicia sem
 repetir a abertura; entrada pelo menu e rounds seguintes a apresentam normalmente.
 

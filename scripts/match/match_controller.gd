@@ -248,7 +248,7 @@ func _physics_process(_delta: float) -> void:
 		if arcade != null:
 			arcade.consume(sim.events)
 			progress.record = maxi(progress.record, arcade.record)
-			if arcade.state != "fighting" and sim.round_wait >= 240:
+			if arcade.state != "fighting" and sim.round_wait >= FightSimulation.ROUND_WAIT_TICKS:
 				_show_arcade_outcome()
 	elif screen == "story":
 		story.step(input_source.sample(0))
