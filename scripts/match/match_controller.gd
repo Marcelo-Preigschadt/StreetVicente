@@ -1,7 +1,7 @@
 extends Node2D
 ## Native Godot shell. The original JavaScript engine is never embedded or executed.
 const MENU := [
-	"PILOTO 2,5D / MARCELO",
+	"TREINO LIVRE",
 	"CIRCUITO VICENTE / CPU",
 	"VERSUS / 2 JOGADORES",
 	"HISTÓRIA / RESGATE DO NIT",
@@ -588,9 +588,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif key == KEY_F4:
 			for view in views:
 				view.use_new_art = not view.use_new_art
-		elif key == KEY_F6:
-			for view in views:
-				view.use_3d = not view.use_3d
 		elif key == KEY_F1:
 			debug_boxes = not debug_boxes
 			for view in views:

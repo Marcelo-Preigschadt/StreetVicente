@@ -6,7 +6,7 @@ var use_new_art: bool = true
 var impact_offset := Vector2.ZERO
 var trails: Array = []
 var trail_clock: float = 0.0
-var use_3d: bool = true
+var use_3d: bool = false  # Rejected visual prototype; opt-in only in its native fixture.
 var presentation_frozen: bool = false
 var pilot_3d: Fighter3DView
 
@@ -15,7 +15,7 @@ func setup(value: FighterModel, tint: Color) -> void:
 	trails.clear()
 	trail_clock = 0.0
 	super.setup(value, tint)
-	if value.character.id == "marcelo" and pilot_3d == null:
+	if use_3d and value.character.id == "marcelo" and pilot_3d == null:
 		pilot_3d = Fighter3DView.new()
 		add_child(pilot_3d)
 	if pilot_3d != null:

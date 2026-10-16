@@ -11,6 +11,7 @@ func capture() -> void:
 	game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
 	await process_frame
+	game.views[0].use_3d = true  # Explicit archival fixture, never the published default.
 	game.choose_menu(0)
 	game.paused = true
 	for i in 8:

@@ -4,11 +4,11 @@
 
 Projeto em Godot 4.5.1 / GDScript, 1280×720, simulação a 120 Hz e exportação Web sem threads para GitHub Pages. O repositório [original Canvas](https://github.com/Marcelo-Preigschadt/Street-Vicente-Fighter-) foi usado em leitura; as alterações ficam neste projeto.
 
-## Piloto 2,5D do Marcelo
+## Apresentação padrão
 
-A primeira opção, **PILOTO 2,5D / MARCELO**, abre o modelo articulado com `Skeleton3D`, malhas com volume, câmera ortográfica e sombreamento em faixas. **F6** alterna entre o modelo e os desenhos 2D atuais; **F4** mantém a comparação com a arte importada. O rosto usa a textura aprovada, sem redesenho. A cabeça é uma malha em relevo para a câmera fixa, e ainda não uma reconstrução facial de 360°. [Arquitetura, limitações e validação](docs/PILOT_3D.md).
+A primeira opção, **TREINO LIVRE**, abre Marcelo × Rafael com a apresentação 2D anterior. Os retratos e a arte dos personagens foram preservados. **F3** demonstra os movimentos; **F4** compara com a arte importada.
 
-Esta etapa migra a apresentação do Marcelo. Os demais personagens e as prévias da seleção continuam em 2D. O acabamento do modelo é inicial e não representa paridade artística com Marvel vs. Capcom 3.
+O protótipo procedural 3D foi rejeitado por qualidade visual insuficiente e retirado dos fluxos publicados, incluindo o atalho F6. Seu código permanece isolado para referência técnica, sem instanciar o modelo durante as partidas. [Registro técnico e limitações do protótipo](docs/PILOT_3D.md). A modelagem 3D com a qualidade solicitada continua pendente; o protótipo não a substitui.
 
 ## Arte 2D preservada
 

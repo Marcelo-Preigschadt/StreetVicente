@@ -17,6 +17,12 @@ func run() -> void:
 	app.mode = "cpu"
 	app.arcade = ArcadeRun.new(LegacyRoster.ids(), "marcelo", "rafael")
 	app._start_fight()
+	assert(not app.views[0].use_3d and app.views[0].pilot_3d == null)
+	var retired_shortcut := InputEventKey.new()
+	retired_shortcut.physical_keycode = KEY_F6
+	retired_shortcut.pressed = true
+	app._unhandled_input(retired_shortcut)
+	assert(not app.views[0].use_3d and app.views[0].pilot_3d == null)
 	app.sim.wins[0] = 1
 	app.sim.fighters[1].health = 0
 	for i in 242:
@@ -44,6 +50,7 @@ func run() -> void:
 	assert(app.screen == "story_dialog")
 	app._unhandled_input(confirm)
 	assert(app.screen == "story")
+	assert(app.views[0].pilot_3d == null)
 	assert(app.progress.valid_checkpoint())
 	print("SHELL V6: route, next opponent, defeat, continue, story dialog/save passed")
 	DirAccess.remove_absolute("user://test-shell-v6.json")

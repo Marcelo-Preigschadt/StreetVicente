@@ -1,6 +1,6 @@
-# Marcelo: piloto 2,5D
+# Marcelo: registro do protótipo 2,5D rejeitado
 
-Escolha **PILOTO 2,5D / MARCELO** na primeira opção do menu. F6 alterna modelo 3D/desenhos 2D; F3 executa a demonstração; F1 mostra as caixas autoritativas. Movimento A/D, salto W/Espaço, soco F, chute G, baixa S, defesa H, código T, Firewall Y, super U e sentinela Q.
+O usuário rejeitou a qualidade visual deste protótipo: corpo angular, vestuário rígido e rosto proveniente do retrato sobre uma superfície em relevo. Ele foi retirado da apresentação padrão e do atalho F6. O jogo publicado voltou à arte 2D anterior, preservando o motor, os poderes, as colisões e o progresso. Esta página registra a implementação arquivada; não descreve um personagem 3D artisticamente aprovado.
 
 ## Implementado
 
@@ -40,7 +40,7 @@ Os perfis inteiros de colisão aprovados continuam sendo a autoridade, nos dois 
 
 ## Validação e Web
 
-`bash tools/test.sh` inclui regressões de combate, progresso e shell, além de transformações finitas de todos os estados/moves, correspondência entre ossos/alvos e invariância do hash após amostragem do rig. O teste Web existente verifica o rig no WASM, alternância F6, movimento, contatos, voadora, ascendente, código/drones, campanha e pontos persistentes. Capturas e vídeo ficam no artefato `StreetVicente-Web-QA` do workflow.
+`bash tools/test.sh` inclui regressões de combate, progresso e shell, além de transformações finitas de todos os estados/moves, correspondência entre ossos/alvos e invariância do hash após amostragem do rig arquivado. Esses testes técnicos não atestam qualidade artística. O teste Web verifica que o modelo rejeitado não é exibido nem reativado por F6; também percorre movimento, contatos, voadora, ascendente, código/drones, campanha e pontos persistentes. Capturas e vídeo ficam no artefato `StreetVicente-Web-QA` do workflow.
 
 Para capturas nativas, execute com um display OpenGL real ou Xvfb:
 
