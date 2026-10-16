@@ -14,6 +14,8 @@ func setup(value) -> void:
 	seen.clear()
 	PowerArt.load_data()
 	LegacyRoster.texture(PowerArt.data.image)
+	MarceloPowerFX.load_art()
+	LegacyRoster.texture(MarceloPowerFX.art.image)
 
 
 func consume(events: Array) -> void:

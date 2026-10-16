@@ -3,6 +3,14 @@ extends RefCounted
 
 
 static func run(suite: SceneTree) -> void:
+	MarceloPowerFX.load_art()
+	suite.check(
+		MarceloPowerFX.art.frames.size() == 12,
+		"Código possui 12 chaves dedicadas de carga, voo e impacto"
+	)
+	suite.check(
+		ResourceLoader.exists(MarceloPowerFX.art.image), "Atlas novo do código incluído no pacote"
+	)
 	var marcelo := LegacyRoster.get_character("marcelo")
 	var rafael := LegacyRoster.get_character("rafael")
 	for facing in [1, -1]:

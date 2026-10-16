@@ -58,7 +58,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  // Approach to the physical body limit and cast through the normal controls.
  // The release socket may be beyond the opponent; the first swept segment must hit.
  await page.keyboard.press('r');await delay(150);await page.keyboard.down('d');await wait(()=>window.svfQA.x[1]-window.svfQA.x[0]<112*256);await page.keyboard.up('d');
- assert((await state()).x[1]-(await state()).x[0]>=106*256,'Pushboxes evitam sobreposição de troncos');
+ const closeState=await state();assert(closeState.x[1]-closeState.x[0]>=106*256,'Pushboxes evitam sobreposição de troncos');
  await page.keyboard.press('t');await wait(()=>window.svfQA.hp[1]<1000);await page.screenshot({path:'test-results/08b-code-close-contact.png'});
  await page.keyboard.press('F4');await wait(()=>window.svfQA?.new_art===false);await page.screenshot({path:'test-results/09-old-art-comparison.png'});await page.keyboard.press('F4');
  await page.keyboard.press('Escape');await delay(100);before=await state();await delay(250);assert.equal((await state()).tick,before.tick,'Pausa congela simulação');

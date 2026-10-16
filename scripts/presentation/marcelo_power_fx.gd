@@ -6,68 +6,52 @@ const MINT := Color("40ffa4")
 const CYAN := Color("75f7ff")
 const WHITE := Color("edfff7")
 
+static var art: Dictionary = {}
+
+
+static func load_art() -> void:
+	if art.is_empty():
+		art = JSON.parse_string(
+			FileAccess.get_file_as_string("res://data/characters/marcelo-code-v3.json")
+		)
+
+
+static func draw_art(canvas: CanvasItem, clip: String, key: int, tint: Color = Color.WHITE) -> void:
+	load_art()
+	var frame: Dictionary = art.frames[int(art.clips[clip][posmod(key, 4)])]
+	var r: Array = frame.rect
+	var anchor: Array = frame.anchor
+	var scale_factor := float(frame.scale)
+	canvas.draw_texture_rect_region(
+		LegacyRoster.texture(art.image),
+		Rect2(
+			-float(anchor[0]) * scale_factor,
+			-float(anchor[1]) * scale_factor,
+			float(r[2]) * scale_factor,
+			float(r[3]) * scale_factor
+		),
+		Rect2(r[0], r[1], r[2], r[3]),
+		tint
+	)
+
 
 static func code(canvas: CanvasItem, age: int) -> void:
-	var phase := int(age / 3) % 4
-	var color: Color = [MINT, WHITE, CYAN, MINT][phase]
-	var hull := PackedVector2Array(
-		[
-			Vector2(-112, -8),
-			Vector2(-48, -29),
-			Vector2(14, -23),
-			Vector2(30, 0),
-			Vector2(12, 26),
-			Vector2(-52, 22),
-			Vector2(-112, 9)
-		]
-	)
-	canvas.draw_colored_polygon(hull, Color(MINT, 0.14))
-	for band in 3:
-		var points := PackedVector2Array()
-		for i in 10:
-			points.append(Vector2(-128 + i * 16, (band - 1) * 17 + sin((age + i * 4) * 0.25) * 5))
-		canvas.draw_polyline(points, Color(MINT, 0.12), 12, true)
-		canvas.draw_polyline(points, Color(MINT, 0.65), 4, true)
-		canvas.draw_polyline(points, Color(color, 0.8 - band * 0.18), 2.0, true)
-	for row in 3:
-		for col in 7:
-			var x := -114 + col * 19 + (age * 3) % 19
-			var y := -16 + row * 17
-			var symbol: String = ["0", "1", "{", "}", "[", "]", ";"][(age / 4 + row * 3 + col) % 7]
+	# Complete painted keys provide the silhouette; glyphs and small traces extend
+	# the tail. The bright front stays 30 px from the physical projectile center.
+	draw_art(canvas, "flight", age / 5)
+	for row in 2:
+		for col in 5:
+			var x := -156 + col * 23 + (age * 2) % 23
+			var y := -12 + row * 23
 			canvas.draw_string(
 				ThemeDB.fallback_font,
 				Vector2(x, y),
-				symbol,
+				["0", "1", "{", "}", ";"][(age / 5 + col + row) % 5],
 				HORIZONTAL_ALIGNMENT_LEFT,
 				-1,
-				12,
-				Color(MINT, 0.35 + float(col) * 0.09)
+				15,
+				Color(CYAN, 0.18 + col * 0.09)
 			)
-	canvas.draw_polyline(
-		PackedVector2Array(
-			[Vector2(3, -27), Vector2(22, -19), Vector2(30, 0), Vector2(21, 20), Vector2(0, 28)]
-		),
-		Color(MINT, 0.18),
-		16,
-		true
-	)
-	canvas.draw_polyline(
-		PackedVector2Array(
-			[Vector2(3, -27), Vector2(22, -19), Vector2(30, 0), Vector2(21, 20), Vector2(0, 28)]
-		),
-		Color(MINT, 0.95),
-		9,
-		true
-	)
-	canvas.draw_polyline(
-		PackedVector2Array(
-			[Vector2(3, -27), Vector2(22, -19), Vector2(30, 0), Vector2(21, 20), Vector2(0, 28)]
-		),
-		color,
-		4,
-		true
-	)
-	canvas.draw_line(Vector2(-30, 0), Vector2(26, 0), WHITE, 2.5, true)
 
 
 static func drone(
@@ -173,6 +157,7 @@ static func charge(canvas: CanvasItem, f: FighterModel, camera: float) -> void:
 	var progress := clampf(float(f.move_tick) / maxf(1, move.startup * 2), 0, 1)
 	canvas.draw_set_transform(hand, 0, Vector2(f.facing, 1))
 	if move.phase(f.move_tick) == "STARTUP":
+		draw_art(canvas, "charge", mini(3, int(progress * 4)), Color(1, 1, 1, 0.4 + progress * 0.6))
 		for i in 6:
 			var angle := i * TAU / 6 + progress * 2
 			var p := Vector2(cos(angle), sin(angle)) * (36 * (1 - progress) + 10)
@@ -217,6 +202,10 @@ static func burst(canvas: CanvasItem, b: Dictionary, camera: float) -> void:
 		return
 	canvas.draw_set_transform(origin)
 	var laser: bool = b.effect == "sentinelLaser" or b.kind == "laser"
+	if not laser and b.kind in ["hit", "block"]:
+		draw_art(canvas, "impact", mini(3, int(phase * 4)), Color(1, 1, 1, alpha))
+	elif not laser and b.kind == "cast":
+		draw_art(canvas, "charge", 3, Color(1, 1, 1, alpha * 0.75))
 	var count := 10 if b.kind in ["hit", "block"] else 6
 	for i in count:
 		var angle := TAU * float(i) / count + phase * 0.3
