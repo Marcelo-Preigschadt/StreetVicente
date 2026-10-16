@@ -23,7 +23,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  // First menu entry directly starts the new-art pilot in native Godot training.
  await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight');
  assert.deepEqual((await state()).selected,['marcelo','rafael']);assert.equal((await state()).new_art,true);
- assert.equal((await state()).fx_revision,4,'Pacote novo de geometria e VFX');
+ assert.equal((await state()).fx_revision,5,'Pacote novo de geometria e VFX');
  await page.screenshot({path:'test-results/02-pilot-ready.png'});
  let before=await state();await page.keyboard.down('d');await delay(350);await page.keyboard.up('d');
  let moved=await state();assert(moved.x[0]>before.x[0]+40*256,'Movimento real no WASM');
@@ -90,10 +90,16 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await wait(()=>window.svfQA?.screen==='fight');await page.keyboard.press('F3');await delay(11000);await page.screenshot({path:'test-results/12-demo.png'});
  // Select and cast all new thematic VFX using only normal UI/keyboard controls.
  await page.keyboard.press('Escape');await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');
- for(const id of ['gustavo','khauany','dienes']){
+ for(const id of ['rafael','gustavo','khauany','dienes']){
   for(let i=0;i<4;i++)await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='selection');
   let q=await state();const target=q.roster_ids.indexOf(id);for(let i=0;i<(target-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
   await page.keyboard.press('Enter');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight');
+  if(['rafael','gustavo'].includes(id)){
+   await page.keyboard.down('d');await wait(()=>window.svfQA.x[1]-window.svfQA.x[0]<180*256);await page.keyboard.up('d');
+   await page.keyboard.press('f');await wait(()=>window.svfQA?.hp?.[1]<1000);
+   assert((await state()).last_contacts.some(e=>e.character===id&&e.kind==='hit'),'Soco novo conecta: '+id);
+   await pausedShot(`test-results/14-${id}-punch.png`);await page.keyboard.press('r');await delay(100);
+  }
   await page.keyboard.press(id==='dienes'?'u':'t');await wait(()=>window.svfQA?.projectiles>0);await page.screenshot({path:`test-results/14-${id}-power.png`});
   await page.keyboard.press('Escape');await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');
   // menu_index was 4 (training); move it to 0 for the next iteration.
@@ -101,6 +107,6 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  }
  await page.setViewportSize({width:960,height:540});await delay(200);await page.screenshot({path:'test-results/13-resize.png'});
  assert.equal(responses['index.wasm'],200);assert.equal(responses['index.pck'],200);assert.deepEqual(errors,[],'Console Web sem erros');
- fs.writeFileSync('test-results/web-smoke.json',JSON.stringify({status:'passed',checks:['WASM/PCK sob /StreetVicente/','13 personagens','nova arte por estados','voadora dedicada e aterrissagem','gancho: subida e queda sem pose de chão no ar','efeito código visível em pixels','drone estacionário e laser','efeitos no História','fumaça/garfos/livros','movimento','prejump/salto','soco com dano','chute','rasteira','código','cinco drones','comparação de arte','pausa','seleção','história','demonstração','resize','console sem erros'],responses,codePixels},null,2));
+ fs.writeFileSync('test-results/web-smoke.json',JSON.stringify({status:'passed',checks:['WASM/PCK sob /StreetVicente/','13 personagens: seleção com prévias e grade','socos novos Rafael/Gustavo','nova arte por estados','voadora dedicada e aterrissagem','gancho: subida e queda sem pose de chão no ar','efeito código visível em pixels','drone estacionário e laser','efeitos no História','fumaça/garfos/livros','movimento','prejump/salto','soco com dano','chute','rasteira','código','cinco drones','comparação de arte','pausa','seleção','história','demonstração','resize','console sem erros'],responses,codePixels},null,2));
  await page.close();console.log('WEB SMOKE PASSED: novo Marcelo + combate/poderes + roster + história');
 })().catch(async e=>{console.error(e);console.error('Browser errors:',JSON.stringify(errors));if(page&&!page.isClosed()){await page.screenshot({path:'test-results/failure.png'}).catch(()=>{});const status=await page.evaluate(()=>({url:location.href,qa:window.svfQA,status:document.getElementById('status')?.innerText})).catch(()=>({}));console.error('Browser state:',JSON.stringify(status));fs.writeFileSync('test-results/failure.json',JSON.stringify({error:String(e),errors,status},null,2));}process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();server.kill();});

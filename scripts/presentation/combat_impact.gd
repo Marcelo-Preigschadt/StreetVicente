@@ -35,6 +35,7 @@ func consume(events: Array, simulation: FightSimulation) -> void:
 			var strong: bool = (
 				str(e.get("move", "")).begins_with("super")
 				or str(e.get("move", "")).begins_with("uppercut")
+				or str(e.get("move", "")).ends_with(":2")
 			)
 			particles.append(
 				{
@@ -44,7 +45,8 @@ func consume(events: Array, simulation: FightSimulation) -> void:
 					"max": 0.24 if strong else 0.16,
 					"blocked": e.kind == "block",
 					"strong": strong,
-					"seed": int(e.get("tick", 0)) % 13
+					"seed": int(e.get("tick", 0)) % 13,
+					"color": LegacyRoster.get_character(str(e.character)).color
 				}
 			)
 			shake = 6.0 if strong else 2.5
@@ -78,18 +80,43 @@ func _draw() -> void:
 		if p.blocked:
 			draw_arc(origin, 14 + phase * 30, -1.2, 1.2, 18, color, 4, true)
 		else:
-			var count := 14 if p.strong else 9
-			for i in count:
-				var angle := TAU * float(i) / count + float(p.seed) * 0.23
-				var ray := Vector2(cos(angle), sin(angle))
-				var reach := (70.0 if p.strong else 42.0) * (0.35 + phase)
+			# Three exposures: white contact, graphic star, then tapered sparks.
+			# Filled cel shapes remain legible against the detailed school stage.
+			var fade := pow(1.0 - phase, 1.35)
+			var radius := (57.0 if p.strong else 36.0) * (0.7 + phase * 0.8)
+			if phase < 0.62:
+				for layer in 2:
+					var polygon := PackedVector2Array()
+					for i in 16:
+						var angle := float(i) * PI / 8 + float(p.seed) * 0.17
+						var reach := radius * (0.23 if i % 2 else 1.0 + float(i % 3) * 0.14)
+						polygon.append(
+							(
+								origin
+								+ (
+									Vector2(cos(angle) * 1.15, sin(angle) * 0.8)
+									* reach
+									* (1.0 if layer == 0 else 0.62)
+								)
+							)
+						)
+					draw_colored_polygon(
+						polygon, Color(Color("ffaf49") if layer == 0 else Color("fff9df"), fade)
+					)
+			for i in 10 if p.strong else 6:
+				var angle := TAU * i / (10.0 if p.strong else 6.0) + float(p.seed) * 0.2
+				var direction := Vector2(cos(angle), sin(angle))
+				var start := origin + direction * radius * (0.45 + phase)
+				var end := start + direction * (12 + phase * 31)
 				draw_line(
-					origin + ray * reach * 0.35,
-					origin + ray * reach,
-					color,
-					4.0 * (1.0 - phase) + 1,
+					start,
+					end,
+					Color("fff5c4") * Color(1, 1, 1, fade),
+					3.5 * (1.0 - phase) + 0.5,
 					true
 				)
-			draw_circle(origin, 10 * (1.0 - phase), Color(1, 1, 1, color.a))
+			if phase < 0.25:
+				draw_circle(origin, (11 if p.strong else 7) * (1 - phase), Color(1, 1, 1, fade))
+
 	if flash > 0:
 		draw_rect(Rect2(0, 112, 1280, 552), Color(0.8, 1, 0.95, flash * 3.0))

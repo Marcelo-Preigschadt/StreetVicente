@@ -23,15 +23,37 @@ func _draw() -> void:
 				2,
 				true
 			)
+		var slide := clampf((0.5 - impact.super_time) * 10, 0, 1)
+		var alpha := minf(1.0, impact.super_time * 5)
+		ArcadeTheme.plate(
+			self, Rect2(-90 + slide * 90, 205, 1370, 222), Color(ArcadeTheme.INK, alpha * 0.8), 60
+		)
+		draw_line(Vector2(0, 208), Vector2(1280, 208), Color(c.color, alpha), 3, true)
+		draw_line(Vector2(0, 424), Vector2(1280, 424), Color(c.color, alpha), 3, true)
+		draw_texture_rect(
+			LegacyRoster.texture(c.legacy.portrait),
+			Rect2(70 - (1 - slide) * 160, 214, 207, 207),
+			false,
+			Color(1, 1, 1, alpha)
+		)
+		ArcadeTheme.title(self, Vector2(327, 278), "SUPER!", 43, Color(ArcadeTheme.PAPER, alpha))
+		ArcadeTheme.title(
+			self,
+			Vector2(326, 342),
+			str(c.legacy.powers.get("super", "SUPER")).to_upper(),
+			36,
+			Color(c.color, alpha)
+		)
 		draw_string(
 			ThemeDB.fallback_font,
-			Vector2(440, 210),
-			str(c.legacy.powers.get("super", "SUPER")),
+			Vector2(330, 386),
+			c.display_name.to_upper(),
 			HORIZONTAL_ALIGNMENT_LEFT,
 			-1,
-			32,
-			Color(c.color, minf(1.0, impact.super_time * 4))
+			22,
+			Color(ArcadeTheme.PAPER, alpha)
 		)
+
 		if impact.super_character == "marcelo":
 			for i in 15:
 				var x := 50.0 + i * 85

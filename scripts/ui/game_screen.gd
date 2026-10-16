@@ -1,16 +1,43 @@
 class_name GameScreen
 extends Node2D
-const MINT := Color("69e6c2")
-const GOLD := Color("ffbd63")
+## Game-native arcade screens. All portraits, voices and identity come from roster.
+const BLUE := ArcadeTheme.BLUE
+const RED := ArcadeTheme.RED
+const GOLD := ArcadeTheme.GOLD
+const PAPER := ArcadeTheme.PAPER
+const INK := ArcadeTheme.INK
+const DESCRIPTIONS := [
+	"Pratique golpes, poderes e combos sem limite de tempo.",
+	"Enfrente a CPU em um duelo de professores e alunos.",
+	"Dois jogadores, um computador. Escolham seus lutadores.",
+	"Atravesse a escola e liberte o servidor central.",
+	"Escolha a dupla e configure o adversário de treino.",
+	"Partidas em rede ainda estão em migração."
+]
 var game: Node
 var font: Font
+var clock: float = 0
+var last_screen: String = ""
+var entrance: float = 0
+var preview_models: Dictionary = {}
+var damage_trails: Dictionary = {}
 
 
 func _ready() -> void:
 	font = ThemeDB.fallback_font
+	ArcadeTheme.load_data()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	clock += delta
+	if game != null and game.screen != last_screen:
+		last_screen = game.screen
+		entrance = 1.0
+	entrance = maxf(0, entrance - delta * 3.8)
+	for trail in damage_trails.values():
+		trail.wait = maxf(0, float(trail.wait) - delta)
+		if trail.wait <= 0:
+			trail.value = move_toward(float(trail.value), float(trail.hp), delta * 1.4)
 	queue_redraw()
 
 
@@ -18,8 +45,34 @@ func text_at(at: Vector2, value: String, size: int = 20, color: Color = Color.WH
 	draw_string(font, at, value, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)
 
 
-func panel(rect: Rect2, color: Color = Color("111e2b")) -> void:
+func centered(at: Vector2, value: String, size: int, color: Color) -> void:
+	text_at(
+		at - Vector2(font.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x / 2, 0),
+		value,
+		size,
+		color
+	)
+
+
+func panel(rect: Rect2, color: Color = INK) -> void:
 	draw_rect(rect, color)
+
+
+func wrapped(at: Vector2, value: String, width: float, size: int, color: Color) -> void:
+	var line := ""
+	var y := at.y
+	for word in value.split(" "):
+		var next := word if line.is_empty() else line + " " + word
+		if (
+			not line.is_empty()
+			and font.get_string_size(next, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > width
+		):
+			text_at(Vector2(at.x, y), line, size, color)
+			y += size + 5
+			line = word
+		else:
+			line = next
+	text_at(Vector2(at.x, y), line, size, color)
 
 
 func _draw() -> void:
@@ -33,98 +86,196 @@ func _draw() -> void:
 		_online()
 	else:
 		_hud()
+	if entrance > 0:
+		# Short edge wipe never obscures hitboxes or delays input/simulation.
+		ArcadeTheme.plate(
+			self,
+			Rect2(1280 - entrance * 170, 0, entrance * 220, 720),
+			Color(BLUE, entrance * 0.28),
+			60
+		)
+
+
+func menu_rect(index: int) -> Rect2:
+	return Rect2(74, 264 + index * 60, 532, 49)
 
 
 func _menu() -> void:
+	ArcadeTheme.backdrop(self, clock)
 	draw_texture_rect(
 		LegacyRoster.texture(LegacyRoster.catalog.arena),
-		Rect2(0, 0, 1280, 720),
+		Rect2(620, 0, 660, 720),
 		false,
-		Color(0.32, 0.4, 0.43)
+		Color(0.4, 0.4, 0.6, 0.3)
 	)
-	panel(Rect2(35, 35, 660, 650), Color(0.02, 0.04, 0.06, 0.91))
-	text_at(Vector2(75, 110), "STREET VICENTE", 56, MINT)
-	text_at(Vector2(77, 165), "FIGHTER", 64, GOLD)
-	text_at(Vector2(80, 205), "PROFESSORES E ALUNOS / VICENTE DUTRA", 17, Color("a6bbbd"))
+	ArcadeTheme.plate(self, Rect2(660, 0, 620, 720), Color(0.12, 0.23, 0.44, 0.62), 180)
+	for i in 5:
+		draw_line(Vector2(800 + i * 95, 0), Vector2(480 + i * 95, 720), Color(BLUE, 0.12), 3, true)
+	_preview("rafael", Vector2(1110, 666), 1.28, -1, 0.7)
+	_preview("marcelo", Vector2(875, 678), 1.58, 1)
+	ArcadeTheme.title(self, Vector2(72, 108), "STREET VICENTE", 71, PAPER, 6)
+	ArcadeTheme.title(self, Vector2(69, 205), "FIGHTER", 103, GOLD, 7)
+	ArcadeTheme.plate(self, Rect2(78, 222, 420, 24), RED, 8)
+	text_at(Vector2(95, 240), "PROFESSORES + ALUNOS / VICENTE DUTRA", 15, INK)
 	for i in game.MENU.size():
-		var rect := Rect2(75, 245 + i * 57, 570, 48)
-		panel(rect, Color("284a48") if game.menu_index == i else Color("152329"))
-		text_at(
-			rect.position + Vector2(18, 32),
-			game.MENU[i],
-			24,
-			MINT if game.menu_index == i else Color.WHITE
+		var active: bool = game.menu_index == i
+		var rect := menu_rect(i)
+		var offset := 9.0 + sin(clock * 8) * 2 if active else 0.0
+		rect.position.x += offset
+		ArcadeTheme.plate(self, rect.grow(2), INK, 12)
+		ArcadeTheme.plate(self, rect, GOLD if active else Color("202c4a"), 12)
+		if active:
+			draw_line(
+				rect.position + Vector2(14, 3),
+				rect.position + Vector2(rect.size.x - 9, 3),
+				PAPER,
+				2,
+				true
+			)
+		ArcadeTheme.title(
+			self, rect.position + Vector2(20, 34), "%02d" % (i + 1), 20, INK if active else BLUE, 0
 		)
-	text_at(Vector2(78, 674), "W/S ou setas: navegar    Enter: selecionar    F11: tela cheia", 16)
-	text_at(Vector2(78, 626), "F3: demonstração no treino · F4: comparar arte", 16, GOLD)
-	PilotArt.load_data()
-	var atlas: Dictionary = PilotArt.data.sheets.states
-	var pose: Dictionary = atlas.frames[0]
-	var r: Array = pose.rect
-	var s := float(pose.scale) * 1.3
-	draw_texture_rect_region(
-		LegacyRoster.texture(atlas.image),
-		Rect2(
-			960 - float(pose.anchor) * s,
-			680 - float(pose.bottom) * s,
-			float(r[2]) * s,
-			float(r[3]) * s
-		),
-		Rect2(r[0], r[1], r[2], r[3])
-	)
+		text_at(rect.position + Vector2(65, 33), game.MENU[i], 23, INK if active else PAPER)
+		if active:
+			text_at(rect.position + Vector2(490, 33), ">", 26, INK)
+	ArcadeTheme.plate(self, Rect2(1000, 32, 280, 36), BLUE, 16)
+	text_at(Vector2(1032, 57), "13 LUTADORES / 2D", 18, INK)
+	wrapped(Vector2(88, 648), DESCRIPTIONS[game.menu_index], 540, 16, PAPER)
+	_footer("↑↓ NAVEGAR     ENTER CONFIRMAR     F11 TELA CHEIA")
 
 
 func card_rect(index: int) -> Rect2:
-	var ids := LegacyRoster.ids()
 	var teachers := 0
-	for id in ids:
+	for id in LegacyRoster.ids():
 		if LegacyRoster.get_character(id).legacy.category == "teachers":
 			teachers += 1
 	if index < teachers:
-		return Rect2(64 + index * 129, 250, 116, 135)
-	return Rect2(64 + (index - teachers) * 129, 454, 116, 135)
+		var row: int = index / 5
+		var columns := mini(5, teachers - row * 5)
+		var start := 640.0 - (columns * 100 - 8) / 2.0
+		return Rect2(start + (index % 5) * 100, 203 + row * 118, 92, 106)
+	var students := LegacyRoster.ids().size() - teachers
+	return Rect2(640.0 - (students * 108 - 6) / 2.0 + (index - teachers) * 108, 495, 102, 106)
+
+
+func vertical_neighbor(index: int, direction: int) -> int:
+	var center := card_rect(index).get_center()
+	var best := -1
+	var cost := 1.0e20
+	for i in LegacyRoster.ids().size():
+		var target := card_rect(i).get_center()
+		if (target.y - center.y) * direction <= 0:
+			continue
+		var score := absf(target.x - center.x) + absf(target.y - center.y) * 0.8
+		if score < cost:
+			cost = score
+			best = i
+	return index if best < 0 else best
 
 
 func _selection() -> void:
-	panel(Rect2(0, 0, 1280, 720), Color("0b151e"))
-	text_at(Vector2(55, 62), "ESCOLHA SEU LUTADOR", 38, MINT)
-	text_at(
-		Vector2(55, 103),
+	ArcadeTheme.backdrop(self, clock)
+	ArcadeTheme.plate(self, Rect2(0, 118, 328, 568), Color(0.12, 0.4, 0.67, 0.45), 48)
+	ArcadeTheme.plate(self, Rect2(952, 118, 328, 568), Color(0.64, 0.14, 0.28, 0.35), -48)
+	ArcadeTheme.title(self, Vector2(338, 70), "ESCOLHA SEU LUTADOR", 41, PAPER)
+	centered(
+		Vector2(640, 110),
 		"JOGADOR %d  /  %s" % [game.selection_slot + 1, game.mode.to_upper()],
-		22,
-		GOLD
+		20,
+		BLUE if game.selection_slot == 0 else RED
 	)
-	text_at(Vector2(64, 233), "PROFESSORES", 18, MINT)
-	text_at(Vector2(64, 438), "ALUNOS", 18, GOLD)
 	var ids := LegacyRoster.ids()
+	var left: String = ids[game.cursor] if game.selection_slot == 0 else game.selected[0]
+	var right: String = ids[game.cursor] if game.selection_slot == 1 else game.selected[1]
+	if right == left and game.selection_slot == 0:
+		right = "rafael" if left != "rafael" else "marcelo"
+	_preview(left, Vector2(180, 564), 1.02, 1)
+	_preview(right, Vector2(1100, 564), 1.02, -1)
+	_nameplate(left, Vector2(30, 602), BLUE, "1P")
+	_nameplate(right, Vector2(963, 602), RED, "2P")
+	centered(Vector2(640, 178), "PROFESSORES", 17, BLUE)
+	centered(Vector2(640, 475), "ALUNOS", 17, GOLD)
 	for i in ids.size():
 		var c := LegacyRoster.get_character(ids[i])
 		var box := card_rect(i)
-		panel(box, Color("253942"))
-		draw_texture_rect(
-			LegacyRoster.texture(c.legacy.portrait),
-			Rect2(box.position + Vector2(3, 3), Vector2(box.size.x - 6, 100)),
-			false
-		)
-		text_at(
-			box.position + Vector2(5, 120),
-			c.display_name.replace("Prof. ", "").replace("Prof ", "").replace("Aluno ", ""),
-			14
-		)
-		if i == game.cursor:
-			draw_rect(box.grow(3), MINT if game.selection_slot == 0 else GOLD, false, 4)
-		if game.selection_slot == 1 and ids[i] == game.selected[0]:
-			draw_rect(box, Color(0, 0, 0, 0.7))
-	var active := LegacyRoster.get_character(ids[game.cursor])
-	text_at(Vector2(64, 155), active.display_name + "  /  " + str(active.legacy.style), 25)
-	text_at(Vector2(64, 191), active.legacy.selection_quote, 18, Color("b9ced0"))
-	text_at(Vector2(64, 635), "A/D ou setas: escolher    Enter: confirmar    Esc: voltar", 19)
-	text_at(
-		Vector2(64, 674),
-		"13 personagens · Marcelo com nova arte · Demais personagens: arte original",
-		15,
-		Color("8da9ae")
+		var active: bool = i == game.cursor
+		var locked: bool = game.selection_slot == 1 and ids[i] == game.selected[0]
+		panel(box.grow(3), INK)
+		_portrait(c, Rect2(box.position + Vector2(2, 2), Vector2(box.size.x - 4, 78)))
+		panel(Rect2(box.position + Vector2(0, 80), Vector2(box.size.x, 26)), Color("17233e"))
+		centered(box.position + Vector2(box.size.x / 2, 98), _short_name(c), 13, PAPER)
+		if locked:
+			panel(box, Color(0.02, 0.04, 0.15, 0.48))
+			ArcadeTheme.plate(self, Rect2(box.position + Vector2(0, 0), Vector2(37, 24)), BLUE, 5)
+			text_at(box.position + Vector2(5, 18), "1P", 15, INK)
+		if active:
+			var color: Color = BLUE if game.selection_slot == 0 else RED
+			draw_rect(box.grow(5), Color(color, 0.18), false, 8)
+			draw_rect(box.grow(3), color, false, 3)
+			ArcadeTheme.plate(
+				self, Rect2(box.position + Vector2(-3, -19), Vector2(45, 23)), color, 5
+			)
+			text_at(box.position + Vector2(3, -2), "%dP" % (game.selection_slot + 1), 15, INK)
+	centered(Vector2(640, 647), "13 LUTADORES • CADA UM COM SEU ESTILO", 14, Color("a8bad9"))
+	_footer("←→ ESCOLHER     ENTER CONFIRMAR     ESC VOLTAR")
+
+
+func _short_name(c: CharacterData) -> String:
+	return c.display_name.replace("Prof. ", "").replace("Prof ", "").replace("Aluno ", "")
+
+
+func _nameplate(id: String, at: Vector2, color: Color, tag: String) -> void:
+	var c := LegacyRoster.get_character(id)
+	ArcadeTheme.plate(self, Rect2(at + Vector2(0, -27), Vector2(285, 36)), color, 12)
+	ArcadeTheme.title(self, at + Vector2(12, 0), _short_name(c).to_upper(), 27, PAPER, 2)
+	text_at(at + Vector2(250, -2), tag, 16, INK)
+	wrapped(at + Vector2(6, 32), str(c.legacy.style), 280, 16, color)
+	wrapped(at + Vector2(6, 56), str(c.legacy.selection_quote), 276, 14, PAPER)
+
+
+func _portrait(c: CharacterData, rect: Rect2) -> void:
+	var texture := LegacyRoster.texture(c.legacy.portrait)
+	var side := minf(texture.get_width(), texture.get_height())
+	var source := Rect2(
+		(texture.get_width() - side) / 2, (texture.get_height() - side) / 2, side, side
 	)
+	# Crop square portraits into a consistent wide headshot without stretching faces.
+	var h := side * rect.size.y / rect.size.x
+	source.position.y += (side - h) * 0.32
+	source.size.y = h
+	draw_texture_rect_region(texture, rect, source)
+
+
+func _preview(
+	id: String, root: Vector2, scale_factor: float, facing: int, alpha: float = 1.0
+) -> void:
+	if not preview_models.has(id):
+		preview_models[id] = FighterModel.new(LegacyRoster.get_character(id), 0, 0)
+	var f: FighterModel = preview_models[id]
+	f.state_tick = int(clock * 120)
+	var pose := CharacterArt.frame(f)
+	var sheet: Dictionary = pose.sheet
+	var frame: Dictionary = pose.frame
+	var r: Array = frame.rect
+	var k := float(frame.get("scale", sheet.scale)) * scale_factor
+	draw_set_transform(root, 0, Vector2(facing, 1))
+	draw_texture_rect_region(
+		LegacyRoster.texture(sheet.image),
+		Rect2(
+			(float(frame.get("x", 0)) - float(frame.anchor)) * k,
+			(float(frame.get("y", 0)) - float(frame.bottom)) * k,
+			float(r[2]) * k,
+			float(r[3]) * k
+		),
+		Rect2(r[0], r[1], r[2], r[3]),
+		Color(1, 1, 1, alpha)
+	)
+	draw_set_transform(Vector2.ZERO)
+
+
+func _footer(value: String) -> void:
+	panel(Rect2(0, 686, 1280, 34), INK)
+	centered(Vector2(640, 709), value, 15, PAPER)
 
 
 func _hud() -> void:
@@ -133,113 +284,139 @@ func _hud() -> void:
 		return
 	var a: FighterModel = game.story.hero if story_mode else game.sim.fighters[0]
 	var b: FighterModel = null if story_mode else game.sim.fighters[1]
-	panel(Rect2(0, 0, 1280, 112), Color(0.025, 0.045, 0.06, 0.96))
-	_draw_player(a, 35, MINT)
+	_draw_player(a, false, BLUE)
 	if b != null:
-		_draw_player(b, 720, GOLD)
-	if story_mode:
-		var act: Dictionary = LegacyRoster.catalog.story.acts[mini(game.story.act_index, 3)]
-		text_at(Vector2(725, 36), act.place, 25, GOLD)
-		text_at(
-			Vector2(725, 68),
-			"ONDA %d / 4     PONTOS %d" % [mini(game.story.wave_index + 1, 4), game.story.score],
-			19
-		)
+		_draw_player(b, true, RED)
+		ArcadeTheme.plate(self, Rect2(579, 8, 122, 86), INK, 12)
+		centered(Vector2(640, 57), "%02d" % ceili(game.sim.remaining_ticks / 120.0), 40, PAPER)
+		centered(Vector2(640, 79), "ROUND %d" % game.sim.round_number, 12, GOLD)
+		for side in 2:
+			for win in 2:
+				draw_circle(
+					Vector2(550 + side * 160 + win * (14 if side == 1 else -14), 86),
+					4,
+					GOLD if game.sim.wins[side] > win else Color("3c4256")
+				)
 	else:
-		text_at(Vector2(605, 54), "%02d" % ceili(game.sim.remaining_ticks / 120.0), 38)
-		text_at(Vector2(594, 83), "ROUND %d" % game.sim.round_number, 14, MINT)
-		text_at(Vector2(580, 105), "%d    :    %d" % [game.sim.wins[0], game.sim.wins[1]], 17)
-	panel(Rect2(0, 664, 1280, 56), Color(0.02, 0.04, 0.05, 0.96))
-	text_at(
-		Vector2(24, 687),
-		(
-			"P1 A/D · W pulo · S baixo · F/G golpes · T especial · Y ascendente"
-			+ " · U super · E agarrar · Q sentinela (Marcelo)"
-		),
-		15,
-		MINT
-	)
-	text_at(
-		Vector2(24, 709),
-		(
-			"Shift forte / Ctrl leve · H defesa · F3 demonstração · F4 comparar arte"
-			+ " · F1 caixas · Esc pausa/menu · R reiniciar"
-		),
-		14,
-		Color("b1c5c7")
-	)
-	if story_mode:
+		var act: Dictionary = LegacyRoster.catalog.story.acts[mini(game.story.act_index, 3)]
+		ArcadeTheme.plate(self, Rect2(720, 15, 560, 65), INK, 15)
+		text_at(Vector2(760, 40), str(act.place), 22, GOLD)
 		text_at(
-			Vector2(30, 140),
-			"W/S: profundidade    Espaço: pular    Destrua objetos para recuperar vida",
-			17,
-			GOLD
+			Vector2(760, 65),
+			"ONDA %d / 4     PONTOS %d" % [mini(game.story.wave_index + 1, 4), game.story.score],
+			16,
+			PAPER
 		)
+	_footer(
+		(
+			"A/D MOVER  ·  W PULAR  ·  S BAIXO  ·  F/G GOLPES"
+			+ "  ·  T/Y PODERES  ·  U SUPER  ·  H DEFESA  ·  ESC PAUSA"
+		)
+	)
 	if game.mode == "training" and not story_mode:
 		text_at(
-			Vector2(28, 145),
+			Vector2(28, 128),
 			(
-				"ALVO: "
+				"TREINO  /  ALVO: "
 				+ ["JOGADOR 2", "PARADO", "DEFESA ALTA", "DEFESA BAIXA"][game.dummy_mode]
-				+ " / F2"
+				+ "  /  F2"
 			),
-			16,
+			13,
 			GOLD
 		)
 		if game.demo:
-			text_at(Vector2(28, 170), "DEMONSTRAÇÃO / F3 para assumir controle", 16, MINT)
-	if a.combo >= 2:
-		text_at(Vector2(100, 183), "%d HITS" % a.combo, 32, MINT)
-	if b != null and b.combo >= 2:
-		text_at(Vector2(1020, 183), "%d HITS" % b.combo, 32, GOLD)
+			text_at(Vector2(28, 151), "DEMONSTRAÇÃO / F3 PARA ASSUMIR", 13, BLUE)
+	if story_mode:
+		text_at(
+			Vector2(28, 125), "W/S PROFUNDIDADE · ESPAÇO PULAR · OBJETOS RECUPERAM VIDA", 13, GOLD
+		)
+	for f in [a, b]:
+		if f != null and f.combo >= 2:
+			var x := 54 if f == a else 1025
+			ArcadeTheme.title(
+				self, Vector2(x, 204), str(f.combo), 66, GOLD if f.combo >= 5 else PAPER
+			)
+			ArcadeTheme.title(self, Vector2(x + 70, 202), "HITS!", 26, BLUE if f == a else RED, 3)
 	var message := ""
 	if game.paused:
-		message = "PAUSA / Enter continuar / Esc menu"
+		message = "PAUSA  /  ENTER CONTINUAR  /  ESC MENU"
 	elif story_mode and game.story.completed:
-		message = "NIT RESGATADO! / Enter voltar"
+		message = "NIT RESGATADO! / ENTER VOLTAR"
 	elif story_mode and game.story.defeated:
-		message = "FIM DE JOGO / R tentar novamente / Esc menu"
+		message = "FIM DE JOGO / R TENTAR NOVAMENTE"
 	elif not story_mode and game.sim.winner >= 0:
 		message = (
 			"EMPATE"
 			if game.sim.winner == 2
-			else game.sim.fighters[game.sim.winner].character.display_name + " VENCEU"
+			else game.sim.fighters[game.sim.winner].character.display_name.to_upper() + " VENCEU"
 		)
 		if game.sim.match_over:
-			message += " / Enter seleção"
+			message += " / ENTER SELEÇÃO"
 	if not message.is_empty():
-		# Leave the stage visible while inspecting a paused training contact.
 		var inspect: bool = game.paused and game.mode == "training"
-		panel(
-			Rect2(0, 664 if inspect else 285, 1280, 56 if inspect else 120),
-			Color(0.02, 0.04, 0.06, 0.9)
-		)
-		text_at(Vector2(160, 701 if inspect else 354), message, 30, GOLD)
+		if inspect:
+			panel(Rect2(0, 682, 1280, 38), INK)
+			centered(Vector2(640, 708), message, 22, GOLD)
+		else:
+			panel(Rect2(0, 281, 1280, 126), Color(INK, 0.92))
+			ArcadeTheme.title(self, Vector2(120, 358), message, 36, GOLD)
 
 
-func _draw_player(f: FighterModel, x: int, color: Color) -> void:
-	draw_texture_rect(
-		LegacyRoster.texture(f.character.legacy.portrait), Rect2(x, 14, 62, 62), false
+func _draw_player(f: FighterModel, right: bool, color: Color) -> void:
+	var base := 718.0 if right else 24.0
+	var x := base if right else base + 88
+	var id := f.character.id + str(f.slot)
+	var hp := float(f.health) / f.character.max_health
+	var memory: Dictionary = damage_trails.get(id, {"value": hp, "hp": hp, "wait": 0.0})
+	if hp < float(memory.hp):
+		memory.wait = 0.22
+	if hp > float(memory.hp):
+		memory.value = hp
+	memory.hp = hp
+	damage_trails[id] = memory
+	var trail := float(memory.value)
+	ArcadeTheme.plate(self, Rect2(base - 10, 11, 548, 69), Color(INK, 0.92), 15)
+	_portrait(f.character, Rect2(1190 if right else 24, 15, 66, 61))
+	text_at(Vector2(x, 32), f.character.display_name.to_upper(), 18, PAPER)
+	var rect := Rect2(x, 43, 430, 24)
+	panel(rect.grow(2), PAPER)
+	panel(rect, Color("3c2541"))
+	var trail_rect := Rect2(rect.position, Vector2(430 * trail, 24))
+	var hp_rect := Rect2(rect.position, Vector2(430 * hp, 24))
+	if right:
+		trail_rect.position.x += 430 * (1 - trail)
+		hp_rect.position.x += 430 * (1 - hp)
+	panel(trail_rect, RED)
+	panel(hp_rect, GOLD)
+	panel(Rect2(hp_rect.position, Vector2(hp_rect.size.x, 5)), PAPER)
+	for i in 9:
+		draw_line(Vector2(x + (i + 1) * 43, 44), Vector2(x + (i + 1) * 43, 66), Color(INK, 0.22), 1)
+	# Super meters sit on the bottom corners, leaving the stage open.
+	var meter_x := 855.0 if right else 35.0
+	ArcadeTheme.plate(self, Rect2(meter_x - 7, 638, 402, 39), INK, 12)
+	var fill := 288.0 * f.meter / 100
+	panel(Rect2(meter_x + 87, 651, 288, 13), Color("293050"))
+	panel(
+		Rect2(meter_x + 87 + (288 - fill if right else 0), 651, fill, 13),
+		color if f.meter < 100 else GOLD
 	)
-	text_at(Vector2(x + 75, 35), f.character.display_name, 22, color)
-	panel(Rect2(x + 75, 48, 440, 17), Color("273d43"))
-	panel(Rect2(x + 77, 50, 436.0 * f.health / f.character.max_health, 13), color)
-	panel(Rect2(x + 75, 78, 440, 8), Color("273d43"))
-	panel(Rect2(x + 75, 78, 440.0 * f.meter / 100.0, 8), Color("7e9aff"))
-	text_at(
-		Vector2(x + 75, 105),
-		str(f.character.legacy.style) + " / SUPER %d" % f.meter,
-		14,
-		Color("bfd0d3")
-	)
+	text_at(Vector2(meter_x + 4, 664), "SUPER", 19, color if f.meter < 100 else GOLD)
+	if f.meter == 100:
+		text_at(Vector2(meter_x + 193, 663), "MAX", 12, INK)
+	text_at(Vector2(x, 88), str(f.character.legacy.style).to_upper(), 12, color)
 
 
 func _online() -> void:
-	panel(Rect2(0, 0, 1280, 720), Color("0b151e"))
-	text_at(Vector2(70, 90), "ONLINE 1 x 1", 40, MINT)
-	text_at(Vector2(70, 160), "ONLINE EM MIGRAÇÃO", 28, GOLD)
-	text_at(Vector2(70, 220), "O combate local está disponível no menu.", 24)
-	text_at(
-		Vector2(70, 270), "As sessões online serão liberadas após os testes de rede e rollback.", 21
+	ArcadeTheme.backdrop(self, clock)
+	ArcadeTheme.title(self, Vector2(80, 130), "ONLINE 1 × 1", 64, PAPER)
+	ArcadeTheme.plate(self, Rect2(80, 190, 650, 55), GOLD, 12)
+	text_at(Vector2(105, 228), "ONLINE EM MIGRAÇÃO", 30, INK)
+	text_at(Vector2(85, 300), "O combate local está disponível no menu.", 25, PAPER)
+	wrapped(
+		Vector2(85, 350),
+		"As sessões online serão liberadas após os testes de rede e rollback.",
+		710,
+		22,
+		BLUE
 	)
-	text_at(Vector2(70, 340), "Esc: voltar", 24, MINT)
+	_footer("ESC VOLTAR")

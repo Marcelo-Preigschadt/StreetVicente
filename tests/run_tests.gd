@@ -45,6 +45,7 @@ func _run() -> void:
 	_test_shared_powers()
 	_test_contact_geometry_v3()
 	_test_marcelo_uppercut_v4()
+	_test_roster_art_v5()
 	print("COMBAT TESTS: %d checks, %d failures" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 
@@ -602,3 +603,52 @@ func _test_marcelo_uppercut_v4() -> void:
 			contacts == 1 and close.fighters[1].health < 1000,
 			"Gancho conecta uma vez no Rafael nos dois lados"
 		)
+
+
+func _test_roster_art_v5() -> void:
+	CharacterArt.load_data()
+	var ui := GameScreen.new()
+	var rectangles: Array[Rect2] = []
+	for id in LegacyRoster.ids():
+		var f := FighterModel.new(LegacyRoster.get_character(id), 0, 400)
+		var art := CharacterArt.frame(f)
+		check(ResourceLoader.exists(art.sheet.image), "Prévia de seleção disponível: " + id)
+		var rect := ui.card_rect(rectangles.size())
+		check(Rect2(0, 0, 1280, 686).encloses(rect), "Retrato cabe inteiro na seleção: " + id)
+		for old in rectangles:
+			check(not rect.intersects(old), "Retratos não se sobrepõem")
+		rectangles.append(rect)
+	check(ui.vertical_neighbor(0, 1) == 5, "Seleção navega verticalmente na grade")
+	check(ui.vertical_neighbor(5, -1) == 0, "Navegação vertical volta à mesma coluna")
+	ui.free()
+	for id in ["rafael", "gustavo"]:
+		check(
+			CharacterArt.additions[id].frames.size() == 8, "Oito desenhos completos de soco: " + id
+		)
+		for facing in [1, -1]:
+			var sim := FightSimulation.new(
+				LegacyRoster.get_character(id), LegacyRoster.get_character("marcelo")
+			)
+			sim.fighters[0].x = (450 if facing == 1 else 830) * 256
+			sim.fighters[1].x = (630 if facing == 1 else 650) * 256
+			sim.step([CombatInput.new(0, CombatInput.PUNCH), CombatInput.new()])
+			var hits := 0
+			var saved := {}
+			for tick in 110:
+				var f := sim.fighters[0]
+				if f.state == FighterState.Id.ATTACK:
+					var art := CharacterArt.frame(f)
+					check(art.key == "punch_v5", "Soco usa sequência nova: " + id)
+					if f.current_move().phase(f.move_tick) != "ACTIVE":
+						check(f.attack_boxes().is_empty(), "Sem dano fora da extensão: " + id)
+				for event in sim.events:
+					if event.kind == "hit":
+						hits += 1
+				if tick == 16:
+					saved = sim.snapshot()
+				neutral(sim)
+			check(hits == 1, "Soco novo conecta uma vez nos dois lados: " + id)
+			var expected := sim.state_hash()
+			sim.restore(saved)
+			neutral(sim, 94)
+			check(sim.state_hash() == expected, "Replay preserva sequência nova: " + id)

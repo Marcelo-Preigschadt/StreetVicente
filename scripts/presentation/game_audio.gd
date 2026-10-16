@@ -51,7 +51,16 @@ func consume(events: Array) -> void:
 		elif e.kind == "hit":
 			play(
 				LegacyRoster.catalog.sounds.get(
-					"heavy" if e.get("move", "").begins_with("super") else "light", ""
+					(
+						"heavy"
+						if (
+							e.get("move", "").begins_with("super")
+							or e.get("move", "").begins_with("uppercut")
+							or e.get("move", "").ends_with(":2")
+						)
+						else "light"
+					),
+					""
 				)
 			)
 		elif e.kind == "laser":

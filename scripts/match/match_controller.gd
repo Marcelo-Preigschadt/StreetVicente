@@ -1,10 +1,10 @@
 extends Node2D
 ## Native Godot shell. The original JavaScript engine is never embedded or executed.
 const MENU := [
-	"TESTAR MARCELO / NOVA ARTE",
+	"TREINO LIVRE",
 	"VERSUS / CPU",
 	"VERSUS / 2 JOGADORES",
-	"MODO HISTÓRIA",
+	"HISTÓRIA / RESGATE DO NIT",
 	"TREINAMENTO",
 	"ONLINE / EM MIGRAÇÃO"
 ]
@@ -254,7 +254,7 @@ func _publish_qa() -> void:
 		data.move_tick = sim.fighters[0].move_tick
 		data.vy = sim.fighters[0].vy
 		data.meter = [sim.fighters[0].meter, sim.fighters[1].meter]
-		data.fx_revision = 4
+		data.fx_revision = 5
 		data.last_contacts = last_contacts
 		data.hurtboxes = sim.fighters.map(
 			func(f: FighterModel) -> Array:
@@ -294,15 +294,15 @@ func _publish_qa() -> void:
 				}
 		)
 		data.pose_index = (
-			PilotArt.frame(sim.fighters[0]).index
-			if sim.fighters[0].character.id == "marcelo"
+			CharacterArt.frame(sim.fighters[0]).index
+			if CharacterArt.has_frame(sim.fighters[0])
 			else 0
 		)
 		data.hash = sim.state_hash()
 		data.new_art = views[0].use_new_art
 		data.pose = (
-			PilotArt.frame(sim.fighters[0]).key
-			if sim.fighters[0].character.id == "marcelo"
+			CharacterArt.frame(sim.fighters[0]).key
+			if CharacterArt.has_frame(sim.fighters[0])
 			else "legacy"
 		)
 		data.state = FighterState.NAMES[sim.fighters[0].state]
@@ -326,7 +326,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		var local: Vector2 = (event.position - position) / scale
 		if screen == "menu":
 			for i in MENU.size():
-				if Rect2(75, 245 + i * 57, 570, 48).has_point(local):
+				if ui.menu_rect(i).has_point(local):
 					choose_menu(i)
 		elif screen == "selection":
 			for i in LegacyRoster.ids().size():
@@ -361,6 +361,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			cursor = posmod(cursor - 1, LegacyRoster.ids().size())
 		elif key in [KEY_D, KEY_RIGHT]:
 			cursor = (cursor + 1) % LegacyRoster.ids().size()
+		elif key in [KEY_W, KEY_UP, KEY_S, KEY_DOWN]:
+			cursor = ui.vertical_neighbor(cursor, -1 if key in [KEY_W, KEY_UP] else 1)
 		elif key == KEY_ENTER:
 			confirm_selection()
 		elif key == KEY_ESCAPE:

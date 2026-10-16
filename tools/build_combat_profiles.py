@@ -58,6 +58,11 @@ for sheet, index, rect in [('strike',2,[110,-246,58,43]),('strike',6,[45,-252,62
                           ('low',6,[90,-188,54,43]),('style',11,[106,-196,44,36]),
                           ('combat',11,[45,-325,46,54])]:
     register('rafael',sheet,index,rect)
+# Newly authored body drawings expose exactly the same keys to render and collision.
+for name in ['rafael', 'gustavo']:
+    manifest=json.loads((ROOT/f'data/characters/{name}-art-v5.json').read_text())
+    profile=result.setdefault(name, {'push_half':48, 'frames':{}})
+    profile['frames'][manifest['key']]=manifest['collision']
 path = ROOT / 'data/characters/combat-profiles-v3.json'
 path.write_text(json.dumps(result, separators=(',', ':')) + '\n')
 print('Registered Rafael silhouette bands and Marcelo/Rafael active limbs:', path.stat().st_size, 'bytes')

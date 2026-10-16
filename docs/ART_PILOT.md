@@ -4,7 +4,7 @@ Esta versão introduz 64 desenhos novos do Marcelo e a reprodução dessas poses
 
 ## Ver em movimento
 
-Abra o jogo e selecione **TESTAR MARCELO / NOVA ARTE**. A/D anda; W pula; S agacha; F soca; G chuta; S+F e S+G executam golpes baixos; H defende; T lança código; Y executa ascendente; Q cria sentinela; U invoca enxame com barra cheia.
+Abra o jogo e selecione **TREINO LIVRE**. A/D anda; W pula; S agacha; F soca; G chuta; S+F e S+G executam golpes baixos; H defende; T lança código; Y executa ascendente; Q cria sentinela; U invoca enxame com barra cheia.
 
 **F3** alterna uma demonstração automática, enviando comandos pelo mesmo motor usado pelo jogador. **F4** compara a arte nova e a original sem alterar colisões, dano ou simulação. R reinicia e recarrega a barra no treinamento. Esc pausa; Enter continua; Esc novamente volta ao menu.
 
@@ -87,3 +87,16 @@ O gancho Y comprime no chão, passa dois frames de design no impulso e lança um
 O teste Web captura separadamente subida/queda do gancho, rajada em voo, contato e drones. As capturas do jogo e o vídeo ficam no artefato `StreetVicente-Web-QA` da execução de Actions. Testes de colisão/replay validam comportamento; a comparação visual continua necessária para avaliar a arte.
 
 Referência direta: `Street-Vicente-Fighter-`, commit `b320e497682bbfe0e2fc39883818183fa02521f5`, funções `drawEnergyProjectile`, `drawEnergyRise` (`src/fight-fx.js`) e `drawPowerGlyph` (`src/render.js`). O repositório original não foi alterado.
+
+
+## Revisão 5 — interface arcade e início da renovação do elenco
+
+Menu, seleção, HUD e apresentação de super usam `ArcadeTheme`: placas inclinadas, tipografia com contorno, cores por jogador, retratos consistentes e transições curtas. A seleção mantém os 13 lutadores visíveis, separa os nove professores dos quatro alunos e mostra prévias de corpo inteiro. As barras são espelhadas; a vida perdida fica marcada brevemente. Os impactos possuem chaves visuais de contato, estrela e dispersão. Os rastros respeitam o recorte e a origem do desenho de cada lutador; os drones aprovados são preservados.
+
+Rafael e Gustavo recebem **oito desenhos completos de soco cada**, com preparação, rotação, extensão e recolhimento. A guarda compartilha os extremos dessas sequências. Seus outros movimentos continuam com a arte existente. Os outros dez personagens além desses dois e Marcelo mantêm os desenhos importados, agora apresentados na nova interface e com os efeitos comuns atualizados. Isso inicia a renovação do elenco, sem afirmar que todos foram redesenhados.
+
+`CharacterArt` escolhe a mesma pose para render e colisões. `rafael-art-v5.json` e `gustavo-art-v5.json` registram recortes, pivôs, escalas e caixas. As hurtboxes são bandas calculadas offline da silhueta transparente; os retângulos ofensivos do punho são revisados e só ativados nos frames de execução. O empacotador `tools/pack_roster_v5.py` mantém os pixels originais. `tools/build_combat_profiles.py` reúne a geometria canônica.
+
+Fontes: `assets/source/roster-v5/`; atlases jogáveis: `assets/characters/rafael/art-v5/punch.webp` e `assets/characters/gustavo/art-v5/punch.webp`. Os prompts integrais estão em `assets/source/roster-v5/PROMPTS.md`; ferramenta usada: imagegen integrada, com os retratos e corpos anteriores como referências de identidade. Nenhuma imagem do elenco de Marvel/Capcom foi incorporada.
+
+Validação inclui grade sem sobreposição, recursos dos 13 previews, dano único e replay dos novos socos nos dois lados, além das capturas Web de menu, seleção, combate, poderes e História. A qualidade visual é revista nas capturas/vídeo da exportação real, separadamente dos testes de regras.

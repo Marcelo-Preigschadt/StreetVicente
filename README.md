@@ -6,7 +6,7 @@ Projeto em Godot 4.5.1 / GDScript, 1280×720, simulação a 120 Hz e exportaçã
 
 ## Nova arte do Marcelo
 
-No menu, **TESTAR MARCELO / NOVA ARTE** abre o piloto jogável. Há **64 desenhos novos** para soco, chute, caminhada, defesa, salto, reações, ascendente, golpes baixos e emissão de poderes. A voadora tem 8 chaves aéreas próprias. Há 16 chaves de VFX base para código, drones, fumaça, garfos e livros, além de 12 desenhos dedicados de carga/voo/impacto para a nova rajada de código. **F3** demonstra os movimentos; **F4** compara com a arte anterior. [Detalhes e prévia animada](docs/ART_PILOT.md).
+No menu, **TREINO LIVRE** abre Marcelo × Rafael. A interface arcade inclui menu, seleção com os 13 rostos e prévias em corpo inteiro, barras espelhadas, impactos e apresentação de super por personagem. Marcelo possui 64 desenhos novos; Rafael e Gustavo iniciam a renovação do restante do elenco com 8 desenhos completos de soco cada. Os demais movimentos desses dois e os outros personagens preservam a arte importada. **F3** demonstra os movimentos; **F4** compara a arte. [Detalhes, fontes e evolução da migração](docs/ART_PILOT.md).
 
 Os outros 12 personagens usam a arte importada. Redesenhar e revisar o restante do elenco é uma etapa posterior; não se trata de uma renovação visual já concluída de todo o jogo.
 

@@ -25,17 +25,12 @@ func _process(_delta: float) -> void:
 	for ghost in trails:
 		ghost.life -= _delta
 	trails = trails.filter(func(g: Dictionary) -> bool: return g.life > 0.0)
-	if (
-		model.state == FighterState.Id.ATTACK
-		and trail_clock > 0.035
-		and use_new_art
-		and model.character.id == "marcelo"
-	):
+	if model.state == FighterState.Id.ATTACK and trail_clock > 0.035 and use_new_art:
 		var move := model.current_move()
 		if move.phase(model.move_tick) == "ACTIVE":
 			trails.append(
 				{
-					"pose": PilotArt.frame(model),
+					"pose": CharacterArt.frame(model),
 					"life": 0.12,
 					"position": position,
 					"facing": model.facing
@@ -50,8 +45,8 @@ func _draw() -> void:
 		return
 	var sheet: Dictionary
 	var frame: Dictionary
-	if use_new_art and model.character.id == "marcelo":
-		var art := PilotArt.frame(model)
+	if use_new_art and CharacterArt.has_frame(model):
+		var art := CharacterArt.frame(model)
 		sheet = art.sheet
 		frame = art.frame
 	else:
@@ -75,13 +70,18 @@ func _draw() -> void:
 		var gf: Dictionary = ghost.pose.frame
 		var gs: Dictionary = ghost.pose.sheet
 		var r: Array = gf.rect
-		var k := float(gf.scale)
+		var k := float(gf.get("scale", gs.scale))
 		draw_set_transform(Vector2(ghost.position) - position, 0, Vector2(int(ghost.facing), 1))
 		draw_texture_rect_region(
 			LegacyRoster.texture(gs.image),
-			Rect2(-float(gf.anchor) * k, -float(gf.bottom) * k, float(r[2]) * k, float(r[3]) * k),
+			Rect2(
+				(float(gf.get("x", 0)) - float(gf.anchor)) * k,
+				(float(gf.get("y", 0)) - float(gf.bottom)) * k,
+				float(r[2]) * k,
+				float(r[3]) * k
+			),
 			Rect2(r[0], r[1], r[2], r[3]),
-			Color(0.25, 0.95, 0.65, float(ghost.life) * 1.8)
+			Color(model.character.color, float(ghost.life) * 1.6)
 		)
 	draw_set_transform(Vector2.ZERO, 0, Vector2(model.facing * width_factor, 1))
 	var target := Rect2(

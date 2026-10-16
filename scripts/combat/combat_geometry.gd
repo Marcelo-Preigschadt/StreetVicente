@@ -16,8 +16,8 @@ static func frame(f: FighterModel) -> Dictionary:
 	if not profiles.has(f.character.id):
 		return {}
 	var pose: Dictionary
-	if f.character.id == "marcelo":
-		pose = FighterPose.select(f)
+	if CharacterArt.has_frame(f):
+		pose = CharacterArt.pose(f)
 	else:
 		var old: Array = f.character.pose_frame(f).pose
 		pose = {"key": old[0], "index": int(old[1])}
@@ -26,7 +26,12 @@ static func frame(f: FighterModel) -> Dictionary:
 
 
 static func attack(f: FighterModel):
-	if f.character.id not in ["marcelo", "rafael"] or f.state != FighterState.Id.ATTACK:
+	if f.state != FighterState.Id.ATTACK:
+		return null
+	if (
+		f.character.id not in ["marcelo", "rafael"]
+		and not (f.character.id == "gustavo" and CharacterArt.has_frame(f))
+	):
 		return null
 	var move := f.current_move()
 	if (
