@@ -50,8 +50,10 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.keyboard.press('r');await delay(150);await page.keyboard.press('y');
  await wait(()=>window.svfQA?.moves?.[0]==='uppercut:1'&&window.svfQA?.y?.[0]<625*256&&window.svfQA?.pose==='combat'&&window.svfQA?.pose_index===10);
  await pausedShot('test-results/06a-uppercut-rise.png');
- await wait(()=>window.svfQA?.moves?.[0]==='uppercut:1'&&window.svfQA?.vy>500&&window.svfQA?.y?.[0]<625*256);
- let fall=await state();assert.equal(fall.pose,'states','Gancho usa pose aérea durante a descida');assert.equal(fall.pose_index,8);assert.equal(fall.hitboxes[0].length,0,'Sem hitbox na recuperação');
+ // Return the immutable observer object from the matching render. A second
+ // evaluate after waitForFunction can observe landing on slow software WebGL.
+ const fallHandle=await wait(()=>{const q=window.svfQA;return q?.moves?.[0]==='uppercut:1'&&q.vy>500&&q.y[0]<625*256?q:null;});
+ const fall=await fallHandle.jsonValue();await fallHandle.dispose();assert.equal(fall.pose,'states','Gancho usa pose aérea durante a descida');assert.equal(fall.pose_index,8);assert.equal(fall.hitboxes[0].length,0,'Sem hitbox na recuperação');
  await pausedShot('test-results/06b-uppercut-fall.png');await wait(()=>window.svfQA?.state==='IDLE');
  assert.equal((await state()).y[0],625*256,'Gancho retorna ao chão');
  await page.keyboard.press('r');await delay(200);const baseFx=await pausedShot();await page.keyboard.press('t');await wait(()=>window.svfQA?.projectiles>0);
