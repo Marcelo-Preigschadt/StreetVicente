@@ -1,7 +1,7 @@
 extends Node2D
 ## Native Godot shell. The original JavaScript engine is never embedded or executed.
 const MENU := [
-	"TREINO LIVRE",
+	"PILOTO 2,5D / MARCELO",
 	"CIRCUITO VICENTE / CPU",
 	"VERSUS / 2 JOGADORES",
 	"HISTÓRIA / RESGATE DO NIT",
@@ -278,6 +278,9 @@ func _process(_delta: float) -> void:
 		save_clock = 0.0
 	for view in views:
 		view.impact_offset = impact.offset()
+		view.presentation_frozen = (
+			paused or (screen == "fight" and sim != null and sim.freeze_ticks > 0)
+		)
 	power_view.position = impact.offset()
 	impact.position = impact.offset()
 	impact.camera_x = story.camera_x if screen == "story" else 0.0
@@ -386,6 +389,11 @@ func _publish_qa() -> void:
 		)
 		data.hash = sim.state_hash()
 		data.new_art = views[0].use_new_art
+		data.pilot_3d = (
+			views[0].pilot_3d.observation()
+			if views[0].pilot_3d != null and views[0].pilot_3d.visible
+			else {}
+		)
 		data.pose = (
 			CharacterArt.frame(sim.fighters[0]).key
 			if CharacterArt.has_frame(sim.fighters[0])
@@ -549,6 +557,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif key == KEY_F4:
 			for view in views:
 				view.use_new_art = not view.use_new_art
+		elif key == KEY_F6:
+			for view in views:
+				view.use_3d = not view.use_3d
 		elif key == KEY_F1:
 			debug_boxes = not debug_boxes
 			for view in views:

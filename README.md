@@ -4,9 +4,15 @@
 
 Projeto em Godot 4.5.1 / GDScript, 1280×720, simulação a 120 Hz e exportação Web sem threads para GitHub Pages. O repositório [original Canvas](https://github.com/Marcelo-Preigschadt/Street-Vicente-Fighter-) foi usado em leitura; as alterações ficam neste projeto.
 
-## Nova arte do Marcelo
+## Piloto 2,5D do Marcelo
 
-No menu, **TREINO LIVRE** abre Marcelo × Rafael. A interface arcade inclui menu, seleção com os 13 rostos e prévias em corpo inteiro, barras espelhadas, impactos e apresentação de super por personagem. Marcelo possui 64 desenhos novos; Rafael e Gustavo iniciam a renovação do restante do elenco com 8 desenhos completos de soco cada. Os demais movimentos desses dois e os outros personagens preservam a arte importada. **F3** demonstra os movimentos; **F4** compara a arte. [Detalhes, fontes e evolução da migração](docs/ART_PILOT.md).
+A primeira opção, **PILOTO 2,5D / MARCELO**, abre o modelo articulado com `Skeleton3D`, malhas com volume, câmera ortográfica e sombreamento em faixas. **F6** alterna entre o modelo e os desenhos 2D atuais; **F4** mantém a comparação com a arte importada. O rosto usa a textura aprovada, sem redesenho. A cabeça é uma malha em relevo para a câmera fixa, e ainda não uma reconstrução facial de 360°. [Arquitetura, limitações e validação](docs/PILOT_3D.md).
+
+Esta etapa migra a apresentação do Marcelo. Os demais personagens e as prévias da seleção continuam em 2D. O acabamento do modelo é inicial e não representa paridade artística com Marvel vs. Capcom 3.
+
+## Arte 2D preservada
+
+A interface arcade inclui menu, seleção com os 13 rostos e prévias em corpo inteiro, barras espelhadas, impactos e apresentação de super por personagem. A alternativa 2D do Marcelo possui 64 desenhos; Rafael e Gustavo têm 8 desenhos completos de soco cada. Os demais movimentos desses dois e os outros personagens preservam a arte importada. **F3** demonstra os movimentos. [Detalhes, fontes e evolução da migração](docs/ART_PILOT.md).
 
 [Auditoria da migração e correções desta revisão](docs/MIGRATION_V6.md): recuperação após golpes, escala do Adriano, circuito/pontuação e progresso do História.
 

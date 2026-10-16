@@ -25,7 +25,11 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight');
  assert.deepEqual((await state()).selected,['marcelo','rafael']);assert.equal((await state()).new_art,true);
  assert.equal((await state()).fx_revision,6,'Pacote novo de geometria e VFX');
+ assert.equal((await state()).pilot_3d.renderer,'skeleton3d','Piloto realmente instancia o rig 3D no WebGL');
+ assert.equal((await state()).pilot_3d.bones,18);assert.equal((await state()).pilot_3d.face,'res://assets/legacy/runtime/marcelo-head-menu-v3.webp','Rosto aprovado preservado');
  await page.screenshot({path:'test-results/02-pilot-ready.png'});
+ await page.keyboard.press('F6');await wait(()=>!window.svfQA?.pilot_3d?.renderer);await page.screenshot({path:'test-results/02a-2d-comparison.png'});
+ await page.keyboard.press('F6');await wait(()=>window.svfQA?.pilot_3d?.renderer==='skeleton3d');
  let before=await state();await page.keyboard.down('d');await delay(350);await page.keyboard.up('d');
  let moved=await state();assert(moved.x[0]>before.x[0]+40*256,'Movimento real no WASM');
  await page.keyboard.press('w');await wait(()=>window.svfQA?.state==='JUMP');

@@ -319,13 +319,18 @@ func _hud() -> void:
 		)
 	)
 	if game.mode == "training" and not story_mode:
-		ArcadeTheme.plate(self, Rect2(16, 108, 625, 27), Color(INK, 0.85), 7)
+		ArcadeTheme.plate(self, Rect2(16, 108, 940, 27), Color(INK, 0.85), 7)
 		text_at(
 			Vector2(28, 128),
 			(
 				"TREINO  /  ALVO: "
 				+ ["JOGADOR 2", "PARADO", "DEFESA ALTA", "DEFESA BAIXA"][game.dummy_mode]
 				+ "  /  F2 ALVO · R REINICIAR · F3 DEMO"
+				+ (
+					"  /  MARCELO 2,5D · F6 COMPARAR 2D"
+					if game.views[0].use_3d and game.selected[0] == "marcelo"
+					else "  /  F6 PILOTO 2,5D"
+				)
 			),
 			13,
 			GOLD

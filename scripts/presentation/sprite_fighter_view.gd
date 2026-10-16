@@ -6,21 +6,35 @@ var use_new_art: bool = true
 var impact_offset := Vector2.ZERO
 var trails: Array = []
 var trail_clock: float = 0.0
+var use_3d: bool = true
+var presentation_frozen: bool = false
+var pilot_3d: Fighter3DView
 
 
 func setup(value: FighterModel, tint: Color) -> void:
 	trails.clear()
 	trail_clock = 0.0
 	super.setup(value, tint)
+	if value.character.id == "marcelo" and pilot_3d == null:
+		pilot_3d = Fighter3DView.new()
+		add_child(pilot_3d)
+	if pilot_3d != null:
+		pilot_3d.present(value, value.character.id == "marcelo" and use_3d and use_new_art)
 
 
 func _process(_delta: float) -> void:
 	if model == null:
 		return
-	var alpha := Engine.get_physics_interpolation_fraction()
+	var alpha := 1.0 if presentation_frozen else Engine.get_physics_interpolation_fraction()
 	position = (
 		previous_position.lerp(current_position, alpha) - Vector2(camera_x, 0) + impact_offset
 	)
+	if pilot_3d != null:
+		pilot_3d.frozen = presentation_frozen
+		pilot_3d.present(model, model.character.id == "marcelo" and use_3d and use_new_art)
+		if pilot_3d.visible:
+			queue_redraw()
+			return
 	trail_clock += _delta
 	for ghost in trails:
 		ghost.life -= _delta
@@ -42,6 +56,18 @@ func _process(_delta: float) -> void:
 
 func _draw() -> void:
 	if model == null:
+		return
+	if pilot_3d != null and pilot_3d.visible:
+		draw_set_transform(
+			Vector2(0, model.ground_y / float(FighterModel.SCALE) - position.y), 0, Vector2(1, 0.15)
+		)
+		draw_circle(Vector2.ZERO, 65, Color(0.01, 0.02, 0.03, 0.42))
+		draw_set_transform(Vector2.ZERO)
+		if debug_boxes:
+			for rect in model.hurtboxes():
+				_show_box(rect, Color("58deff"))
+			for rect in model.attack_boxes():
+				_show_box(rect, Color("ff6475"))
 		return
 	var sheet: Dictionary
 	var frame: Dictionary
