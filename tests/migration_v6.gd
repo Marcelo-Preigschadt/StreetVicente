@@ -36,6 +36,12 @@ static func _recovery(s: SceneTree) -> void:
 		)
 	_ticks(f, 600)
 	s.check(f.stun_gauge == 0, "Tontura decai sem novos golpes")
+	f.stun_gauge = 30
+	for tick in 180:
+		f.record_input(CombatInput.new(CombatInput.RIGHT if tick % 2 else 0), tick)
+		f.begin_tick(1200 * UNIT)
+		f.end_tick()
+	s.check(f.stun_gauge == 0, "Decaimento não depende de permanecer em Idle/Walk")
 	f.health = 1000
 	for hit in 3:
 		attacker.connect_hit(f, move)

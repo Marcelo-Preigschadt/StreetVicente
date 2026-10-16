@@ -40,6 +40,7 @@ var qa: bool = false
 var demo: bool = false
 var impact: CombatImpact
 var last_contacts: Array = []
+var reference_heights: Dictionary = {}
 
 
 func _ready() -> void:
@@ -616,13 +617,16 @@ func _next_arcade() -> void:
 
 
 func _standing_height(f: FighterModel) -> float:
+	if reference_heights.has(f.character.id):
+		return reference_heights[f.character.id]
 	var standing := FighterModel.new(f.character, f.slot, 0)
 	var art := CharacterArt.frame(standing)
-	return (
+	reference_heights[f.character.id] = (
 		float(art.frame.rect[3])
 		* float(art.frame.get("scale", art.sheet.scale))
 		* CharacterMetrics.factor(f.character.id)
 	)
+	return reference_heights[f.character.id]
 
 
 func _show_arcade_outcome() -> void:

@@ -29,6 +29,7 @@ var dizzy_ticks: int = 0
 var dizzy_protection: int = 0
 var dizzy_escape_cooldown: int = 0
 var stun_quiet: int = 0
+var stun_decay_ticks: int = 0
 var hit_duration: int = 0
 var hit_region: String = "body"
 var hit_crouched: bool = false
@@ -107,8 +108,12 @@ func begin_tick(opponent_x: int) -> void:
 		and dizzy_pending == 0
 		and state != FighterState.Id.DIZZY
 	):
-		if state_tick % 6 == 0:
-			stun_gauge = maxi(0, stun_gauge - 1)  # 20 unidades/s, como no original.
+		stun_decay_ticks += 1
+		if stun_decay_ticks >= 6:
+			stun_gauge = maxi(0, stun_gauge - 1)  # 20/s, independente de trocar Idle/Walk.
+			stun_decay_ticks = 0
+	else:
+		stun_decay_ticks = 0
 	combo_ticks = maxi(0, combo_ticks - 1)
 	if combo_ticks == 0:
 		combo = 0
@@ -516,6 +521,7 @@ func snapshot() -> Dictionary:
 		"dizzy_protection": dizzy_protection,
 		"dizzy_escape_cooldown": dizzy_escape_cooldown,
 		"stun_quiet": stun_quiet,
+		"stun_decay_ticks": stun_decay_ticks,
 		"hit_duration": hit_duration,
 		"hit_region": hit_region,
 		"hit_crouched": hit_crouched,
@@ -585,6 +591,7 @@ func restore(data: Dictionary) -> void:
 		"dizzy_protection",
 		"dizzy_escape_cooldown",
 		"stun_quiet",
+		"stun_decay_ticks",
 		"hit_duration",
 		"hit_region",
 		"hit_crouched",

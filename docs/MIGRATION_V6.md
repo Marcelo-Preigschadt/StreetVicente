@@ -32,7 +32,7 @@ O placar do circuito é estado local de progressão, separado da simulação de 
 
 ## Validação
 
-`bash tools/test.sh`: **4.810 verificações, zero falhas**. Inclui os limites de recuperação, tontura interrompida, mash/restauração, quick rise, quatro quadros de reação, escala/espelhamento do Adriano, fórmulas e deduplicação de pontos, todos os 12 rivais, Continue e finalização, reconhecimento de estilo, objetos arremessados, perigo/cooldown, progressão dos quatro atos/Exo, persistência JSON e continuidade por 75 ticks após restore, Custom/Counter e footwork para os 13 personagens.
+`bash tools/test.sh`: **4.811 verificações, zero falhas**. Inclui os limites de recuperação, tontura interrompida, mash/restauração, quick rise, quatro quadros de reação, escala/espelhamento do Adriano, fórmulas e deduplicação de pontos, todos os 12 rivais, Continue e finalização, reconhecimento de estilo, objetos arremessados, perigo/cooldown, progressão dos quatro atos/Exo, persistência JSON e continuidade por 75 ticks após restore, Custom/Counter e footwork para os 13 personagens. O teste de shell também percorre vitória → rota → próximo rival, derrota → Continue e entrada no diálogo/checkpoint.
 
 `tools/smoke_web.cjs` exercita o WASM real sob `/StreetVicente/` via teclado: reação e recuperação, Adriano na seleção e arena, Custom, pontos obtidos contra a CPU, reload do recorde e retomada da posição do História. O pipeline exporta com Godot 4.5.1, Compatibility/WebGL2, sem threads e sem necessidade de cabeçalhos COOP/COEP; só publica depois que esse smoke passa. Capturas e vídeo ficam no artefato `StreetVicente-Web-QA` da execução.
 

@@ -91,6 +91,15 @@ func input(value: CombatInput) -> CombatInput:
 			(value.pressed & ~CombatInput.PUNCH) | CombatInput.THROW
 		)
 	if carry.is_empty() and value.pressed & (CombatInput.PUNCH | CombatInput.THROW):
+		if not value.pressed & CombatInput.THROW:
+			for enemy in world.enemies:
+				var foe: FighterModel = enemy.fighter
+				if (
+					foe.health > 0
+					and absi(foe.x - f.x) < 190 * UNIT
+					and absi(foe.ground_y - f.ground_y) < 42 * UNIT
+				):
+					return value  # F ataca o inimigo próximo; E ainda permite pegar o móvel.
 		var nearest: Dictionary = {}
 		var distance := 100000000
 		for p in world.props:
