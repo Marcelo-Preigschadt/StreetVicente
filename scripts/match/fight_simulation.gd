@@ -115,11 +115,25 @@ func step(inputs: Array[CombatInput]) -> void:
 		if not contact.get("projectile", false):
 			attacker.hit_targets.append(defender.slot)
 		attacker.has_contact = true
+		var combo_name := ""
 		if not contact.blocked:
-			attacker.combo += 1
-			attacker.combo_ticks = maxi(100, move.hitstun * 2 + 30)
+			combo_name = attacker.connect_hit(defender, move)
 			attacker.meter = mini(100, attacker.meter + int(move.legacy.get("meter", 8)))
-		defender.receive_hit(move, contact.facing, contact.blocked)
+		var before_health := defender.health
+		var region := (
+			"head"
+			if defender.y - int(contact.get("impact_y", defender.y)) >= 210 * FighterModel.SCALE
+			else "body"
+		)
+		defender.receive_hit(
+			move,
+			contact.facing,
+			contact.blocked,
+			attacker.slot,
+			attacker.combo,
+			attacker.scaled_damage(move),
+			region
+		)
 		freeze_ticks = maxi(freeze_ticks, move.hitstop * 2)
 		events.append(
 			{
@@ -130,6 +144,10 @@ func step(inputs: Array[CombatInput]) -> void:
 				"move": move.id,
 				"character": attacker.character.id,
 				"slot": defender.slot,
+				"attacker": attacker.slot,
+				"damage": before_health - defender.health,
+				"combo": attacker.combo,
+				"combo_name": combo_name,
 				"effect": str(contact.get("effect", "")),
 				"power_kind": str(contact.get("power_kind", "")),
 				"x": int(contact.get("impact_x", defender.x)),
@@ -149,6 +167,19 @@ func step(inputs: Array[CombatInput]) -> void:
 		if winner < 2:
 			wins[winner] += 1
 		match_over = wins[0] >= 2 or wins[1] >= 2
+		events.append(
+			{
+				"id": "%d:round_end" % tick,
+				"kind": "round_end",
+				"winner": winner,
+				"round": round_number,
+				"life": fighters[0].health,
+				"seconds": ceili(remaining_ticks / 120.0),
+				"ko": fighters[1].health <= 0
+			}
+		)
+		if match_over:
+			events.append({"id": "%d:result" % tick, "kind": "result", "winner": winner})
 	tick += 1
 
 
@@ -194,6 +225,7 @@ func snapshot() -> Dictionary:
 
 
 func restore(data: Dictionary) -> void:
+	data = SnapshotCodec.integers(data)
 	assert(data.schema == 1)
 	projectiles = data.get("projectiles", []).duplicate(true)
 	projectile_seq = data.get("projectile_seq", 0)
@@ -212,7 +244,7 @@ func restore(data: Dictionary) -> void:
 
 func state_hash() -> String:
 	# Ordem de campos fixa. Usar versão/build idênticos na comparação entre peers.
-	return var_to_bytes(snapshot()).hex_encode().sha256_text()
+	return SnapshotCodec.state_hash(snapshot())
 
 
 func power_actors() -> Array[FighterModel]:

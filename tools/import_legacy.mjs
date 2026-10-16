@@ -35,9 +35,9 @@ for(const [id,c]of Object.entries(CHARACTERS)){
  for(const [name,m]of Object.entries(ADDITIONAL_SPRITE_STEMS[id]??{}))atlases[name]={...metadata(m+'.json'),image:copy(m+'.webp')};
  const animations={};
  for(const state of ['idle','walk','jump','crouch','block','lowBlock','hit','dizzy','ko','knockdown','wake','victory']){
-  const f=new Fighter(id,0);f.state=state;f.input.down=['crouch','lowBlock'].includes(state);if(state==='jump')f.y-=100;if(state==='hit')f.hitstun=.3;
+  const f=new Fighter(id,0);f.state=state;f.input.down=['crouch','lowBlock'].includes(state);if(state==='jump')f.y-=100;if(state==='hit'){f.hitDuration=.3;f.hitstun=.3;f.hitRegion='body';}
   animations[state]=[];
-  for(let t=0;t<120;t++){f.animTime=t/120;f.walkTime=t/120;f.walkBlend=state==='walk'?1:0;f.walkDistance=t/120*(c.speed??330);f.wakeTime=state==='wake'?Math.max(0,.5-t/120):0;animations[state].push(sample(f));}
+  for(let t=0;t<120;t++){f.animTime=t/120;if(state==='hit')f.hitstun=Math.max(0,.3-t/120);f.walkTime=t/120;f.walkBlend=state==='walk'?1:0;f.walkDistance=t/120*(c.speed??330);f.wakeTime=state==='wake'?Math.max(0,.5-t/120):0;animations[state].push(sample(f));}
  }
  const moves={};
  for(const name of ['punch','kick','crouchPunch','sweep','airPunch','airKick','special','uppercut','super','drone','throw','guardCounter'])for(let strength=0;strength<3;strength++){

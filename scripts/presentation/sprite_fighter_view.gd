@@ -60,7 +60,9 @@ func _draw() -> void:
 		frame = frames[clampi(int(pose[1]), 0, frames.size() - 1)]
 	var tex := LegacyRoster.texture(sheet.image)
 	var src: Array = frame.rect
-	var factor := float(frame.get("scale", sheet.scale))
+	var factor := (
+		float(frame.get("scale", sheet.scale)) * CharacterMetrics.factor(model.character.id)
+	)
 	var width_factor := float(model.character.legacy.get("visualWidth", 1.0))
 	draw_set_transform(
 		Vector2(0, model.ground_y / float(FighterModel.SCALE) - position.y), 0, Vector2(1, 0.15)
@@ -70,7 +72,7 @@ func _draw() -> void:
 		var gf: Dictionary = ghost.pose.frame
 		var gs: Dictionary = ghost.pose.sheet
 		var r: Array = gf.rect
-		var k := float(gf.get("scale", gs.scale))
+		var k := float(gf.get("scale", gs.scale)) * CharacterMetrics.factor(model.character.id)
 		draw_set_transform(
 			Vector2(ghost.position) - position, 0, Vector2(int(ghost.facing) * width_factor, 1)
 		)

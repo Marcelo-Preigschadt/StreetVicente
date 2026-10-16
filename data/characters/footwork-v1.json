@@ -1,0 +1,512 @@
+{
+  "source": "Street-Vicente-Fighter- b320e49 src/motion.js",
+  "profiles": {
+    "adriano": {
+      "stride": 110.88,
+      "advance": {
+        "distance": 105,
+        "duration": 0.25,
+        "cancelAt": 0.1
+      },
+      "retreat": {
+        "distance": 115,
+        "duration": 0.23333333333333334
+      },
+      "counter": 0.35,
+      "range": [
+        135,
+        220
+      ],
+      "attackAdvance": {
+        "punch": [
+          8,
+          13,
+          19
+        ],
+        "kick": [
+          8,
+          16,
+          22
+        ],
+        "crouchPunch": [
+          4,
+          7,
+          10
+        ],
+        "sweep": [
+          4,
+          7,
+          10
+        ]
+      }
+    },
+    "marcelo": {
+      "stride": 160,
+      "advance": {
+        "distance": 112,
+        "duration": 0.23333333333333334,
+        "cancelAt": 0.08333333333333333
+      },
+      "retreat": {
+        "distance": 72,
+        "duration": 0.26666666666666666
+      },
+      "counter": 0.2,
+      "range": [
+        112,
+        155
+      ],
+      "attackAdvance": {
+        "punch": [
+          8,
+          14,
+          20
+        ],
+        "kick": [
+          10,
+          16,
+          22
+        ],
+        "crouchPunch": [
+          4,
+          8,
+          12
+        ],
+        "sweep": [
+          4,
+          6,
+          8
+        ]
+      }
+    },
+    "rafael": {
+      "stride": 128,
+      "advance": {
+        "distance": 82,
+        "duration": 0.18333333333333332,
+        "cancelAt": 0.06666666666666667
+      },
+      "retreat": {
+        "distance": 104,
+        "duration": 0.21666666666666667
+      },
+      "counter": 0.34,
+      "range": [
+        120,
+        175
+      ],
+      "attackAdvance": {
+        "punch": [
+          6,
+          15,
+          20
+        ],
+        "kick": [
+          5,
+          8,
+          10
+        ],
+        "crouchPunch": [
+          4,
+          7,
+          10
+        ],
+        "sweep": [
+          3,
+          5,
+          7
+        ]
+      }
+    },
+    "gustavo": {
+      "stride": 196,
+      "advance": {
+        "distance": 126,
+        "duration": 0.3,
+        "cancelAt": 0.13333333333333333
+      },
+      "retreat": {
+        "distance": 116,
+        "duration": 0.3
+      },
+      "counter": 0.24,
+      "range": [
+        185,
+        245
+      ],
+      "attackAdvance": {
+        "punch": [
+          6,
+          10,
+          16
+        ],
+        "kick": [
+          8,
+          12,
+          18
+        ],
+        "crouchPunch": [
+          3,
+          6,
+          9
+        ],
+        "sweep": [
+          4,
+          6,
+          8
+        ]
+      }
+    },
+    "gelton": {
+      "stride": 168,
+      "advance": {
+        "distance": 120,
+        "duration": 0.25,
+        "cancelAt": 0.1
+      },
+      "retreat": {
+        "distance": 112,
+        "duration": 0.26666666666666666
+      },
+      "counter": 0.28,
+      "range": [
+        150,
+        230
+      ],
+      "attackAdvance": {
+        "punch": [
+          6,
+          10,
+          16
+        ],
+        "kick": [
+          12,
+          18,
+          24
+        ],
+        "crouchPunch": [
+          3,
+          5,
+          8
+        ],
+        "sweep": [
+          6,
+          10,
+          14
+        ]
+      }
+    },
+    "marcelino": {
+      "stride": 148,
+      "advance": {
+        "distance": 104,
+        "duration": 0.26666666666666666,
+        "cancelAt": 0.11666666666666667
+      },
+      "retreat": {
+        "distance": 89,
+        "duration": 0.2833333333333333
+      },
+      "counter": 0.23,
+      "range": [
+        125,
+        190
+      ],
+      "attackAdvance": {
+        "punch": [
+          6,
+          10,
+          16
+        ],
+        "kick": [
+          9,
+          15,
+          20
+        ],
+        "crouchPunch": [
+          3,
+          5,
+          7
+        ],
+        "sweep": [
+          4,
+          7,
+          11
+        ]
+      }
+    },
+    "marcos": {
+      "stride": 154,
+      "advance": {
+        "distance": 97,
+        "duration": 0.2833333333333333,
+        "cancelAt": 0.11666666666666667
+      },
+      "retreat": {
+        "distance": 91,
+        "duration": 0.3
+      },
+      "counter": 0.27,
+      "range": [
+        105,
+        155
+      ],
+      "attackAdvance": {
+        "punch": [
+          7,
+          11,
+          15
+        ],
+        "kick": [
+          6,
+          10,
+          13
+        ],
+        "crouchPunch": [
+          3,
+          6,
+          9
+        ],
+        "sweep": [
+          5,
+          8,
+          11
+        ]
+      }
+    },
+    "joao": {
+      "stride": 144,
+      "advance": {
+        "distance": 122,
+        "duration": 0.25,
+        "cancelAt": 0.1
+      },
+      "retreat": {
+        "distance": 102,
+        "duration": 0.2833333333333333
+      },
+      "counter": 0.25,
+      "range": [
+        135,
+        205
+      ],
+      "attackAdvance": {
+        "punch": [
+          6,
+          10,
+          15
+        ],
+        "kick": [
+          8,
+          12,
+          18
+        ],
+        "crouchPunch": [
+          3,
+          5,
+          8
+        ],
+        "sweep": [
+          4,
+          7,
+          11
+        ]
+      }
+    },
+    "tais": {
+      "stride": 170,
+      "advance": {
+        "distance": 122,
+        "duration": 0.25,
+        "cancelAt": 0.1
+      },
+      "retreat": {
+        "distance": 108,
+        "duration": 0.26666666666666666
+      },
+      "counter": 0.26,
+      "range": [
+        155,
+        230
+      ],
+      "attackAdvance": {
+        "punch": [
+          6,
+          11,
+          17
+        ],
+        "kick": [
+          10,
+          17,
+          24
+        ],
+        "crouchPunch": [
+          3,
+          5,
+          8
+        ],
+        "sweep": [
+          5,
+          8,
+          12
+        ]
+      }
+    },
+    "luciana": {
+      "stride": 145,
+      "advance": {
+        "distance": 104,
+        "duration": 0.23333333333333334,
+        "cancelAt": 0.08333333333333333
+      },
+      "retreat": {
+        "distance": 98,
+        "duration": 0.25
+      },
+      "counter": 0.28,
+      "range": [
+        120,
+        185
+      ],
+      "attackAdvance": {
+        "punch": [
+          8,
+          14,
+          19
+        ],
+        "kick": [
+          6,
+          10,
+          15
+        ],
+        "crouchPunch": [
+          4,
+          7,
+          10
+        ],
+        "sweep": [
+          4,
+          7,
+          10
+        ]
+      }
+    },
+    "khauany": {
+      "stride": 160,
+      "advance": {
+        "distance": 116,
+        "duration": 0.25,
+        "cancelAt": 0.1
+      },
+      "retreat": {
+        "distance": 112,
+        "duration": 0.26666666666666666
+      },
+      "counter": 0.31,
+      "range": [
+        135,
+        205
+      ],
+      "attackAdvance": {
+        "punch": [
+          8,
+          13,
+          19
+        ],
+        "kick": [
+          7,
+          12,
+          18
+        ],
+        "crouchPunch": [
+          4,
+          7,
+          10
+        ],
+        "sweep": [
+          6,
+          9,
+          13
+        ]
+      }
+    },
+    "dienes": {
+      "stride": 132,
+      "advance": {
+        "distance": 99,
+        "duration": 0.21666666666666667,
+        "cancelAt": 0.08333333333333333
+      },
+      "retreat": {
+        "distance": 104,
+        "duration": 0.23333333333333334
+      },
+      "counter": 0.36,
+      "range": [
+        110,
+        170
+      ],
+      "attackAdvance": {
+        "punch": [
+          5,
+          9,
+          13
+        ],
+        "kick": [
+          5,
+          8,
+          14
+        ],
+        "crouchPunch": [
+          3,
+          5,
+          8
+        ],
+        "sweep": [
+          4,
+          7,
+          10
+        ]
+      }
+    },
+    "ruan": {
+      "stride": 156,
+      "advance": {
+        "distance": 110,
+        "duration": 0.23333333333333334,
+        "cancelAt": 0.08333333333333333
+      },
+      "retreat": {
+        "distance": 96,
+        "duration": 0.25
+      },
+      "counter": 0.26,
+      "range": [
+        125,
+        205
+      ],
+      "attackAdvance": {
+        "punch": [
+          7,
+          12,
+          18
+        ],
+        "kick": [
+          10,
+          16,
+          22
+        ],
+        "crouchPunch": [
+          3,
+          5,
+          8
+        ],
+        "sweep": [
+          5,
+          8,
+          12
+        ]
+      }
+    }
+  }
+}

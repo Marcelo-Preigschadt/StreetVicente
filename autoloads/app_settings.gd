@@ -20,7 +20,9 @@ func _ready() -> void:
 			KEY_Q,
 			KEY_SHIFT,
 			KEY_CTRL,
-			KEY_SPACE
+			KEY_SPACE,
+			KEY_C,
+			KEY_X
 		]
 	)
 	_bind_player(
@@ -40,7 +42,9 @@ func _ready() -> void:
 			KEY_M,
 			KEY_SHIFT,
 			KEY_CTRL,
-			KEY_KP_0
+			KEY_KP_0,
+			KEY_PERIOD,
+			KEY_COMMA
 		]
 	)
 	_key("debug_boxes", KEY_F1)
@@ -75,7 +79,9 @@ func _bind_player(slot: int, keys: Array) -> void:
 		"drone",
 		"strong",
 		"light",
-		"jump"
+		"jump",
+		"custom",
+		"counter"
 	]
 	for i in names.size():
 		_key("p%d_%s" % [slot + 1, names[i]], keys[i])
@@ -89,7 +95,9 @@ func _bind_player(slot: int, keys: Array) -> void:
 		["guard", JOY_BUTTON_LEFT_SHOULDER],
 		["special", JOY_BUTTON_B],
 		["super", JOY_BUTTON_Y],
-		["jump", JOY_BUTTON_RIGHT_SHOULDER]
+		["jump", JOY_BUTTON_RIGHT_SHOULDER],
+		["custom", JOY_BUTTON_LEFT_STICK],
+		["counter", JOY_BUTTON_RIGHT_STICK]
 	]:
 		var button := InputEventJoypadButton.new()
 		button.device = slot

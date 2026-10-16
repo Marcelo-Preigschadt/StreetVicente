@@ -55,12 +55,20 @@ static func attack(f: FighterModel):
 
 static func half_width(f: FighterModel) -> int:
 	load_data()
-	return int(profiles.get(f.character.id, {}).get("push_half", 38)) * FighterModel.SCALE
+	return (
+		CharacterMetrics.units(
+			f.character.id, int(profiles.get(f.character.id, {}).get("push_half", 38))
+		)
+		* FighterModel.SCALE
+	)
 
 
 static func hand(f: FighterModel) -> Vector2i:
 	var socket: Array = frame(f).get("hand", [134, -199])
 	return Vector2i(
-		f.x + int(socket[0]) * f.facing * FighterModel.SCALE,
-		f.y + int(socket[1]) * FighterModel.SCALE
+		(
+			f.x
+			+ CharacterMetrics.units(f.character.id, int(socket[0])) * f.facing * FighterModel.SCALE
+		),
+		f.y + CharacterMetrics.units(f.character.id, int(socket[1])) * FighterModel.SCALE
 	)

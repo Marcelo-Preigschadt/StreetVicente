@@ -3,6 +3,8 @@ extends RefCounted
 ## Buffer de 100 ms = 12 ticks. Faz parte do snapshot, inclusive consumo.
 const WINDOW_TICKS := 12
 const COMMANDS := [
+	CombatInput.CUSTOM,
+	CombatInput.COUNTER,
 	CombatInput.SUPER,
 	CombatInput.SPECIAL,
 	CombatInput.UPPERCUT,

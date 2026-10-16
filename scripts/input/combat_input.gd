@@ -16,7 +16,9 @@ const DRONE := 2048
 const STRONG := 4096
 const LIGHT := 8192
 const JUMP := 16384
-const ALL := 32767
+const CUSTOM := 32768
+const COUNTER := 65536
+const ALL := 131071
 
 var held: int = 0
 var pressed: int = 0

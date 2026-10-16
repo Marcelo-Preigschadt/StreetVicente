@@ -16,7 +16,9 @@ const NAMES := [
 	"drone",
 	"strong",
 	"light",
-	"jump"
+	"jump",
+	"custom",
+	"counter"
 ]
 var pending: Array[int] = [0, 0]
 var previous: Array[int] = [0, 0]

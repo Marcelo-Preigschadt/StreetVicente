@@ -14,6 +14,11 @@ static func select(f: FighterModel) -> Dictionary:
 			index = posmod(int(f.walk_distance * 8 / (160 * FighterModel.SCALE)), 8)
 			if f.input.axis_x() == -f.facing:
 				index = 7 - index
+		FighterState.Id.STEP_IN, FighterState.Id.STEP_BACK:
+			sheet = "walk"
+			index = int(f.state_tick * 8 / maxi(1, f.step_duration)) % 8
+			if f.state == FighterState.Id.STEP_BACK:
+				index = 7 - index
 		FighterState.Id.CROUCH, FighterState.Id.PREJUMP:
 			index = 4
 		FighterState.Id.BLOCK:
@@ -23,8 +28,11 @@ static func select(f: FighterModel) -> Dictionary:
 		FighterState.Id.LANDING:
 			index = 9
 		FighterState.Id.HITSTUN:
+			var progress := f.hit_duration - f.stun_ticks
 			index = (
-				11 if f.stun_gauge > 110 and f.state_tick < 12 else 10 if f.state_tick < 12 else 12
+				(11 if f.hit_region == "head" else 10)
+				if progress * 3 < maxi(1, f.hit_duration)
+				else 12
 			)
 		FighterState.Id.DIZZY:
 			index = 13

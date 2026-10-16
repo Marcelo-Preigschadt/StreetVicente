@@ -2,7 +2,7 @@ extends Node2D
 ## Native Godot shell. The original JavaScript engine is never embedded or executed.
 const MENU := [
 	"TREINO LIVRE",
-	"VERSUS / CPU",
+	"CIRCUITO VICENTE / CPU",
 	"VERSUS / 2 JOGADORES",
 	"HISTÓRIA / RESGATE DO NIT",
 	"TREINAMENTO",
@@ -14,6 +14,12 @@ var menu_index: int = 0
 var selection_slot: int = 0
 var cursor: int = 1
 var selected: Array = ["marcelo", "rafael"]
+var arcade: ArcadeRun
+var progress := PlayerProgress.new()
+var route_ticks: int = 0
+var save_clock: float = 0.0
+var saved_record: int = 0
+var story_checkpoint: String = ""
 var sim: FightSimulation
 var story: StorySimulation
 var input_source: LocalCombatInput
@@ -38,6 +44,8 @@ var last_contacts: Array = []
 
 func _ready() -> void:
 	LegacyRoster.load_catalog()
+	progress.load_saved()
+	saved_record = progress.record
 	input_source = LocalCombatInput.new()
 	add_child(input_source)
 	audio = GameAudio.new()
@@ -85,6 +93,13 @@ func _hide_world() -> void:
 
 
 func choose_menu(index: int) -> void:
+	progress.save()
+	arcade = null
+	if index == 3 and progress.valid_checkpoint():
+		mode = "story"
+		screen = "story_resume"
+		_hide_world()
+		return
 	if index == 0:
 		mode = "training"
 		selected = ["marcelo", "rafael"]
@@ -115,10 +130,14 @@ func confirm_selection() -> void:
 		if selected[0] == selected[1]:
 			cursor = (cursor + 1) % LegacyRoster.ids().size()
 	else:
+		if mode == "cpu":
+			arcade = ArcadeRun.new(LegacyRoster.ids(), selected[0], selected[1], progress.record)
 		_start_fight()
 
 
 func _start_fight() -> void:
+	if arcade != null:
+		selected = [arcade.player_id, arcade.opponents[arcade.index]]
 	impact.clear()
 	last_contacts.clear()
 	ai = CombatAI.new()
@@ -149,12 +168,24 @@ func _start_fight() -> void:
 	audio.play(LegacyRoster.catalog.sounds.get("announcer-fight", ""), "voice")
 
 
-func _start_story() -> void:
+func _start_story(resume: bool = false) -> void:
 	impact.clear()
 	PilotArt.load_data()
 	for atlas in PilotArt.data.sheets.values():
 		LegacyRoster.texture(atlas.image)
+	if resume:
+		selected[0] = progress.checkpoint.character
 	story = StorySimulation.new(LegacyRoster.get_character(selected[0]))
+	if resume:
+		story.restore(progress.checkpoint.world)
+	story_checkpoint = "%d:%d" % [story.act_index, story.wave_index]
+	progress.capture_story(story)
+	_bind_story()
+	screen = "story_dialog"
+	_hide_world()
+
+
+func _bind_story() -> void:
 	screen = "story"
 	paused = false
 	demo = false
@@ -171,7 +202,11 @@ func _start_story() -> void:
 func _physics_process(_delta: float) -> void:
 	if paused:
 		return
-	if screen == "fight":
+	if screen == "arcade_route":
+		route_ticks += 1
+		if route_ticks >= ArcadeRun.ROUTE_TICKS:
+			_next_arcade()
+	elif screen == "fight":
 		var inputs: Array[CombatInput] = [input_source.sample(0), input_source.sample(1)]
 		if mode == "cpu":
 			inputs[1] = ai.sample(sim, 1)
@@ -202,6 +237,11 @@ func _physics_process(_delta: float) -> void:
 				views[i].setup(sim.fighters[i], sim.fighters[i].character.color)
 			views[i].sync()
 		audio.consume(sim.events)
+		if arcade != null:
+			arcade.consume(sim.events)
+			progress.record = maxi(progress.record, arcade.record)
+			if arcade.state != "fighting" and sim.round_wait >= 240:
+				_show_arcade_outcome()
 	elif screen == "story":
 		story.step(input_source.sample(0))
 		if views[0].model != story.hero:
@@ -211,6 +251,13 @@ func _physics_process(_delta: float) -> void:
 		audio.consume(story.events)
 		impact.consume(story.events, null)
 		power_view.consume(story.events)
+		var checkpoint_key := "%d:%d" % [story.act_index, story.wave_index]
+		if checkpoint_key != story_checkpoint or story.completed:
+			progress.capture_story(story)
+			if story.act_index != int(story_checkpoint.get_slice(":", 0)) and not story.completed:
+				screen = "story_dialog"
+				_hide_world()
+			story_checkpoint = checkpoint_key
 	if qa:
 		_publish_qa()
 
@@ -223,6 +270,11 @@ func _draw() -> void:
 
 
 func _process(_delta: float) -> void:
+	save_clock += _delta
+	if save_clock >= 1.0 and progress.record != saved_record:
+		progress.save()
+		saved_record = progress.record
+		save_clock = 0.0
 	for view in views:
 		view.impact_offset = impact.offset()
 	power_view.position = impact.offset()
@@ -243,9 +295,42 @@ func _publish_qa() -> void:
 		"slot": selection_slot,
 		"roster": LegacyRoster.ids().size(),
 		"roster_ids": LegacyRoster.ids(),
-		"paused": paused
+		"paused": paused,
+		"record": progress.record,
+		"checkpoint": progress.valid_checkpoint()
 	}
+	if progress.valid_checkpoint():
+		data.checkpoint_meta = {
+			"character": progress.checkpoint.character,
+			"act": progress.checkpoint.act,
+			"x": progress.checkpoint.world.hero.x,
+			"hp": progress.checkpoint.world.hero.health,
+			"score": progress.checkpoint.world.score
+		}
+	if arcade != null:
+		data.arcade = {
+			"score": arcade.score,
+			"record": arcade.record,
+			"index": arcade.index,
+			"state": arcade.state,
+			"opponents": arcade.opponents,
+			"breakdown": arcade.breakdown
+		}
 	if screen == "fight" and sim != null:
+		data.states = sim.fighters.map(
+			func(f: FighterModel) -> String: return FighterState.NAMES[f.state]
+		)
+		data.reactions = sim.fighters.map(
+			func(f: FighterModel) -> Dictionary:
+				return {
+					"duration": f.hit_duration,
+					"remaining": f.stun_ticks,
+					"dizzy": f.dizzy_ticks,
+					"protected": f.dizzy_protection,
+					"pose": CharacterArt.frame(f).index,
+					"height": _standing_height(f)
+				}
+		)
 		data.tick = sim.tick
 		data.hp = [sim.fighters[0].health, sim.fighters[1].health]
 		data.x = [sim.fighters[0].x, sim.fighters[1].x]
@@ -254,7 +339,7 @@ func _publish_qa() -> void:
 		data.move_tick = sim.fighters[0].move_tick
 		data.vy = sim.fighters[0].vy
 		data.meter = [sim.fighters[0].meter, sim.fighters[1].meter]
-		data.fx_revision = 5
+		data.fx_revision = 6
 		data.last_contacts = last_contacts
 		data.hurtboxes = sim.fighters.map(
 			func(f: FighterModel) -> Array:
@@ -328,15 +413,44 @@ func _unhandled_input(event: InputEvent) -> void:
 			for i in MENU.size():
 				if ui.menu_rect(i).has_point(local):
 					choose_menu(i)
+		elif screen in ["arcade_route", "arcade_result"] and ui.action_rect().has_point(local):
+			if screen == "arcade_route":
+				_next_arcade()
+			elif arcade.state == "defeated":
+				arcade.continue_run()
+				_start_fight()
+			else:
+				screen = "menu"
 		elif screen == "selection":
 			for i in LegacyRoster.ids().size():
 				if ui.card_rect(i).has_point(local):
 					cursor = i
 					confirm_selection()
 					break
-	if not (event is InputEventKey) or not event.pressed or event.echo:
+	var key := 0
+	if event is InputEventJoypadButton and event.pressed:
+		key = (
+			{
+				JOY_BUTTON_DPAD_UP: KEY_UP,
+				JOY_BUTTON_DPAD_DOWN: KEY_DOWN,
+				JOY_BUTTON_DPAD_LEFT: KEY_LEFT,
+				JOY_BUTTON_DPAD_RIGHT: KEY_RIGHT,
+				JOY_BUTTON_A: KEY_ENTER,
+				JOY_BUTTON_B: KEY_ESCAPE,
+				JOY_BUTTON_START: KEY_ENTER,
+				JOY_BUTTON_BACK: KEY_ESCAPE
+			}
+			. get(event.button_index, 0)
+		)
+		if screen in ["fight", "story"] and event.button_index == JOY_BUTTON_START:
+			key = KEY_ENTER if paused else KEY_ESCAPE
+		elif screen in ["fight", "story"] and event.button_index != JOY_BUTTON_BACK:
+			if event.button_index != JOY_BUTTON_START:
+				return
+	elif event is InputEventKey and event.pressed and not event.echo:
+		key = event.physical_keycode
+	else:
 		return
-	var key: int = event.physical_keycode
 	if key == KEY_F11:
 		DisplayServer.window_set_mode(
 			(
@@ -355,6 +469,31 @@ func _unhandled_input(event: InputEvent) -> void:
 			choose_menu(menu_index)
 	elif screen == "online":
 		if key == KEY_ESCAPE:
+			screen = "menu"
+	elif screen in ["arcade_route", "arcade_result"]:
+		if key == KEY_ENTER:
+			if screen == "arcade_route":
+				_next_arcade()
+			elif arcade.state == "defeated":
+				arcade.continue_run()
+				_start_fight()
+			else:
+				screen = "menu"
+		elif key == KEY_ESCAPE:
+			screen = "menu"
+	elif screen == "story_resume":
+		if key == KEY_ENTER:
+			_start_story(true)
+		elif key == KEY_N:
+			selection_slot = 0
+			cursor = LegacyRoster.ids().find(selected[0])
+			screen = "selection"
+		elif key == KEY_ESCAPE:
+			screen = "menu"
+	elif screen == "story_dialog":
+		if key == KEY_ENTER:
+			_bind_story()
+		elif key == KEY_ESCAPE:
 			screen = "menu"
 	elif screen == "selection":
 		if key in [KEY_A, KEY_LEFT]:
@@ -375,6 +514,9 @@ func _unhandled_input(event: InputEvent) -> void:
 				paused = false
 			else:
 				paused = true
+				if screen == "story":
+					progress.capture_story(story)
+				progress.save()
 				input_source.clear()
 				_snap_views()
 		elif key == KEY_ENTER:
@@ -382,15 +524,25 @@ func _unhandled_input(event: InputEvent) -> void:
 				paused = false
 				input_source.clear()
 			elif screen == "fight" and sim.match_over:
-				choose_menu(1 if mode == "cpu" else 4 if mode == "training" else 2)
+				if arcade != null:
+					_show_arcade_outcome()
+				else:
+					choose_menu(4 if mode == "training" else 2)
 			elif screen == "story" and story.completed:
 				screen = "menu"
 				_hide_world()
 		elif key == KEY_R:
 			if screen == "fight":
+				if arcade != null:
+					if arcade.state not in ["defeated", "fighting"]:
+						_show_arcade_outcome()
+						return
+					arcade.continue_run()
 				_start_fight()
 			else:
-				_start_story()
+				story.retry_act()
+				_bind_story()
+				progress.capture_story(story)
 		elif key == KEY_F3 and screen == "fight" and mode == "training":
 			demo = not demo
 		elif key == KEY_F4:
@@ -455,3 +607,26 @@ func _demo_inputs() -> Array[CombatInput]:
 	if t > 1000 and t < 1250:
 		other = CombatInput.GUARD
 	return [CombatInput.new(held, pressed), CombatInput.new(other)]
+
+
+func _next_arcade() -> void:
+	if arcade != null and arcade.state == "route":
+		arcade.advance()
+		_start_fight()
+
+
+func _standing_height(f: FighterModel) -> float:
+	var standing := FighterModel.new(f.character, f.slot, 0)
+	var art := CharacterArt.frame(standing)
+	return (
+		float(art.frame.rect[3])
+		* float(art.frame.get("scale", art.sheet.scale))
+		* CharacterMetrics.factor(f.character.id)
+	)
+
+
+func _show_arcade_outcome() -> void:
+	route_ticks = 0
+	screen = "arcade_route" if arcade.state == "route" else "arcade_result"
+	progress.save()
+	_hide_world()

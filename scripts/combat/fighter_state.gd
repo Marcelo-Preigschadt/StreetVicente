@@ -2,7 +2,21 @@ class_name FighterState
 extends RefCounted
 ## FSM só contém estados de gameplay; não depende de AnimationTree/SceneTree.
 enum Id {
-	IDLE, WALK, CROUCH, JUMP, ATTACK, HITSTUN, BLOCK, KO, KNOCKDOWN, WAKEUP, DIZZY, PREJUMP, LANDING
+	IDLE,
+	WALK,
+	CROUCH,
+	JUMP,
+	ATTACK,
+	HITSTUN,
+	BLOCK,
+	KO,
+	KNOCKDOWN,
+	WAKEUP,
+	DIZZY,
+	PREJUMP,
+	LANDING,
+	STEP_IN,
+	STEP_BACK
 }
 const NAMES := [
 	"IDLE",
@@ -17,7 +31,9 @@ const NAMES := [
 	"WAKEUP",
 	"DIZZY",
 	"PREJUMP",
-	"LANDING"
+	"LANDING",
+	"STEP_IN",
+	"STEP_BACK"
 ]
 
 

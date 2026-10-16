@@ -8,7 +8,7 @@ const PAPER := ArcadeTheme.PAPER
 const INK := ArcadeTheme.INK
 const DESCRIPTIONS := [
 	"Pratique golpes, poderes e combos sem limite de tempo.",
-	"Enfrente a CPU em um duelo de professores e alunos.",
+	"12 adversários, rota pela escola, bônus e recorde salvo.",
 	"Dois jogadores, um computador. Escolham seus lutadores.",
 	"Atravesse a escola e liberte o servidor central.",
 	"Escolha a dupla e configure o adversário de treino.",
@@ -82,6 +82,10 @@ func _draw() -> void:
 		_menu()
 	elif game.screen == "selection":
 		_selection()
+	elif game.screen in ["arcade_route", "arcade_result"]:
+		_arcade_summary()
+	elif game.screen in ["story_dialog", "story_resume"]:
+		_story_dialog()
 	elif game.screen == "online":
 		_online()
 	else:
@@ -138,6 +142,7 @@ func _menu() -> void:
 			text_at(rect.position + Vector2(490, 33), ">", 26, INK)
 	ArcadeTheme.plate(self, Rect2(1000, 32, 280, 36), BLUE, 16)
 	text_at(Vector2(1032, 57), "13 LUTADORES / 2D", 18, INK)
+	text_at(Vector2(1000, 92), "RECORDE  %08d" % game.progress.record, 15, GOLD)
 	wrapped(Vector2(88, 648), DESCRIPTIONS[game.menu_index], 540, 16, PAPER)
 	_footer("W/S NAVEGAR     ENTER CONFIRMAR     F11 TELA CHEIA")
 
@@ -255,7 +260,7 @@ func _preview(
 	var sheet: Dictionary = pose.sheet
 	var frame: Dictionary = pose.frame
 	var r: Array = frame.rect
-	var k := float(frame.get("scale", sheet.scale)) * scale_factor
+	var k := float(frame.get("scale", sheet.scale)) * scale_factor * CharacterMetrics.factor(id)
 	draw_set_transform(
 		root, 0, Vector2(facing * float(f.character.legacy.get("visualWidth", 1.0)), 1)
 	)
@@ -309,7 +314,7 @@ func _hud() -> void:
 		)
 	_footer(
 		(
-			"A/D MOVER  ·  W PULAR  ·  S BAIXO  ·  F/G GOLPES"
+			"A/D MOVER · W PULAR · S BAIXO · F/G GOLPES · C CUSTOM · X CONTRA"
 			+ "  ·  T/Y PODERES  ·  U SUPER  ·  H DEFESA  ·  ESC PAUSA"
 		)
 	)
@@ -327,11 +332,29 @@ func _hud() -> void:
 		)
 		if game.demo:
 			text_at(Vector2(28, 151), "DEMONSTRAÇÃO / F3 PARA ASSUMIR", 13, BLUE)
+	if game.arcade != null and not story_mode:
+		ArcadeTheme.plate(self, Rect2(22, 106, 1236, 30), Color(INK, 0.88), 8)
+		text_at(Vector2(36, 128), "PONTOS  %08d" % game.arcade.score, 17, GOLD)
+		centered(Vector2(640, 128), "CIRCUITO  %02d / 12" % (game.arcade.index + 1), 15, PAPER)
+		text_at(Vector2(970, 128), "RECORDE  %08d" % game.progress.record, 15, BLUE)
 	if story_mode:
 		text_at(
-			Vector2(28, 125), "W/S PROFUNDIDADE · ESPAÇO PULAR · OBJETOS RECUPERAM VIDA", 13, GOLD
+			Vector2(28, 125),
+			(
+				"W/S PROFUNDIDADE · ESPAÇO SALTAR · F/E OBJETO · TURNO %02d:%02d"
+				% [
+					int(game.story.remaining_ticks / 7200),
+					int(game.story.remaining_ticks / 120) % 60
+				]
+			),
+			13,
+			GOLD
 		)
 	for f in [a, b]:
+		if f != null and f.custom_ticks > 0:
+			text_at(Vector2(52 if f == a else 987, 602), "CUSTOM  %d/8" % f.custom_moves, 21, GOLD)
+		if f != null and f.state == FighterState.Id.DIZZY:
+			text_at(Vector2(52 if f == a else 970, 247), "MEXA / APERTE PARA RECUPERAR", 14, GOLD)
 		if f != null and f.combo >= 2:
 			var x := 54 if f == a else 1025
 			ArcadeTheme.title(
@@ -344,7 +367,7 @@ func _hud() -> void:
 	elif story_mode and game.story.completed:
 		message = "NIT RESGATADO! / ENTER VOLTAR"
 	elif story_mode and game.story.defeated:
-		message = "FIM DE JOGO / R TENTAR NOVAMENTE"
+		message = "FIM DE JOGO / R REPETIR ATO"
 	elif not story_mode and game.sim.winner >= 0:
 		message = (
 			"EMPATE"
@@ -352,7 +375,11 @@ func _hud() -> void:
 			else game.sim.fighters[game.sim.winner].character.display_name.to_upper() + " VENCEU"
 		)
 		if game.sim.match_over:
-			message += " / ENTER SELEÇÃO"
+			message += (
+				" / ENTER ROTA"
+				if game.arcade != null and game.arcade.state == "route"
+				else " / ENTER CONTINUAR" if game.arcade != null else " / ENTER SELEÇÃO"
+			)
 	if not message.is_empty():
 		var inspect: bool = game.paused and game.mode == "training"
 		if inspect:
@@ -421,3 +448,156 @@ func _online() -> void:
 		BLUE
 	)
 	_footer("ESC VOLTAR")
+
+
+func _arcade_summary() -> void:
+	ArcadeTheme.backdrop(self, clock)
+	var run: ArcadeRun = game.arcade
+	if run == null:
+		return
+	ArcadeTheme.title(
+		self,
+		Vector2(55, 82),
+		(
+			"ROTA VICENTE"
+			if run.state == "route"
+			else "CIRCUITO CONCLUÍDO!" if run.state == "complete" else "CONTINUAR?"
+		),
+		56,
+		GOLD
+	)
+	text_at(
+		Vector2(58, 122), "PONTOS  %08d      RECORDE  %08d" % [run.score, run.record], 24, PAPER
+	)
+	if run.state == "route":
+		# Serpentina em três corredores; o crachá percorre os setores vencidos.
+		var positions: Array[Vector2] = []
+		for i in 12:
+			var row: int = i / 4
+			var col := i % 4 if row % 2 == 0 else 3 - i % 4
+			positions.append(Vector2(148 + col * 248, 205 + row * 143))
+		for i in 11:
+			draw_line(positions[i], positions[i + 1], Color(BLUE, 0.45), 5, true)
+		for i in 12:
+			var point := positions[i]
+			var active: bool = i == run.index + 1
+			ArcadeTheme.plate(
+				self, Rect2(point - Vector2(85, 39), Vector2(170, 93)), GOLD if active else INK, 10
+			)
+			var character := LegacyRoster.get_character(run.opponents[i])
+			draw_texture_rect(
+				LegacyRoster.texture(character.legacy.portrait),
+				Rect2(point - Vector2(25, 32), Vector2(50, 50)),
+				false,
+				Color(1, 1, 1, 0.4 if i <= run.index else 1)
+			)
+			centered(point + Vector2(0, 37), ArcadeRun.STOPS[i], 12, INK if active else PAPER)
+			if i <= run.index:
+				centered(point + Vector2(0, 4), "VENCEU", 16, GOLD)
+		var t := clampf(game.route_ticks / float(ArcadeRun.ROUTE_TICKS), 0, 1)
+		var badge: Vector2 = positions[run.index].lerp(
+			positions[run.index + 1], t * t * (3 - 2 * t)
+		)
+		draw_circle(badge + Vector2(0, -57), 20, GOLD)
+		centered(badge + Vector2(0, -51), "1P", 17, INK)
+		text_at(Vector2(1040, 225), "PRÓXIMO", 18, BLUE)
+		wrapped(
+			Vector2(1040, 263),
+			LegacyRoster.get_character(run.opponents[run.index + 1]).display_name,
+			200,
+			24,
+			PAPER
+		)
+		_preview(run.player_id, Vector2(1135, 592), 0.8, -1)
+	else:
+		_preview(run.player_id, Vector2(1015, 613), 1.35, -1)
+		text_at(
+			Vector2(70, 180),
+			"VITÓRIAS %d / 12     PERFECTS %d" % [run.wins, run.perfects],
+			23,
+			BLUE
+		)
+		var labels := {
+			"combat": "Dano",
+			"combo": "Combos",
+			"round": "Rounds",
+			"life": "Vida",
+			"time": "Tempo",
+			"perfect": "Perfect",
+			"super": "Super KO",
+			"match": "Confronto",
+			"clear": "Circuito"
+		}
+		var row := 0
+		for kind in labels:
+			text_at(Vector2(80, 227 + row * 39), str(labels[kind]), 20, PAPER)
+			text_at(Vector2(438, 227 + row * 39), "+ %06d" % run.breakdown[kind], 20, GOLD)
+			row += 1
+		if run.state == "defeated":
+			text_at(Vector2(70, 630), "CONTINUAR ZERA OS PONTOS E MANTÉM O RECORDE.", 17, PAPER)
+	ArcadeTheme.plate(self, action_rect(), GOLD, 12)
+	centered(
+		action_rect().position + Vector2(140, 30),
+		(
+			"PRÓXIMA LUTA"
+			if run.state == "route"
+			else "CONTINUAR" if run.state == "defeated" else "MENU"
+		),
+		20,
+		INK
+	)
+
+	_footer(
+		(
+			"ENTER / START PRÓXIMA LUTA   ·   ESC MENU"
+			if run.state == "route"
+			else "ENTER / START CONTINUAR   ·   ESC MENU"
+		)
+	)
+
+
+func _story_dialog() -> void:
+	ArcadeTheme.backdrop(self, clock)
+	if game.screen == "story_resume":
+		var saved: Dictionary = game.progress.checkpoint
+		var chapter: Dictionary = LegacyRoster.catalog.story.acts[int(saved.act)]
+		ArcadeTheme.title(self, Vector2(80, 125), "RETOMAR O RESGATE", 63, GOLD)
+		wrapped(Vector2(85, 210), chapter.title, 720, 31, PAPER)
+		text_at(
+			Vector2(85, 285),
+			(
+				"ATO %d   ·   %s"
+				% [int(saved.act) + 1, LegacyRoster.get_character(saved.character).display_name]
+			),
+			24,
+			BLUE
+		)
+		text_at(Vector2(85, 345), "Progresso salvo neste navegador.", 22, PAPER)
+		_preview(saved.character, Vector2(1010, 635), 1.4, -1)
+		_footer("ENTER / START RETOMAR   ·   N NOVA CAMPANHA   ·   ESC MENU")
+		return
+	var chapter: Dictionary = game.story.act()
+	draw_texture_rect(
+		LegacyRoster.texture(chapter.background),
+		Rect2(0, 0, 1280, 720),
+		false,
+		Color(0.4, 0.4, 0.55, 0.5)
+	)
+	ArcadeTheme.title(self, Vector2(65, 102), "ATO %d" % (game.story.act_index + 1), 57, GOLD)
+	wrapped(Vector2(67, 155), chapter.title, 900, 34, PAPER)
+	_preview(chapter.speaker, Vector2(1080, 656), 1.4, -1)
+	ArcadeTheme.plate(self, Rect2(55, 255, 790, 346), Color(INK, 0.95), 18)
+	text_at(
+		Vector2(83, 298),
+		LegacyRoster.get_character(chapter.speaker).display_name.to_upper(),
+		23,
+		BLUE
+	)
+	wrapped(Vector2(83, 344), chapter.quote, 710, 24, PAPER)
+	wrapped(Vector2(83, 460), chapter.action, 705, 18, PAPER)
+	wrapped(Vector2(83, 542), "OBJETIVO: " + str(chapter.objective), 705, 18, GOLD)
+	_footer("ENTER / START INICIAR ATO   ·   ESC MENU   ·   CHECKPOINT AUTOMÁTICO")
+
+
+func action_rect() -> Rect2:
+	return Rect2(930, 624, 280, 45)

@@ -36,6 +36,8 @@ func emit(f: FighterModel, tick: int, lane_aware: bool = false) -> bool:
 	if drone:
 		offset = 85 + (i % 3) * 90
 		height = 175 + (i / 3) * 90 + (i % 2) * 40
+	offset = CharacterMetrics.units(f.character.id, offset)
+	height = CharacterMetrics.units(f.character.id, height)
 	var hand := (
 		CombatGeometry.hand(f)
 		if f.character.id == "marcelo"
@@ -75,7 +77,7 @@ func emit(f: FighterModel, tick: int, lane_aware: bool = false) -> bool:
 			"warmup": warmup,
 			"fired": false,
 			"fire_tick": -1,
-			"radius": int(m.get("radius", 26)),
+			"radius": CharacterMetrics.units(f.character.id, int(m.get("radius", 26))),
 			"effect": str(m.get("effect", f.character.id)),
 			"lane_y": f.ground_y,
 			"lane_aware": lane_aware

@@ -17,13 +17,14 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  const pausedShot=async file=>{await page.keyboard.press('Escape');await wait(()=>window.svfQA?.paused===true);const png=await page.screenshot(file?{path:file}:{});await page.keyboard.press('Enter');await wait(()=>window.svfQA?.paused===false);return png;};
  const green=(r,g,b)=>g>160&&g>r*1.1&&g>b*1.3;
  const addedGreen=(before,after)=>{const a=PNG.sync.read(before),b=PNG.sync.read(after);let count=0;for(let y=170;y<635;y++)for(let x=100;x<1180;x++){const i=(y*b.width+x)*4;if(green(b.data[i],b.data[i+1],b.data[i+2])&&!green(a.data[i],a.data[i+1],a.data[i+2]))count++;}return count;};
+ await page.addInitScript(()=>{try{if(!localStorage.getItem('svf-arcade-record-v1'))localStorage.setItem('svf-arcade-record-v1','17');}catch{}});
  await page.goto('http://127.0.0.1:8061/StreetVicente/?qa=1',{timeout:120000});
  await page.waitForFunction(()=>window.svfQA?.screen==='menu',null,{timeout:90000});
- assert.equal((await state()).roster,13);await page.screenshot({path:'test-results/01-menu.png'});
+ assert.equal((await state()).roster,13);assert.equal((await state()).record,17,'Importa recorde do Canvas no mesmo origin');await page.screenshot({path:'test-results/01-menu.png'});
  // First menu entry directly starts the new-art pilot in native Godot training.
  await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight');
  assert.deepEqual((await state()).selected,['marcelo','rafael']);assert.equal((await state()).new_art,true);
- assert.equal((await state()).fx_revision,5,'Pacote novo de geometria e VFX');
+ assert.equal((await state()).fx_revision,6,'Pacote novo de geometria e VFX');
  await page.screenshot({path:'test-results/02-pilot-ready.png'});
  let before=await state();await page.keyboard.down('d');await delay(350);await page.keyboard.up('d');
  let moved=await state();assert(moved.x[0]>before.x[0]+40*256,'Movimento real no WASM');
@@ -41,7 +42,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  before=await state();await page.keyboard.press('f');await wait(()=>window.svfQA?.hp[1]<1000);
  const contact=(await state()).last_contacts.find(e=>e.kind==='hit');assert(contact,'Contato autoritativo disponível');
  assert(before.hurtboxes[1].some(r=>contact.x/256>=r[0]-4&&contact.x/256<=r[0]+r[2]+4&&contact.y/256>=r[1]-4&&contact.y/256<=r[1]+r[3]+4),'Impacto localizado no desenho do Rafael');
- assert((await state()).hp[1]<before.hp[1],'Soco aplica dano');await page.screenshot({path:'test-results/04-contact.png'});
+ assert((await state()).hp[1]<before.hp[1],'Soco aplica dano');await pausedShot('test-results/04-contact.png');await delay(700);assert.equal((await state()).states[1],'IDLE','Rafael recupera o controle após o hitstun');
  await delay(500);await page.keyboard.press('g');await delay(160);await page.screenshot({path:'test-results/05-kick.png'});await delay(600);
  await page.keyboard.down('s');await page.keyboard.press('g');await delay(200);assert.equal((await state()).pose,'low');await page.screenshot({path:'test-results/06-low.png'});await page.keyboard.up('s');
  // Freeze through the player's normal pause control for both images. Software
@@ -80,7 +81,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await wait(()=>window.svfQA?.roster_ids?.[window.svfQA.cursor]==='joao');await page.screenshot({path:'test-results/10a-roster-student.png'});await page.keyboard.press('Escape');
  // Campaign shell uses original stages/enemies and independent lane/jump coordinates.
  await page.keyboard.press('ArrowDown');await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='selection');
- await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='story');await delay(400);
+ await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='story_dialog');await page.screenshot({path:'test-results/11c-story-dialog.png'});await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='story');await delay(400);
  assert((await state()).story.enemies>=3);await page.keyboard.press('Space');await delay(180);await page.screenshot({path:'test-results/11-story.png'});await delay(800);
  // Restart each campaign check through R: screenshot latency must not let the
  // approaching enemies interrupt the next cast before its startup completes.
@@ -107,8 +108,38 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
   // menu_index was 4 (training); move it to 0 for the next iteration.
   for(let i=0;i<4;i++)await page.keyboard.press('ArrowUp');
  }
+ // Proportion regression: select Adriano against Rafael through the normal grid.
+ for(let i=0;i<4;i++)await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='selection');
+ let q=await state();for(let i=0;i<(q.roster_ids.indexOf('adriano')-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
+ await page.screenshot({path:'test-results/15-adriano-selection.png'});await page.keyboard.press('Enter');await wait(()=>window.svfQA?.slot===1);
+ q=await state();for(let i=0;i<(q.roster_ids.indexOf('rafael')-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
+ await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight');
+ q=await state();assert(Math.abs(q.reactions[0].height-q.reactions[1].height)<2,'Adriano mantém a mesma altura de referência do Rafael');
+ await pausedShot('test-results/15a-adriano-fight.png');
+ await page.keyboard.down('d');await wait(()=>window.svfQA.x[1]-window.svfQA.x[0]<170*256);await page.keyboard.up('d');
+ for(let i=0;i<3;i++){await page.keyboard.press('f');await delay(700);assert.equal((await state()).states[1],'IDLE','Pokes separados não geram trava/tontura');}
+ await page.keyboard.press('c');await wait(()=>window.svfQA?.meter[0]===50);await pausedShot('test-results/15b-custom.png');
+ await page.keyboard.press('Escape');await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');
+ // CPU score is earned by real gameplay, then verified after reloading WASM.
+ for(let i=0;i<3;i++)await page.keyboard.press('ArrowUp');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='selection');
+ await page.keyboard.press('Enter');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight');
+ assert.equal((await state()).arcade.opponents.length,12);
+ for(let attempt=0;attempt<20&&((await state()).arcade?.score??0)===0;attempt++){
+  q=await state();if(q.x[1]-q.x[0]>180*256){await page.keyboard.down('d');await delay(200);await page.keyboard.up('d');}
+  await page.keyboard.press(attempt%3===0?'g':'f');await delay(360);
+ }
+ q=await state();assert(q.arcade.score>0,'Acerto real concede pontos no circuito');const earned=q.arcade.score;
+ await pausedShot('test-results/16-arcade-score.png');await delay(1200);
+ const checkpoint=(await state()).checkpoint_meta;
+ await page.reload({timeout:120000});await wait(()=>window.svfQA?.screen==='menu');
+ assert((await state()).record>=earned,'Recorde persiste após recarregar a página');assert.deepEqual((await state()).checkpoint_meta,checkpoint,'Checkpoint persiste após recarregar');
+ for(let i=0;i<3;i++)await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='story_resume');
+ await page.screenshot({path:'test-results/17-story-resume.png'});await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='story_dialog');
+ await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='story');await page.keyboard.press('Escape');await wait(()=>window.svfQA?.paused);
+ assert.equal((await state()).story.x,checkpoint.x,'Retoma a posição salva, não reinicia o ato');await page.screenshot({path:'test-results/17a-resumed.png'});
+ await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');
  await page.setViewportSize({width:960,height:540});await delay(200);await page.screenshot({path:'test-results/13-resize.png'});
  assert.equal(responses['index.wasm'],200);assert.equal(responses['index.pck'],200);assert.deepEqual(errors,[],'Console Web sem erros');
- fs.writeFileSync('test-results/web-smoke.json',JSON.stringify({status:'passed',checks:['WASM/PCK sob /StreetVicente/','13 personagens: seleção com prévias e grade','socos novos Rafael/Gustavo','nova arte por estados','voadora dedicada e aterrissagem','gancho: subida e queda sem pose de chão no ar','efeito código visível em pixels','drone estacionário e laser','efeitos no História','fumaça/garfos/livros','movimento','prejump/salto','soco com dano','chute','rasteira','código','cinco drones','comparação de arte','pausa','seleção','história','demonstração','resize','console sem erros'],responses,codePixels},null,2));
+ fs.writeFileSync('test-results/web-smoke.json',JSON.stringify({status:'passed',checks:['WASM/PCK sob /StreetVicente/','13 personagens: seleção com prévias e grade','socos novos Rafael/Gustavo','nova arte por estados','voadora dedicada e aterrissagem','gancho: subida e queda sem pose de chão no ar','efeito código visível em pixels','drone estacionário e laser','efeitos no História','fumaça/garfos/livros','movimento','prejump/salto','soco com dano','chute','rasteira','código','cinco drones','comparação de arte','pausa','seleção','história','demonstração','resize','Adriano com 300px e colisão uniforme','reação e recuperação sem trava','custom','pontos CPU e recorde persistente','diálogo e checkpoint com reload','console sem erros'],responses,codePixels},null,2));
  await page.close();console.log('WEB SMOKE PASSED: novo Marcelo + combate/poderes + roster + história');
 })().catch(async e=>{console.error(e);console.error('Browser errors:',JSON.stringify(errors));if(page&&!page.isClosed()){await page.screenshot({path:'test-results/failure.png'}).catch(()=>{});const status=await page.evaluate(()=>({url:location.href,qa:window.svfQA,status:document.getElementById('status')?.innerText})).catch(()=>({}));console.error('Browser state:',JSON.stringify(status));fs.writeFileSync('test-results/failure.json',JSON.stringify({error:String(e),errors,status},null,2));}process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();server.kill();});

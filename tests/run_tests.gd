@@ -46,6 +46,7 @@ func _run() -> void:
 	_test_contact_geometry_v3()
 	_test_marcelo_uppercut_v4()
 	_test_roster_art_v5()
+	MigrationV6Tests.run(self)
 	print("COMBAT TESTS: %d checks, %d failures" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 

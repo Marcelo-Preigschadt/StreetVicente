@@ -6,9 +6,9 @@ Foram inspecionados diretamente `src/locomotion.js` e `src/netplay.js`. O origin
 
 ## Estado desta implementação
 
-O catálogo já importa 13 personagens, 432 definições de golpes e 151 assets. O combate Godot usa esses dados, projéteis, barra, rounds, CPU e seleção. Marcelo ganhou 64 desenhos novos como piloto: [arte e limites](ART_PILOT.md). Os demais usam os desenhos existentes.
+O catálogo já importa 13 personagens, 432 definições de golpes e 151 assets. O combate Godot usa esses dados, projéteis, barra, rounds, CPU e seleção. Marcelo ganhou 64 desenhos novos como piloto: [arte e limites](ART_PILOT.md). Rafael e Gustavo também receberam oito desenhos de soco cada. O restante da arte permanece importado.
 
-A campanha offline tem os quatro atos, ondas/chefes, lane, câmera e objetos quebráveis. Ainda faltam objetos carregáveis/arremessáveis, perigos específicos, comportamento completo de cada chefe, diálogos em fluxo, checkpoints persistentes e coop. Os poderes do herói agora usam PowerSystem compartilhado com o Versus, com trajeto, tolerância de lane, drones estacionários e lasers separados. Snapshot/restore do História inclui inimigos, cooldowns, objetos, contador de IDs e projéteis. Esta etapa não declara paridade com o original.
+A revisão 6 migra o circuito CPU com os 12 rivais e as regras de pontuação/recorde. Corrige tontura, combos falsos, reação ao impacto e a redução de escala do Adriano. Inclui Custom, guard counter, quick rise e passos por estilo. A campanha offline ganha objetos carregáveis/arremessáveis, perigos, ataques por tipo de inimigo, fase Exo do chefe final, diálogos de entrada, timer, score por derrota e checkpoint/retomada. A coreografia integral dos chefes, diálogos intermediários e coop ainda precisam de paridade. [Auditoria e validação desta revisão](MIGRATION_V6.md). Os poderes do herói agora usam PowerSystem compartilhado com o Versus, com trajeto, tolerância de lane, drones estacionários e lasers separados. Snapshot/restore do História inclui inimigos, cooldowns, objetos, contador de IDs e projéteis. Esta etapa não declara paridade com o original.
 
 O online continua bloqueado na UI. Replay local não substitui lobby, transporte, handshake, confirmação, rollback em rede e reconexão.
 
