@@ -102,16 +102,16 @@ func menu_rect(index: int) -> Rect2:
 
 func _menu() -> void:
 	ArcadeTheme.backdrop(self, clock)
-	draw_texture_rect(
+	draw_texture_rect_region(
 		LegacyRoster.texture(LegacyRoster.catalog.arena),
 		Rect2(620, 0, 660, 720),
-		false,
+		Rect2(310, 0, 660, 720),
 		Color(0.4, 0.4, 0.6, 0.3)
 	)
 	ArcadeTheme.plate(self, Rect2(660, 0, 620, 720), Color(0.12, 0.23, 0.44, 0.62), 180)
 	for i in 5:
 		draw_line(Vector2(800 + i * 95, 0), Vector2(480 + i * 95, 720), Color(BLUE, 0.12), 3, true)
-	_preview("rafael", Vector2(1110, 666), 1.28, -1, 0.7)
+	_preview("rafael", Vector2(1155, 666), 1.12, -1, 0.9)
 	_preview("marcelo", Vector2(875, 678), 1.58, 1)
 	ArcadeTheme.title(self, Vector2(72, 108), "STREET VICENTE", 71, PAPER, 6)
 	ArcadeTheme.title(self, Vector2(69, 205), "FIGHTER", 103, GOLD, 7)
@@ -132,16 +132,14 @@ func _menu() -> void:
 				2,
 				true
 			)
-		ArcadeTheme.title(
-			self, rect.position + Vector2(20, 34), "%02d" % (i + 1), 20, INK if active else BLUE, 0
-		)
+		text_at(rect.position + Vector2(20, 34), "%02d" % (i + 1), 20, INK if active else BLUE)
 		text_at(rect.position + Vector2(65, 33), game.MENU[i], 23, INK if active else PAPER)
 		if active:
 			text_at(rect.position + Vector2(490, 33), ">", 26, INK)
 	ArcadeTheme.plate(self, Rect2(1000, 32, 280, 36), BLUE, 16)
 	text_at(Vector2(1032, 57), "13 LUTADORES / 2D", 18, INK)
 	wrapped(Vector2(88, 648), DESCRIPTIONS[game.menu_index], 540, 16, PAPER)
-	_footer("↑↓ NAVEGAR     ENTER CONFIRMAR     F11 TELA CHEIA")
+	_footer("W/S NAVEGAR     ENTER CONFIRMAR     F11 TELA CHEIA")
 
 
 func card_rect(index: int) -> Rect2:
@@ -217,7 +215,7 @@ func _selection() -> void:
 			)
 			text_at(box.position + Vector2(3, -2), "%dP" % (game.selection_slot + 1), 15, INK)
 	centered(Vector2(640, 647), "13 LUTADORES • CADA UM COM SEU ESTILO", 14, Color("a8bad9"))
-	_footer("←→ ESCOLHER     ENTER CONFIRMAR     ESC VOLTAR")
+	_footer("A/D ESCOLHER     W/S LINHA     ENTER CONFIRMAR     ESC VOLTAR")
 
 
 func _short_name(c: CharacterData) -> String:
@@ -314,12 +312,13 @@ func _hud() -> void:
 		)
 	)
 	if game.mode == "training" and not story_mode:
+		ArcadeTheme.plate(self, Rect2(16, 108, 625, 27), Color(INK, 0.85), 7)
 		text_at(
 			Vector2(28, 128),
 			(
 				"TREINO  /  ALVO: "
 				+ ["JOGADOR 2", "PARADO", "DEFESA ALTA", "DEFESA BAIXA"][game.dummy_mode]
-				+ "  /  F2"
+				+ "  /  F2 ALVO · R REINICIAR · F3 DEMO"
 			),
 			13,
 			GOLD
@@ -375,7 +374,7 @@ func _draw_player(f: FighterModel, right: bool, color: Color) -> void:
 	memory.hp = hp
 	damage_trails[id] = memory
 	var trail := float(memory.value)
-	ArcadeTheme.plate(self, Rect2(base - 10, 11, 548, 69), Color(INK, 0.92), 15)
+	ArcadeTheme.plate(self, Rect2(base - 10, 11, 548, 86), Color(INK, 0.92), 15)
 	_portrait(f.character, Rect2(1190 if right else 24, 15, 66, 61))
 	text_at(Vector2(x, 32), f.character.display_name.to_upper(), 18, PAPER)
 	var rect := Rect2(x, 43, 430, 24)
@@ -408,7 +407,7 @@ func _draw_player(f: FighterModel, right: bool, color: Color) -> void:
 
 func _online() -> void:
 	ArcadeTheme.backdrop(self, clock)
-	ArcadeTheme.title(self, Vector2(80, 130), "ONLINE 1 × 1", 64, PAPER)
+	ArcadeTheme.title(self, Vector2(80, 130), "ONLINE 1 x 1", 64, PAPER)
 	ArcadeTheme.plate(self, Rect2(80, 190, 650, 55), GOLD, 12)
 	text_at(Vector2(105, 228), "ONLINE EM MIGRAÇÃO", 30, INK)
 	text_at(Vector2(85, 300), "O combate local está disponível no menu.", 25, PAPER)

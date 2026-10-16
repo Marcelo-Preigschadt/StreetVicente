@@ -9,9 +9,9 @@ from scipy.ndimage import label, find_objects, binary_dilation
 ROOT=Path(__file__).resolve().parents[1]
 SETTINGS={
  'rafael': {'roots':[166,554,918,1279,177,563,942,1320], 'scale':300/432,
-            'hit':{3:[133,-228,53,39],4:[139,-239,59,40]}},
+            'hit':{3:[133,-234,42,27],4:[138,-239,49,31]}},
  'gustavo': {'roots':[175,556,937,1295,181,567,949,1321], 'scale':300/424,
-             'hit':{3:[129,-238,49,38],4:[137,-242,48,41]}}
+             'hit':{3:[132,-237,33,29],4:[137,-236,33,27]}}
 }
 for name, cfg in SETTINGS.items():
  pixels=np.array(Image.open(ROOT/f'assets/source/roster-v5/{name}-punch.png').convert('RGBA'))
