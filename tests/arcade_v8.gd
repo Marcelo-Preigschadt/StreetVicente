@@ -7,6 +7,7 @@ static func run(s: SceneTree) -> void:
 	_air_chain(s)
 	_rounds(s)
 	_pause(s)
+	_uppercut_air(s)
 
 
 static func _art(s: SceneTree) -> void:
@@ -144,3 +145,23 @@ static func _pause(s: SceneTree) -> void:
 	impact._process(0.3)
 	s.check(impact.particles.is_empty(), "Faísca retoma e termina após despausar")
 	impact.free()
+
+
+static func _uppercut_air(s: SceneTree) -> void:
+	for id in ["rafael", "adriano"]:
+		var sim := FightSimulation.new(
+			LegacyRoster.get_character(id), LegacyRoster.get_character("marcelo")
+		)
+		sim.step([CombatInput.new(0, CombatInput.UPPERCUT), CombatInput.new()])
+		var flew := false
+		for tick in 120:
+			var f := sim.fighters[0]
+			if not f.grounded() and f.state == FighterState.Id.ATTACK:
+				flew = true
+				var pose := FighterPose.select(f)
+				s.check(
+					pose.key == "states" or (pose.key == "combat" and pose.index == 10),
+					"Ascendente não planta os pés durante o voo: " + id
+				)
+			s.neutral(sim)
+		s.check(flew and sim.fighters[0].grounded(), "Ascendente sobe e aterrissa: " + id)
