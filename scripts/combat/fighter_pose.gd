@@ -56,6 +56,8 @@ static func select(f: FighterModel) -> Dictionary:
 				start_keys = [4, 5]
 				active_keys = [6]
 				recovery_keys = [7, 4]
+			elif name == "uppercut" and f.character.id == "marcelo":
+				return uppercut(f)
 			elif name == "uppercut":
 				sheet = "combat"
 				start_keys = [8, 9]
@@ -68,6 +70,21 @@ static func select(f: FighterModel) -> Dictionary:
 				recovery_keys = [14, 15, 0]
 			index = move_key(f.move_tick, move, start_keys, active_keys, recovery_keys)
 	return {"key": sheet, "index": index}
+
+
+static func uppercut(f: FighterModel) -> Dictionary:
+	# Expose grounded compression, driving fist, rise, apex, fall, then landing.
+	# Never show planted boots during the physical ascent or crouching midair.
+	var phase := f.current_move().phase(f.move_tick)
+	if phase == "STARTUP":
+		return {"key": "combat", "index": 8}
+	if not f.move_motion_started:
+		return {"key": "combat", "index": 9}
+	if not f.grounded():
+		if phase == "ACTIVE" or f.vy < -450:
+			return {"key": "combat", "index": 10}
+		return {"key": "states", "index": 7 if f.vy < 500 else 8}
+	return {"key": "combat", "index": 11}
 
 
 static func move_key(

@@ -36,6 +36,7 @@ func consume(events: Array) -> void:
 					"kind": e.kind,
 					"character": e.character,
 					"effect": e.get("effect", ""),
+					"move": e.get("move", ""),
 					"origin_x": float(e.get("origin_x", e.x)) / FighterModel.SCALE,
 					"origin_y": float(e.get("origin_y", e.y)) / FighterModel.SCALE,
 					"life": 0.14 if e.kind == "beam" else 0.28,
@@ -78,18 +79,20 @@ func _draw() -> void:
 		draw_set_transform(origin, 0, Vector2(facing, 1))
 		var character := str(p.character)
 		var theme := PowerArt.theme(character, p.effect)
-		_draw_projectile(theme, int(p.age), LegacyRoster.get_character(character).color)
+		_draw_projectile(
+			theme, int(p.age), LegacyRoster.get_character(character).color, origin, facing
+		)
 	draw_set_transform(Vector2.ZERO)
 	for b in bursts:
 		_draw_burst(b)
 	draw_set_transform(Vector2.ZERO)
 
 
-func _draw_projectile(theme: String, age: int, color: Color) -> void:
+func _draw_projectile(theme: String, age: int, color: Color, origin: Vector2, facing: int) -> void:
 	var frame := int(age / 6)
 	match theme:
 		"code":
-			MarceloPowerFX.code(self, age)
+			MarceloPowerFX.code(self, age, origin, facing)
 		"smoke":
 			PowerArt.draw(self, "smoke", frame, 0.55)
 		"fork":

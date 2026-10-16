@@ -69,10 +69,21 @@ O teste Web exercita a voadora e a aterrissagem por teclado, verifica pixels ver
 
 As caixas ofensivas passam a seguir o punho/bota de cada desenho ativo, pelo mesmo calendário de `FighterPose`. O exemplo `marcelo_air_kick_v2.tres` corresponde ao novo perfil; os dados canônicos por quadro ficam em `combat-profiles-v3.json`. A silhueta do Rafael substitui seus antigos retângulos largos; o ponto da faísca é a interseção real. O treino pausado mantém o palco visível para inspeção com F1.
 
-O código do Marcelo usa 12 desenhos próprios de carga, voo e impacto, complementados por caracteres e rastros em GDScript. A faísca de contato tem sua própria sequência; não reutiliza o desenho do projétil. O atlas mecânico de drones continua preservado; entrada, flutuação, carga, mira, disparo, recuo e saída foram separados. O enxame usa formação em arco e disparos escalonados. O laser mantém um vestígio breve do canhão até o ponto atingido. Os novos efeitos são código nativo de apresentação e não novos desenhos corporais do personagem.
+A primeira versão do código usou 12 desenhos de carga, voo e impacto; a revisão 4 abaixo substitui a rajada e o impacto para recuperar a identidade do original. A faísca de contato tem sua própria sequência; não reutiliza o desenho do projétil. O atlas mecânico de drones continua preservado; entrada, flutuação, carga, mira, disparo, recuo e saída foram separados. O enxame usa formação em arco e disparos escalonados. O laser mantém um vestígio breve do canhão até o ponto atingido. Os novos efeitos são código nativo de apresentação e não novos desenhos corporais do personagem.
 
-### Arte dedicada da rajada
+### Arquivo da primeira arte da rajada (substituída na revisão 4)
 
 `assets/effects/marcelo-code-v3/code.webp` adiciona **12 desenhos de VFX**: quatro de concentração na mão, quatro de voo e quatro de impacto/dissipação. O desenho pintado fornece a silhueta; caracteres e rastros em GDScript complementam a cauda. `data/characters/marcelo-code-v3.json` registra recortes, pivôs e escalas. As colisões continuam independentes da opacidade da imagem.
 
 Fonte transparente: `assets/source/marcelo-code-v3/code.png`. Ferramenta: geração integrada de imagens; o prompt integral está em `assets/source/marcelo-code-v3/PROMPT.md`. Preparação mecânica reproduzível: `python tools/pack_marcelo_code.py`. Os separadores seguem os gutters reais da imagem, preservando faíscas e partículas; não se inventam quadros intermediários. Os originais ficam excluídos do pacote Web.
+
+
+## Revisão 4 — recuperar a base visual original
+
+A rajada T volta ao motivo do jogo Canvas: núcleo com chaves, trilhas de circuito e pacotes binários, com luz suave, contorno e centro em cel shading. A chama pintada deixa de ser usada no voo/impacto de T. A carga do especial volta ao pequeno glifo retangular do original. `MarceloArcadeFX` porta essa apresentação para desenho nativo Godot; não executa o motor JavaScript. Os desenhos/mira/carga/laser dos drones Q/U foram preservados.
+
+O gancho Y comprime no chão, passa dois frames de design no impulso e lança uma única vez. O calendário corporal acompanha velocidade vertical e contato com o chão: subida com punho erguido, ápice, queda e absorção na aterrissagem. Reutiliza os desenhos corporais existentes, sem alegar que foram criados quadros inéditos. A trilha do Firewall segue o punho registrado; o antigo círculo no tronco e o segundo clarão solto de emissão foram removidos. O alcance ativo continua registrado no próprio punho, sem dano na recuperação.
+
+O teste Web captura separadamente subida/queda do gancho, rajada em voo, contato e drones. As capturas do jogo e o vídeo ficam no artefato `StreetVicente-Web-QA` da execução de Actions. Testes de colisão/replay validam comportamento; a comparação visual continua necessária para avaliar a arte.
+
+Referência direta: `Street-Vicente-Fighter-`, commit `b320e497682bbfe0e2fc39883818183fa02521f5`, funções `drawEnergyProjectile`, `drawEnergyRise` (`src/fight-fx.js`) e `drawPowerGlyph` (`src/render.js`). O repositório original não foi alterado.

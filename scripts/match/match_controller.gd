@@ -251,8 +251,10 @@ func _publish_qa() -> void:
 		data.x = [sim.fighters[0].x, sim.fighters[1].x]
 		data.y = [sim.fighters[0].y, sim.fighters[1].y]
 		data.moves = [sim.fighters[0].move_id, sim.fighters[1].move_id]
+		data.move_tick = sim.fighters[0].move_tick
+		data.vy = sim.fighters[0].vy
 		data.meter = [sim.fighters[0].meter, sim.fighters[1].meter]
-		data.fx_revision = 3
+		data.fx_revision = 4
 		data.last_contacts = last_contacts
 		data.hurtboxes = sim.fighters.map(
 			func(f: FighterModel) -> Array:

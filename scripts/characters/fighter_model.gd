@@ -487,7 +487,10 @@ func _attack_motion() -> void:
 		vx = facing * (after - before)
 	elif grounded():
 		vx = 0
-	if m.name == "uppercut" and move_tick >= move.startup * 2 and not move_motion_started:
+	# Marcelo drives the fist for two design frames on the floor, then launches.
+	# All timing is simulation-owned and therefore survives replay/hitstop.
+	var launch_tick := move.startup * 2 + (4 if character.id == "marcelo" else 0)
+	if m.name == "uppercut" and move_tick >= launch_tick and not move_motion_started:
 		move_motion_started = true
 		if not m.get("grounded", false):
 			vy = roundi(float(m.get("jumpVelocity", -1080)) * SCALE / 120.0)

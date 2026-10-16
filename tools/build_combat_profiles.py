@@ -50,7 +50,7 @@ for index, rect in [(3,[138,-224,82,62]),(4,[160,-230,78,54]),
 register('marcelo','low',2,[135,-197,58,42])
 register('marcelo','low',6,[150,-86,74,65])
 for index in [3,4]: register('marcelo','air',index,[174,-223,80,65])
-for index, point in [(8,[76,-150]),(9,[65,-294]),(10,[88,-328]),(11,[81,-165]),
+for index, point in [(8,[-24,-153]),(9,[65,-294]),(10,[88,-328]),(11,[81,-165]),
                      (12,[28,-165]),(13,[116,-220]),(14,[134,-230]),(15,[80,-222])]:
     register('marcelo','combat',index,hand=point)
 for sheet, index, rect in [('strike',2,[110,-246,58,43]),('strike',6,[45,-252,62,52]),

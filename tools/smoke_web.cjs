@@ -15,7 +15,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  const state=()=>page.evaluate(()=>window.svfQA);
  const wait=fn=>page.waitForFunction(fn,null,{timeout:25000});
  const pausedShot=async file=>{await page.keyboard.press('Escape');await wait(()=>window.svfQA?.paused===true);const png=await page.screenshot(file?{path:file}:{});await page.keyboard.press('Enter');await wait(()=>window.svfQA?.paused===false);return png;};
- const green=(r,g,b)=>g>150&&g>r*1.8&&g>b*1.25;
+ const green=(r,g,b)=>g>160&&g>r*1.1&&g>b*1.3;
  const addedGreen=(before,after)=>{const a=PNG.sync.read(before),b=PNG.sync.read(after);let count=0;for(let y=170;y<635;y++)for(let x=100;x<1180;x++){const i=(y*b.width+x)*4;if(green(b.data[i],b.data[i+1],b.data[i+2])&&!green(a.data[i],a.data[i+1],a.data[i+2]))count++;}return count;};
  await page.goto('http://127.0.0.1:8061/StreetVicente/?qa=1',{timeout:120000});
  await page.waitForFunction(()=>window.svfQA?.screen==='menu',null,{timeout:90000});
@@ -23,7 +23,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  // First menu entry directly starts the new-art pilot in native Godot training.
  await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight');
  assert.deepEqual((await state()).selected,['marcelo','rafael']);assert.equal((await state()).new_art,true);
- assert.equal((await state()).fx_revision,3,'Pacote novo de geometria e VFX');
+ assert.equal((await state()).fx_revision,4,'Pacote novo de geometria e VFX');
  await page.screenshot({path:'test-results/02-pilot-ready.png'});
  let before=await state();await page.keyboard.down('d');await delay(350);await page.keyboard.up('d');
  let moved=await state();assert(moved.x[0]>before.x[0]+40*256,'Movimento real no WASM');
@@ -46,6 +46,14 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.keyboard.down('s');await page.keyboard.press('g');await delay(200);assert.equal((await state()).pose,'low');await page.screenshot({path:'test-results/06-low.png'});await page.keyboard.up('s');
  // Freeze through the player's normal pause control for both images. Software
  // WebGL screenshot latency must not let the projectile hit and disappear first.
+ // Explicit uppercut review: freeze each capture with normal pause, not a QA mutation.
+ await page.keyboard.press('r');await delay(150);await page.keyboard.press('y');
+ await wait(()=>window.svfQA?.moves?.[0]==='uppercut:1'&&window.svfQA?.y?.[0]<625*256&&window.svfQA?.pose==='combat'&&window.svfQA?.pose_index===10);
+ await pausedShot('test-results/06a-uppercut-rise.png');
+ await wait(()=>window.svfQA?.moves?.[0]==='uppercut:1'&&window.svfQA?.vy>500&&window.svfQA?.y?.[0]<625*256);
+ let fall=await state();assert.equal(fall.pose,'states','Gancho usa pose aérea durante a descida');assert.equal(fall.pose_index,8);assert.equal(fall.hitboxes[0].length,0,'Sem hitbox na recuperação');
+ await pausedShot('test-results/06b-uppercut-fall.png');await wait(()=>window.svfQA?.state==='IDLE');
+ assert.equal((await state()).y[0],625*256,'Gancho retorna ao chão');
  await page.keyboard.press('r');await delay(200);const baseFx=await pausedShot();await page.keyboard.press('t');await wait(()=>window.svfQA?.projectiles>0);
  const codeFx=await pausedShot('test-results/07-code.png');const codePixels=addedGreen(baseFx,codeFx);
  assert(codePixels>300,'Onda de código deve estar visível em pixels, não apenas existir na simulação');await delay(900);
@@ -91,6 +99,6 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  }
  await page.setViewportSize({width:960,height:540});await delay(200);await page.screenshot({path:'test-results/13-resize.png'});
  assert.equal(responses['index.wasm'],200);assert.equal(responses['index.pck'],200);assert.deepEqual(errors,[],'Console Web sem erros');
- fs.writeFileSync('test-results/web-smoke.json',JSON.stringify({status:'passed',checks:['WASM/PCK sob /StreetVicente/','13 personagens','nova arte por estados','voadora dedicada e aterrissagem','efeito código visível em pixels','drone estacionário e laser','efeitos no História','fumaça/garfos/livros','movimento','prejump/salto','soco com dano','chute','rasteira','código','cinco drones','comparação de arte','pausa','seleção','história','demonstração','resize','console sem erros'],responses,codePixels},null,2));
+ fs.writeFileSync('test-results/web-smoke.json',JSON.stringify({status:'passed',checks:['WASM/PCK sob /StreetVicente/','13 personagens','nova arte por estados','voadora dedicada e aterrissagem','gancho: subida e queda sem pose de chão no ar','efeito código visível em pixels','drone estacionário e laser','efeitos no História','fumaça/garfos/livros','movimento','prejump/salto','soco com dano','chute','rasteira','código','cinco drones','comparação de arte','pausa','seleção','história','demonstração','resize','console sem erros'],responses,codePixels},null,2));
  await page.close();console.log('WEB SMOKE PASSED: novo Marcelo + combate/poderes + roster + história');
 })().catch(async e=>{console.error(e);console.error('Browser errors:',JSON.stringify(errors));if(page&&!page.isClosed()){await page.screenshot({path:'test-results/failure.png'}).catch(()=>{});const status=await page.evaluate(()=>({url:location.href,qa:window.svfQA,status:document.getElementById('status')?.innerText})).catch(()=>({}));console.error('Browser state:',JSON.stringify(status));fs.writeFileSync('test-results/failure.json',JSON.stringify({error:String(e),errors,status},null,2));}process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();server.kill();});

@@ -44,6 +44,7 @@ func _run() -> void:
 	_test_air_kick_v2()
 	_test_shared_powers()
 	_test_contact_geometry_v3()
+	_test_marcelo_uppercut_v4()
 	print("COMBAT TESTS: %d checks, %d failures" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 
@@ -514,3 +515,90 @@ func _test_shared_powers() -> void:
 
 func _test_contact_geometry_v3() -> void:
 	preload("res://tests/contact_geometry_v3.gd").run(self)
+
+
+func _test_marcelo_uppercut_v4() -> void:
+	var marcelo := LegacyRoster.get_character("marcelo")
+	var rafael := LegacyRoster.get_character("rafael")
+	for facing in [1, -1]:
+		var sim := FightSimulation.new(marcelo, rafael)
+		var f := sim.fighters[0]
+		f.x = (400 if facing == 1 else 880) * 256
+		sim.fighters[1].x = (900 if facing == 1 else 380) * 256
+		sim.step([CombatInput.new(0, CombatInput.UPPERCUT), CombatInput.new()])
+		var stages := {}
+		var launches := 0
+		var was_launched := false
+		var saved := {}
+		for i in 130:
+			if f.state == FighterState.Id.ATTACK:
+				var pose := FighterPose.select(f)
+				var phase := f.current_move().phase(f.move_tick)
+				if phase == "STARTUP":
+					check(
+						f.grounded() and pose.key == "combat" and pose.index == 8,
+						"Gancho comprime antes do impulso"
+					)
+					stages.startup = true
+				elif not f.move_motion_started:
+					check(
+						f.grounded() and pose.index == 9,
+						"Primeiro contato do gancho tem apoio no chão"
+					)
+					stages.drive = true
+				elif not f.grounded():
+					if phase == "ACTIVE" or f.vy < -450:
+						check(
+							pose.key == "combat" and pose.index == 10,
+							"Subida mantém punho erguido e perna recolhida"
+						)
+						stages.rise = true
+					else:
+						check(
+							pose.key == "states" and pose.index in [7, 8],
+							"Queda usa desenho aéreo, sem crouch/idle no ar"
+						)
+						stages.fall = true
+				else:
+					check(
+						pose.key == "combat" and pose.index == 11,
+						"Recuperação só apoia os pés depois de tocar o chão"
+					)
+					stages.landing = true
+				if phase == "RECOVERY":
+					check(
+						f.attack_boxes().is_empty(),
+						"Gancho não causa dano durante queda/recuperação"
+					)
+			if f.move_motion_started and not was_launched:
+				launches += 1
+			was_launched = f.move_motion_started
+			if i == 25:
+				saved = sim.snapshot()
+			neutral(sim)
+		check(
+			stages.size() == 5 and launches == 1,
+			"Gancho percorre todas as fases com um único lançamento"
+		)
+		check(
+			f.grounded() and f.state == FighterState.Id.IDLE and f.move_id == "",
+			"Gancho termina recuperado no chão"
+		)
+		var expected := sim.state_hash()
+		sim.restore(saved)
+		neutral(sim, 105)
+		check(sim.state_hash() == expected, "Replay restaura fase física e pose do gancho")
+		var close := FightSimulation.new(marcelo, rafael)
+		close.fighters[0].x = (500 if facing == 1 else 780) * 256
+		close.fighters[1].x = (606 if facing == 1 else 674) * 256
+		close.step([CombatInput.new(0, CombatInput.UPPERCUT), CombatInput.new()])
+		var contacts := 0
+		for i in 130:
+			neutral(close)
+			for event in close.events:
+				if event.kind == "hit":
+					contacts += 1
+		check(
+			contacts == 1 and close.fighters[1].health < 1000,
+			"Gancho conecta uma vez no Rafael nos dois lados"
+		)

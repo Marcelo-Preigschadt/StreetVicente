@@ -35,23 +35,8 @@ static func draw_art(canvas: CanvasItem, clip: String, key: int, tint: Color = C
 	)
 
 
-static func code(canvas: CanvasItem, age: int) -> void:
-	# Complete painted keys provide the silhouette; glyphs and small traces extend
-	# the tail. The bright front stays 30 px from the physical projectile center.
-	draw_art(canvas, "flight", age / 5)
-	for row in 2:
-		for col in 5:
-			var x := -156 + col * 23 + (age * 2) % 23
-			var y := -12 + row * 23
-			canvas.draw_string(
-				ThemeDB.fallback_font,
-				Vector2(x, y),
-				["0", "1", "{", "}", ";"][(age / 5 + col + row) % 5],
-				HORIZONTAL_ALIGNMENT_LEFT,
-				-1,
-				15,
-				Color(CYAN, 0.18 + col * 0.09)
-			)
+static func code(canvas: CanvasItem, age: int, origin: Vector2, facing: int) -> void:
+	MarceloArcadeFX.wave(canvas, age, origin, facing)
 
 
 static func drone(
@@ -152,6 +137,12 @@ static func charge(canvas: CanvasItem, f: FighterModel, camera: float) -> void:
 	var name: String = move.legacy.get("name", "")
 	if name not in ["special", "super", "drone", "uppercut"]:
 		return
+	if name == "uppercut":
+		MarceloArcadeFX.rise(canvas, f, camera)
+		return
+	if name == "special":
+		MarceloArcadeFX.charge(canvas, f, camera)
+		return
 	var socket := CombatGeometry.hand(f)
 	var hand := Vector2(socket) / 256.0 - Vector2(camera, 0)
 	var progress := clampf(float(f.move_tick) / maxf(1, move.startup * 2), 0, 1)
@@ -175,21 +166,6 @@ static func charge(canvas: CanvasItem, f: FighterModel, camera: float) -> void:
 			canvas.draw_rect(Rect2(-21, -13, 42, 26), Color(MINT, 0.1))
 			canvas.draw_rect(Rect2(-21, -13, 42, 26), Color(CYAN, 0.7), false, 1)
 			canvas.draw_line(Vector2(-16, 0), Vector2(16, 0), Color(WHITE, 0.8), 1, true)
-	elif move.phase(f.move_tick) == "ACTIVE" and name == "uppercut":
-		canvas.draw_set_transform(
-			Vector2(float(f.x) / 256 - camera, float(f.y) / 256 - 170), 0, Vector2(f.facing, 1)
-		)
-		for i in 3:
-			canvas.draw_arc(
-				Vector2(20, -25),
-				65 + i * 10,
-				-2.0,
-				0.7,
-				24,
-				Color(MINT, 0.7 - i * 0.2),
-				4 - i,
-				true
-			)
 	canvas.draw_set_transform(Vector2.ZERO)
 
 
@@ -202,9 +178,15 @@ static func burst(canvas: CanvasItem, b: Dictionary, camera: float) -> void:
 		return
 	canvas.draw_set_transform(origin)
 	var laser: bool = b.effect == "sentinelLaser" or b.kind == "laser"
-	if not laser and b.kind in ["hit", "block"]:
-		draw_art(canvas, "impact", mini(3, int(phase * 4)), Color(1, 1, 1, alpha))
-	elif not laser and b.kind == "cast":
+	if not laser and b.get("move", "") == "uppercut":
+		# The authoritative fist already carries its effect. No second cast orb.
+		canvas.draw_set_transform(Vector2.ZERO)
+		return
+	if not laser and b.get("move", "") not in ["super", "drone"]:
+		MarceloArcadeFX.impact(canvas, str(b.kind), phase, alpha)
+		canvas.draw_set_transform(Vector2.ZERO)
+		return
+	if not laser and b.kind == "cast":
 		draw_art(canvas, "charge", 3, Color(1, 1, 1, alpha * 0.75))
 	var count := 10 if b.kind in ["hit", "block"] else 6
 	for i in count:
