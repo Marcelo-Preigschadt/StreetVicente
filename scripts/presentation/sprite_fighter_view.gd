@@ -71,7 +71,9 @@ func _draw() -> void:
 		var gs: Dictionary = ghost.pose.sheet
 		var r: Array = gf.rect
 		var k := float(gf.get("scale", gs.scale))
-		draw_set_transform(Vector2(ghost.position) - position, 0, Vector2(int(ghost.facing), 1))
+		draw_set_transform(
+			Vector2(ghost.position) - position, 0, Vector2(int(ghost.facing) * width_factor, 1)
+		)
 		draw_texture_rect_region(
 			LegacyRoster.texture(gs.image),
 			Rect2(

@@ -256,7 +256,9 @@ func _preview(
 	var frame: Dictionary = pose.frame
 	var r: Array = frame.rect
 	var k := float(frame.get("scale", sheet.scale)) * scale_factor
-	draw_set_transform(root, 0, Vector2(facing, 1))
+	draw_set_transform(
+		root, 0, Vector2(facing * float(f.character.legacy.get("visualWidth", 1.0)), 1)
+	)
 	draw_texture_rect_region(
 		LegacyRoster.texture(sheet.image),
 		Rect2(

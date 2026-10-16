@@ -75,7 +75,9 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');
  // Selection includes all approved portraits and original quotes.
  await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='selection');
- await page.screenshot({path:'test-results/10-roster.png'});await page.keyboard.press('Escape');
+ await page.screenshot({path:'test-results/10-roster.png'});
+ const rosterBefore=await state();const joaoCursor=rosterBefore.roster_ids.indexOf('joao');for(let i=0;i<(joaoCursor-rosterBefore.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
+ await wait(()=>window.svfQA?.roster_ids?.[window.svfQA.cursor]==='joao');await page.screenshot({path:'test-results/10a-roster-student.png'});await page.keyboard.press('Escape');
  // Campaign shell uses original stages/enemies and independent lane/jump coordinates.
  await page.keyboard.press('ArrowDown');await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='selection');
  await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='story');await delay(400);
