@@ -15,6 +15,9 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  const state=()=>page.evaluate(()=>window.svfQA);
  const wait=fn=>page.waitForFunction(fn,null,{timeout:25000});
  const pausedShot=async file=>{await page.keyboard.press('Escape');await wait(()=>window.svfQA?.paused===true);const png=await page.screenshot(file?{path:file}:{});await page.keyboard.press('Enter');await wait(()=>window.svfQA?.paused===false);return png;};
+ // Texture coverage uses an area: a dark PC in the stage must not be mistaken
+ // for a black letterbox. A uniform clear band fails both coverage and variation.
+ const stageArea=(png,x0,y0,x1,y1)=>{let lit=0,total=0;const colors=new Set();for(let y=y0;y<y1;y+=4)for(let x=x0;x<x1;x+=4){const i=(y*png.width+x)*4,r=png.data[i],g=png.data[i+1],b=png.data[i+2];total++;if(r+g+b>75)lit++;colors.add(`${r>>4}:${g>>4}:${b>>4}`);}assert(lit/total>.35&&colors.size>25,'Cenário texturizado preenche toda a margem');};
  const green=(r,g,b)=>g>160&&g>r*1.1&&g>b*1.3;
  const addedGreen=(before,after)=>{const a=PNG.sync.read(before),b=PNG.sync.read(after);let count=0;for(let y=170;y<635;y++)for(let x=100;x<1180;x++){const i=(y*b.width+x)*4;if(green(b.data[i],b.data[i+1],b.data[i+2])&&!green(a.data[i],a.data[i+1],a.data[i+2]))count++;}return count;};
  await page.addInitScript(()=>{try{if(!localStorage.getItem('svf-arcade-record-v1'))localStorage.setItem('svf-arcade-record-v1','17');}catch{}});
@@ -122,10 +125,10 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await pausedShot('test-results/15a-adriano-fight.png');
  await page.setViewportSize({width:1720,height:720});await delay(200);
  const wide=PNG.sync.read(await pausedShot('test-results/15c-ultrawide.png'));
- for(const x of [10,1710]){const i=(360*wide.width+x)*4;assert(wide.data[i]+wide.data[i+1]+wide.data[i+2]>80,'Cenário preenche a margem ultrawide');}
+ stageArea(wide,10,150,180,650);stageArea(wide,1540,150,1710,650);
  await page.setViewportSize({width:1024,height:768});await delay(200);
  const tall=PNG.sync.read(await pausedShot('test-results/15d-four-three.png'));
- for(const y of [10,750]){const i=(y*tall.width+512)*4;assert(tall.data[i]+tall.data[i+1]+tall.data[i+2]>80,'Cenário preenche as margens 4:3');}
+ stageArea(tall,100,10,924,70);stageArea(tall,100,700,924,758);
  await page.setViewportSize({width:1280,height:720});await delay(200);
  await page.keyboard.down('d');await wait(()=>window.svfQA.x[1]-window.svfQA.x[0]<170*256);await page.keyboard.up('d');
  for(let i=0;i<3;i++){await page.keyboard.press('f');await delay(700);assert.equal((await state()).states[1],'IDLE','Pokes separados não geram trava/tontura');}
