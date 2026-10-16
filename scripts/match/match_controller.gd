@@ -41,6 +41,8 @@ var demo: bool = false
 var impact: CombatImpact
 var last_contacts: Array = []
 var reference_heights: Dictionary = {}
+var qa_trace: Array = []
+var qa_trace_key: String = ""
 
 
 func _ready() -> void:
@@ -137,6 +139,8 @@ func confirm_selection() -> void:
 
 
 func _start_fight() -> void:
+	qa_trace.clear()
+	qa_trace_key = ""
 	if arcade != null:
 		selected = [arcade.player_id, arcade.opponents[arcade.index]]
 	impact.clear()
@@ -259,8 +263,8 @@ func _physics_process(_delta: float) -> void:
 				screen = "story_dialog"
 				_hide_world()
 			story_checkpoint = checkpoint_key
-	if qa:
-		_publish_qa()
+	if qa and screen == "fight":
+		_capture_qa_trace()
 
 
 func _draw() -> void:
@@ -286,8 +290,34 @@ func _process(_delta: float) -> void:
 	impact.camera_x = story.camera_x if screen == "story" else 0.0
 	power_view.camera_x = impact.camera_x
 	queue_redraw()
-	if qa and (paused or screen not in ["fight", "story"]):
+	if qa:
 		_publish_qa()
+
+
+func _capture_qa_trace() -> void:
+	# Record transient poses at physics rate, publish once per rendered frame.
+	# This is observation only: no browser command or debug hook mutates simulation.
+	var f: FighterModel = sim.fighters[0]
+	var pose := CharacterArt.frame(f)
+	var phase := f.current_move().phase(f.move_tick) if f.state == FighterState.Id.ATTACK else ""
+	var key := "%d:%s:%s:%d:%s" % [f.state, f.move_id, pose.key, pose.index, phase]
+	if key == qa_trace_key:
+		return
+	qa_trace_key = key
+	qa_trace.append(
+		{
+			"tick": sim.tick,
+			"state": FighterState.NAMES[f.state],
+			"move": f.move_id,
+			"pose": pose.key,
+			"pose_index": pose.index,
+			"y": f.y,
+			"vy": f.vy,
+			"hit_count": f.attack_boxes().size()
+		}
+	)
+	if qa_trace.size() > 64:
+		qa_trace.pop_front()
 
 
 func _publish_qa() -> void:
@@ -336,6 +366,7 @@ func _publish_qa() -> void:
 				}
 		)
 		data.tick = sim.tick
+		data.trace = qa_trace
 		data.hp = [sim.fighters[0].health, sim.fighters[1].health]
 		data.x = [sim.fighters[0].x, sim.fighters[1].x]
 		data.y = [sim.fighters[0].y, sim.fighters[1].y]

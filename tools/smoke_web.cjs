@@ -37,8 +37,8 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  // Screenshots can take longer than a whole jump on software WebGL. Capture the
  // first jump, then issue the kick immediately on a second jump before capturing.
  await wait(()=>window.svfQA?.state==='IDLE');await page.keyboard.press('w');await wait(()=>window.svfQA?.state==='JUMP');
- await page.keyboard.press('g');const kickHandle=await wait(()=>{const q=window.svfQA;return q?.pose==='air'&&q.pose_index>=3?q:null;});
- const kickState=await kickHandle.jsonValue();await kickHandle.dispose();assert.equal(kickState.moves[0],'airKick:1');await page.screenshot({path:'test-results/03a-air-kick.png'});
+ await page.keyboard.press('g');const kickHandle=await wait(()=>window.svfQA?.trace?.find(q=>q.move==='airKick:1'&&q.pose==='air'&&q.pose_index>=3));
+ const kickState=await kickHandle.jsonValue();await kickHandle.dispose();assert.equal(kickState.move,'airKick:1');await page.screenshot({path:'test-results/03a-air-kick.png'});
  await wait(()=>window.svfQA?.state==='LANDING'||window.svfQA?.state==='IDLE');await delay(120);
  assert.equal((await state()).moves[0],'');assert.equal((await state()).state,'IDLE','Aterrissagem termina ataque aéreo');
  await page.keyboard.press('r');await delay(150);await page.keyboard.down('d');
@@ -53,14 +53,14 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  // WebGL screenshot latency must not let the projectile hit and disappear first.
  // Explicit uppercut review: freeze each capture with normal pause, not a QA mutation.
  await page.keyboard.press('r');await delay(150);await page.keyboard.press('y');
- await wait(()=>window.svfQA?.moves?.[0]==='uppercut:1'&&window.svfQA?.y?.[0]<625*256&&window.svfQA?.pose==='combat'&&window.svfQA?.pose_index===10);
+ await wait(()=>window.svfQA?.trace?.find(q=>q.move==='uppercut:1'&&q.y<625*256&&q.pose==='combat'&&q.pose_index===10));
  await pausedShot('test-results/06a-uppercut-rise.png');
  // A fresh uppercut isolates the fall observation from screenshot/readback latency.
  await page.keyboard.press('r');await delay(150);await page.keyboard.press('y');
  // Return the immutable observer object from the matching render. A second
  // evaluate after waitForFunction can observe landing on slow software WebGL.
- const fallHandle=await wait(()=>{const q=window.svfQA;return q?.moves?.[0]==='uppercut:1'&&q.vy>500&&q.y[0]<625*256?q:null;});
- const fall=await fallHandle.jsonValue();await fallHandle.dispose();assert.equal(fall.pose,'states','Gancho usa pose aérea durante a descida');assert.equal(fall.pose_index,8);assert.equal(fall.hitboxes[0].length,0,'Sem hitbox na recuperação');
+ const fallHandle=await wait(()=>window.svfQA?.trace?.find(q=>q.move==='uppercut:1'&&q.vy>500&&q.y<625*256));
+ const fall=await fallHandle.jsonValue();await fallHandle.dispose();assert.equal(fall.pose,'states','Gancho usa pose aérea durante a descida');assert.equal(fall.pose_index,8);assert.equal(fall.hit_count,0,'Sem hitbox na recuperação');
  await pausedShot('test-results/06b-uppercut-fall.png');await wait(()=>window.svfQA?.state==='IDLE');
  assert.equal((await state()).y[0],625*256,'Gancho retorna ao chão');
  await page.keyboard.press('r');await delay(200);const baseFx=await pausedShot();await page.keyboard.press('t');await wait(()=>window.svfQA?.projectiles>0);
