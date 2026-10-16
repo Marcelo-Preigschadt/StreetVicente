@@ -24,7 +24,7 @@ func consume(events: Array) -> void:
 		if seen.size() > 256:
 			seen.erase(seen.keys()[0])
 		if (
-			e.kind in ["cast", "laser"]
+			e.kind in ["cast", "laser", "beam"]
 			or (e.kind in ["hit", "block"] and e.get("power_kind", "") != "")
 		):
 			bursts.append(
@@ -34,8 +34,10 @@ func consume(events: Array) -> void:
 					"kind": e.kind,
 					"character": e.character,
 					"effect": e.get("effect", ""),
-					"life": 0.28,
-					"max": 0.28
+					"origin_x": float(e.get("origin_x", e.x)) / FighterModel.SCALE,
+					"origin_y": float(e.get("origin_y", e.y)) / FighterModel.SCALE,
+					"life": 0.14 if e.kind == "beam" else 0.28,
+					"max": 0.14 if e.kind == "beam" else 0.28
 				}
 			)
 
@@ -66,31 +68,12 @@ func _draw() -> void:
 				float(p.origin_x) / FighterModel.SCALE - camera_x,
 				float(p.origin_y) / FighterModel.SCALE
 			)
-			draw_line(start, origin, Color(0.15, 1, 0.45, 0.12), 20, true)
-			draw_line(start, origin, Color(0.3, 1, 0.6, 0.5), 8, true)
-			draw_line(start, origin, Color("e8fff3"), 2.5, true)
-			draw_circle(origin, 9, Color(0.25, 1, 0.5, 0.5))
-			draw_circle(origin, 4, Color.WHITE)
+			MarceloPowerFX.beam(self, start, origin, 1.0)
+			continue
+		if p.drone:
+			MarceloPowerFX.drone(self, p, camera_x, clock, world.power_actors())
 			continue
 		draw_set_transform(origin, 0, Vector2(facing, 1))
-		if p.drone:
-			var frame := int(p.age / 8) % 2
-			if p.fired:
-				frame = 2 if int(p.age) - int(p.fire_tick) < 12 else 3
-			PowerArt.draw(self, "drone", frame, 0.36)
-			if not p.fired:
-				var progress := 1.0 - float(p.delay) / maxf(1, float(p.warmup))
-				draw_arc(
-					Vector2(19, 3),
-					13,
-					-PI / 2,
-					-PI / 2 + TAU * progress,
-					24,
-					Color(0.55, 1, 0.75, 0.8),
-					2,
-					true
-				)
-			continue
 		var character := str(p.character)
 		var theme := PowerArt.theme(character, p.effect)
 		_draw_projectile(theme, int(p.age), LegacyRoster.get_character(character).color)
@@ -104,17 +87,7 @@ func _draw_projectile(theme: String, age: int, color: Color) -> void:
 	var frame := int(age / 6)
 	match theme:
 		"code":
-			PowerArt.draw(self, "code", frame, 0.60)
-			for i in 5:
-				draw_string(
-					ThemeDB.fallback_font,
-					Vector2(-90 - i * 14, -30 + (i % 3) * 18),
-					["0", "1", "{", "}", "/"][i],
-					HORIZONTAL_ALIGNMENT_LEFT,
-					-1,
-					12,
-					Color(0.6, 1, 0.8, 0.7 - i * 0.1)
-				)
+			MarceloPowerFX.code(self, age)
 		"smoke":
 			PowerArt.draw(self, "smoke", frame, 0.55)
 		"fork":
@@ -146,6 +119,9 @@ func _draw_projectile(theme: String, age: int, color: Color) -> void:
 
 
 func _draw_charge(f: FighterModel) -> void:
+	if f.character.id == "marcelo":
+		MarceloPowerFX.charge(self, f, camera_x)
+		return
 	if f.state != FighterState.Id.ATTACK or f.character.legacy.is_empty():
 		return
 	var move := f.current_move()
@@ -198,6 +174,9 @@ func _draw_charge(f: FighterModel) -> void:
 
 
 func _draw_burst(b: Dictionary) -> void:
+	if b.character == "marcelo":
+		MarceloPowerFX.burst(self, b, camera_x)
+		return
 	var phase := 1.0 - float(b.life) / float(b.max)
 	var alpha := 1.0 - phase
 	var origin := Vector2(float(b.x) - camera_x, float(b.y))

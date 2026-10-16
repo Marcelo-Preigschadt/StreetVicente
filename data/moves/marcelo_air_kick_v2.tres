@@ -4,6 +4,6 @@
 
 [resource]
 script = ExtResource("1")
-rect = Rect2i(45, -210, 180, 65)
+rect = Rect2i(174, -223, 80, 65)
 first_frame = 5
 end_frame = 23

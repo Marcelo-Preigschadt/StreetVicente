@@ -80,10 +80,16 @@ func step(inputs: Array[CombatInput]) -> void:
 		if defender.slot in attacker.hit_targets:
 			continue
 		var connected := false
+		var point := Vector2i.ZERO
 		for hit in attacker.attack_boxes():
 			for hurt in defender.hurtboxes():
 				if BoxMath.overlap(hit, hurt):
 					connected = true
+					var overlap := hit.intersection(hurt)
+					point = overlap.position + overlap.size / 2
+					break
+			if connected:
+				break
 		if connected:
 			var move := attacker.current_move()
 			if move.legacy.get("level", "") == "throw" and not defender.grounded():
@@ -94,6 +100,8 @@ func step(inputs: Array[CombatInput]) -> void:
 					"defender": 1 - i,
 					"move": move,
 					"facing": attacker.facing,
+					"impact_x": point.x,
+					"impact_y": point.y,
 					"blocked":
 					move.legacy.get("level", "") != "throw" and defender.blocking(move.level)
 				}
@@ -153,7 +161,7 @@ func _resolve_bodies() -> void:
 		return
 	var left := a if a.x <= b.x else b
 	var right := b if a.x <= b.x else a
-	var overlap := BODY_WIDTH - (right.x - left.x)
+	var overlap := CombatGeometry.half_width(a) + CombatGeometry.half_width(b) - (right.x - left.x)
 	if overlap <= 0:
 		return
 	@warning_ignore("integer_division")

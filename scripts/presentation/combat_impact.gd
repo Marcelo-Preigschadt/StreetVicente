@@ -70,23 +70,6 @@ func offset() -> Vector2:
 
 
 func _draw() -> void:
-	if super_time > 0:
-		draw_rect(Rect2(0, 112, 1280, 552), Color(0.0, 0.025, 0.055, minf(0.65, super_time * 2.0)))
-		var c := LegacyRoster.get_character(super_character)
-		for i in 18:
-			var x := fposmod(i * 83.0 + clock * 500, 1480) - 100
-			draw_line(
-				Vector2(x, 120), Vector2(x - 240, 655), Color(c.color, super_time * 0.45), 2, true
-			)
-		draw_string(
-			ThemeDB.fallback_font,
-			Vector2(440, 210),
-			str(c.legacy.powers.get("super", "SUPER")),
-			HORIZONTAL_ALIGNMENT_LEFT,
-			-1,
-			32,
-			Color(c.color, minf(1.0, super_time * 4))
-		)
 	for p in particles:
 		var origin := Vector2(float(p.x) - camera_x, float(p.y))
 		var phase := 1.0 - float(p.life) / float(p.max)

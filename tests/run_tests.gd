@@ -43,6 +43,7 @@ func _run() -> void:
 	_test_story()
 	_test_air_kick_v2()
 	_test_shared_powers()
+	_test_contact_geometry_v3()
 	print("COMBAT TESTS: %d checks, %d failures" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 
@@ -429,7 +430,11 @@ func _test_air_kick_v2() -> void:
 	f.state = FighterState.Id.ATTACK
 	f.move_tick = c.get_move("airKick").startup * 2
 	var hit := f.attack_boxes()[0]
-	check(hit.position.y - f.y == -210 * 256, "Hitbox acompanha altura do novo pé estendido")
+	check(hit.position.y - f.y == -223 * 256, "Hitbox acompanha altura do novo pé estendido")
+	check(
+		hit.position.x - f.x == 174 * 256 and hit.size.x == 80 * 256,
+		"Voadora acerta com a bota, sem corredor ofensivo vazio desde o quadril"
+	)
 
 
 func _test_shared_powers() -> void:
@@ -505,3 +510,7 @@ func _test_shared_powers() -> void:
 		contacts += system.advance(actors, 3600, i).size()
 	check(contacts == 0, "Projéteis do História respeitam profundidade de lane")
 	check(not system.projectiles.is_empty(), "Projétil do História permanece válido após X=1380")
+
+
+func _test_contact_geometry_v3() -> void:
+	preload("res://tests/contact_geometry_v3.gd").run(self)

@@ -37,3 +37,13 @@ Hitstop congela combate e timer, mantendo amostragem de input; buffer expira pel
 Views interpolam posições anterior/atual com `Engine.get_physics_interpolation_fraction()`. Não adicionar interpolação automática aos mesmos nós. Após reset/correção, chamar `sync(true)` e reconstruir apresentação. O manequim de referência conserva IK de dois segmentos. A apresentação do elenco usa atlas; Marcelo usa PilotArt com 64 novos desenhos e exposição das chaves conforme fase/tick. Caminhada avança pela distância efetiva após paredes/pushboxes. IK visual não decide hurtboxes.
 
 Eventos são `{id,tick,kind,slot,x,y}`. O modo local os consome uma vez por passo. Rollback futuro deve confirmar e deduplicar áudio/partículas/câmera por ID para não reapresentar efeitos a cada replay.
+
+## Contato e VFX — revisão 3
+
+`FighterPose` é o calendário determinístico compartilhado por desenho e geometria. `CombatGeometry` carrega retângulos inteiros de `data/characters/combat-profiles-v3.json`: membros ofensivos do Marcelo/Rafael registrados por quadro e hurtboxes do Rafael pré-calculadas em faixas da silhueta opaca, incluindo o espaço entre as pernas. Nenhuma leitura de pixels ou física de nós ocorre no runtime. `tools/build_combat_profiles.py` reproduz os dados; as caixas de ataque e sockets da mão são revisados manualmente.
+
+A pushbox usa meia largura de 58 px para Marcelo e 48 px para Rafael. O contato corpo a corpo registra a interseção antes do dano; recuo é uma dívida inteira aplicada depois do hitstop, serializada junto dos lutadores. `BoxMath.sweep` calcula o primeiro contato de um segmento com AABB expandido usando tempo fixo Q16. Projéteis escolhem o alvo mais próximo no trajeto. A primeira varredura cobre o trajeto da emissão, evitando que um especial lançado a curta distância nasça atrás do oponente.
+
+`MarceloPowerFX` apresenta código em faixas de caracteres com borda luminosa e alternância verde/ciano/branco; drones entram pela mão, assumem formação em arco, carregam, marcam o alvo e disparam em sequência. O alvo do laser é um ponto dentro de uma hurtbox real. Eventos de feixe preservam origem/contato por uma exposição curta depois do impacto; o recuo do drone e as faíscas são visuais. `PowerBackdrop` escurece o cenário abaixo da camada dos personagens durante o super. Efeitos não mudam vida, posição ou colisão.
+
+`tests/contact_geometry_v3.gd` cobre cantos transparentes, contato espelhado, whiff, posição de impacto, recuo/replay, túnel em alvos finos, rejeição de diagonais falsas, seleção do primeiro alvo e código a curta distância. O teste Web também confere pushboxes e a posição do contato no Rafael.

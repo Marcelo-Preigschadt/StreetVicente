@@ -22,6 +22,8 @@ var emitted_waves: int = 0
 var move_motion_started: bool = false
 var jump_vx: int = 0
 var air_normal_used: bool = false
+var push_remaining: int = 0
+var push_ticks: int = 0
 var character: CharacterData
 var slot: int
 var x: int
@@ -72,6 +74,12 @@ func record_input(value: CombatInput, tick: int) -> void:
 
 func begin_tick(opponent_x: int) -> void:
 	invincible_ticks = maxi(0, invincible_ticks - 1)
+	if push_ticks > 0:
+		@warning_ignore("integer_division")
+		var displacement: int = push_remaining / push_ticks
+		x += displacement
+		push_remaining -= displacement
+		push_ticks -= 1
 	if state == FighterState.Id.PREJUMP:
 		if state_tick < 6:
 			return
@@ -235,7 +243,8 @@ func hurtboxes() -> Array[Rect2i]:
 		return []
 	if not character.legacy.is_empty():
 		var result: Array[Rect2i] = []
-		for b in character.pose_frame(self).hurt:
+		var profile := CombatGeometry.frame(self)
+		for b in profile.get("hurt", character.pose_frame(self).hurt):
 			result.append(
 				BoxMath.world_rect(Rect2i(int(b[0]), int(b[1]), int(b[2]), int(b[3])), x, y, facing)
 			)
@@ -256,6 +265,9 @@ func attack_boxes() -> Array[Rect2i]:
 	var result: Array[Rect2i] = []
 	if state != FighterState.Id.ATTACK:
 		return result
+	var registered = CombatGeometry.attack(self)
+	if registered != null:
+		return registered
 	if not current_move().hitboxes.is_empty():
 		for box in current_move().hitboxes:
 			if box.active(move_tick):
@@ -308,7 +320,10 @@ func blocking(level: MoveData.Level) -> bool:
 func receive_hit(move: MoveData, direction: int, guarded: bool) -> void:
 	move_id = ""
 	vx = 0
-	x += direction * move.push_pixels * SCALE
+	# Keep the defender at the contact point during hitstop. Recoil resumes with
+	# simulation ticks and is serialized, instead of teleporting before the flash.
+	push_remaining = direction * move.push_pixels * SCALE
+	push_ticks = 12 if not guarded else 8
 	if guarded:
 		stun_ticks = move.blockstun * 2
 		if not move.legacy.is_empty():
@@ -347,6 +362,8 @@ func snapshot() -> Dictionary:
 		"move_motion_started": move_motion_started,
 		"jump_vx": jump_vx,
 		"air_normal_used": air_normal_used,
+		"push_remaining": push_remaining,
+		"push_ticks": push_ticks,
 		"slot": slot,
 		"character": character.id,
 		"x": x,
@@ -383,7 +400,9 @@ func restore(data: Dictionary) -> void:
 		"emitted_waves",
 		"move_motion_started",
 		"jump_vx",
-		"air_normal_used"
+		"air_normal_used",
+		"push_remaining",
+		"push_ticks"
 	]:
 		set(field, data[field])
 	x = data.x

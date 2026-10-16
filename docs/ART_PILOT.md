@@ -64,3 +64,9 @@ A voadora passou a usar `assets/characters/marcelo/art-v2/air-kick.webp`, regist
 A preparação dos novos atlases pode ser reproduzida com `python tools/pack_combat_effects.py`. Os originais estão em `assets/source/marcelo-air-v2/` e `assets/source/powers-v1/`, excluídos do export. Geração integrada de imagens: prompt aéreo solicitou oito poses consecutivas da mesma voadora com quadril fixo e identidade/costume do Marcelo preservados; prompt de VFX solicitou quatro fases de onda digital, quatro de drone, quatro de vapor, duas de garfo e duas de livro, com transparência e separação entre células.
 
 O teste Web exercita a voadora e a aterrissagem por teclado, verifica pixels verdes novos no lançamento de código, captura laser em voo, usa poderes no História e seleciona Gustavo/Khauãny/Dienes para registrar seus efeitos.
+
+## Revisão 3 — contato Marcelo × Rafael
+
+As caixas ofensivas passam a seguir o punho/bota de cada desenho ativo, pelo mesmo calendário de `FighterPose`. O exemplo `marcelo_air_kick_v2.tres` corresponde ao novo perfil; os dados canônicos por quadro ficam em `combat-profiles-v3.json`. A silhueta do Rafael substitui seus antigos retângulos largos; o ponto da faísca é a interseção real. O treino pausado mantém o palco visível para inspeção com F1.
+
+O código do Marcelo usa apresentação vetorial de caracteres, faixas e borda luminosa, com fases verde/ciano/branco, em vez de reutilizar a onda em forma de seta em lançamento e impacto. O atlas mecânico de drones continua preservado; entrada, flutuação, carga, mira, disparo, recuo e saída foram separados. O enxame usa formação em arco e disparos escalonados. O laser mantém um vestígio breve do canhão até o ponto atingido. Os novos efeitos são código nativo de apresentação e não novos desenhos corporais do personagem.

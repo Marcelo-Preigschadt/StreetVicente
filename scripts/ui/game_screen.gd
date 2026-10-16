@@ -208,8 +208,13 @@ func _hud() -> void:
 		if game.sim.match_over:
 			message += " / Enter seleção"
 	if not message.is_empty():
-		panel(Rect2(0, 285, 1280, 120), Color(0.02, 0.04, 0.06, 0.9))
-		text_at(Vector2(160, 354), message, 30, GOLD)
+		# Leave the stage visible while inspecting a paused training contact.
+		var inspect: bool = game.paused and game.mode == "training"
+		panel(
+			Rect2(0, 664 if inspect else 285, 1280, 56 if inspect else 120),
+			Color(0.02, 0.04, 0.06, 0.9)
+		)
+		text_at(Vector2(160, 701 if inspect else 354), message, 30, GOLD)
 
 
 func _draw_player(f: FighterModel, x: int, color: Color) -> void:

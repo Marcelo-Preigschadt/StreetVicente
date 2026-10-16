@@ -36,9 +36,19 @@ func emit(f: FighterModel, tick: int, lane_aware: bool = false) -> bool:
 	if drone:
 		offset = 85 + (i % 3) * 90
 		height = 175 + (i / 3) * 90 + (i % 2) * 40
-	var x := f.x + f.facing * offset * UNIT
-	var y := f.y - height * UNIT
-	var warmup := (80 if m.name == "super" else 240) if drone else 0
+	var hand := (
+		CombatGeometry.hand(f)
+		if f.character.id == "marcelo"
+		else Vector2i(f.x + f.facing * offset * UNIT, f.y - height * UNIT)
+	)
+	var x := hand.x
+	var y := hand.y
+	if drone:
+		offset = [-80, 20, 120, 220, 320][i] if m.name == "super" else 115
+		height = [245, 295, 325, 295, 245][i] if m.name == "super" else 245
+		x = clampi(f.x + f.facing * offset * UNIT, 48 * UNIT, (3552 if lane_aware else 1232) * UNIT)
+		y = f.y - height * UNIT
+	var warmup := (90 + i * 6 if m.name == "super" else 240) if drone else 0
 	projectiles.append(
 		{
 			"id": sequence,
@@ -51,6 +61,11 @@ func emit(f: FighterModel, tick: int, lane_aware: bool = false) -> bool:
 			"y": y,
 			"origin_x": x,
 			"origin_y": y,
+			"spawn_x": hand.x,
+			"spawn_y": hand.y,
+			"first": true,
+			"sweep_x": f.x + f.facing * 42 * UNIT,
+			"sweep_y": y,
 			"vx": f.facing * roundi(float(m.get("speed", 720)) * UNIT / 120.0),
 			"vy": 0,
 			"facing": f.facing,
@@ -90,7 +105,8 @@ func advance(actors: Array[FighterModel], width: int, tick: int) -> Array:
 				if target != null:
 					p.fired = true
 					p.fire_tick = p.age
-					spawned.append(_laser(p, target))
+					var beam := _laser(p, target)
+					spawned.append(beam)
 					events.append(
 						_event(
 							"laser",
@@ -104,40 +120,64 @@ func advance(actors: Array[FighterModel], width: int, tick: int) -> Array:
 			if not p.fired or p.age - p.fire_tick < 36:
 				alive.append(p)
 			continue
+		var from := Vector2i(int(p.x), int(p.y))
+		if p.get("first", false):
+			from = Vector2i(int(p.sweep_x), int(p.sweep_y))
+		p.first = false
 		p.x += p.vx
 		p.y += p.vy
-		if p.x < -150 * UNIT or p.x > (width + 150) * UNIT:
-			continue
-		var radius := int(p.radius) * UNIT
-		var box := Rect2i(int(p.x) - radius, int(p.y) - radius, radius * 2, radius * 2)
-		var connected := false
+		var to := Vector2i(int(p.x), int(p.y))
+		var nearest: Dictionary = {}
+		var victim: FighterModel
+		var victim_box := Rect2i()
 		for target in actors:
 			if target.slot == owner.slot or target.health <= 0 or not _same_lane(p, target):
 				continue
 			for hurt in target.hurtboxes():
-				if not BoxMath.overlap(box, hurt):
-					continue
-				var move := owner.character.move_for(p.move)
-				contacts.append(
+				var contact := BoxMath.sweep(from, to, hurt, int(p.radius) * UNIT)
+				if not contact.is_empty() and (nearest.is_empty() or contact.time < nearest.time):
+					nearest = contact
+					victim = target
+					victim_box = hurt
+		if victim != null:
+			var hit: Vector2i = nearest.point
+			hit.x = clampi(hit.x, victim_box.position.x, victim_box.end.x)
+			hit.y = clampi(hit.y, victim_box.position.y, victim_box.end.y)
+			var move := owner.character.move_for(p.move)
+			var blocked := victim.blocking(move.level)
+			contacts.append(
+				{
+					"attacker": owner.slot,
+					"defender": victim.slot,
+					"move": move,
+					"facing": int(p.facing),
+					"blocked": blocked,
+					"projectile": true,
+					"entity": int(p.id),
+					"impact_x": hit.x,
+					"impact_y": hit.y,
+					"effect": p.effect,
+					"power_kind": p.kind
+				}
+			)
+			if p.kind == "laser":
+				events.append(
 					{
-						"attacker": owner.slot,
-						"defender": target.slot,
-						"move": move,
-						"facing": int(p.facing),
-						"blocked": target.blocking(move.level),
-						"projectile": true,
-						"entity": int(p.id),
-						"impact_x": clampi(int(p.x), hurt.position.x, hurt.end.x),
-						"impact_y": clampi(int(p.y), hurt.position.y, hurt.end.y),
-						"effect": p.effect,
-						"power_kind": p.kind
+						"id": "%d:beam:%d" % [tick, int(p.id)],
+						"kind": "beam",
+						"character": p.character,
+						"move": p.move,
+						"tick": tick,
+						"slot": victim.slot,
+						"x": hit.x,
+						"y": hit.y,
+						"origin_x": p.origin_x,
+						"origin_y": p.origin_y,
+						"effect": "sentinelLaser",
+						"blocked": blocked
 					}
 				)
-				connected = true
-				break
-			if connected:
-				break
-		if not connected:
+		elif p.x >= -150 * UNIT and p.x <= (width + 150) * UNIT:
 			alive.append(p)
 	projectiles = alive + spawned
 	return contacts
@@ -145,10 +185,24 @@ func advance(actors: Array[FighterModel], width: int, tick: int) -> Array:
 
 func _laser(drone: Dictionary, target: FighterModel) -> Dictionary:
 	sequence += 1
-	var dy := target.y - (85 if target.input.has(CombatInput.DOWN) else 145) * UNIT - int(drone.y)
-	var dx := target.x - int(drone.x)
+	var target_point := Vector2i(target.x, target.y - 145 * UNIT)
+	var hurts := target.hurtboxes()
+	if not hurts.is_empty():
+		# Aim inside a real body rectangle, including crouch and airborne poses.
+		var desired := target_point
+		var best := 1 << 60
+		for hurt in hurts:
+			var center := hurt.position + hurt.size / 2
+			var distance := absi(center.x - desired.x) + absi(center.y - desired.y)
+			if distance < best:
+				best = distance
+				target_point = center
+	var cannon := Vector2i(int(drone.x), int(drone.y))
+	var facing := 1 if target_point.x >= cannon.x else -1
+	cannon += Vector2i(facing * 18 * UNIT, 5 * UNIT)
+	var dy := target_point.y - cannon.y
+	var dx := target_point.x - cannon.x
 	var distance := maxi(1, maxi(absi(dx), absi(dy)))
-	var facing := 1 if dx >= 0 else -1
 	drone.facing = facing
 	@warning_ignore("integer_division")
 	var vx: int = dx * LASER_STEP / distance
@@ -161,10 +215,10 @@ func _laser(drone: Dictionary, target: FighterModel) -> Dictionary:
 		"move": drone.move,
 		"kind": "laser",
 		"drone": false,
-		"x": drone.x,
-		"y": drone.y,
-		"origin_x": drone.x,
-		"origin_y": drone.y,
+		"x": cannon.x,
+		"y": cannon.y,
+		"origin_x": cannon.x,
+		"origin_y": cannon.y,
 		"vx": vx,
 		"vy": vy,
 		"facing": facing,

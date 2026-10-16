@@ -39,13 +39,7 @@ static func load_catalog() -> void:
 			)
 			move.legacy = d
 			move.airborne = str(d.name).begins_with("air")
-			if c.id == "marcelo" and d.name == "airKick":
-				var PROFILE: HitboxData = preload("res://data/moves/marcelo_air_kick_v2.tres")
-				var box := HitboxData.new()
-				box.rect = PROFILE.rect
-				box.first_frame = move.startup
-				box.end_frame = move.startup + move.active
-				move.hitboxes = [box]
+
 			move.hitstop = 5 if d.name in ["super", "uppercut"] else 3
 			move.push_pixels = roundi(float(d.get("push", 160)) / 15.0)
 			c.moves[key] = move

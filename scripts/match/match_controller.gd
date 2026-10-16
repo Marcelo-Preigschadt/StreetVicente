@@ -33,6 +33,7 @@ var net_session: Node
 var qa: bool = false
 var demo: bool = false
 var impact: CombatImpact
+var last_contacts: Array = []
 
 
 func _ready() -> void:
@@ -43,13 +44,16 @@ func _ready() -> void:
 	add_child(audio)
 	story_view = StoryView.new()
 	add_child(story_view)
+	impact = CombatImpact.new()
+	var backdrop := PowerBackdrop.new()
+	backdrop.impact = impact
+	add_child(backdrop)
 	for i in 2:
 		var view := SpriteFighterView.new()
 		add_child(view)
 		views.append(view)
 	power_view = PowerView.new()
 	add_child(power_view)
-	impact = CombatImpact.new()
 	add_child(impact)
 	ui = GameScreen.new()
 	ui.game = self
@@ -116,6 +120,7 @@ func confirm_selection() -> void:
 
 func _start_fight() -> void:
 	impact.clear()
+	last_contacts.clear()
 	ai = CombatAI.new()
 	PilotArt.load_data()
 	for atlas in PilotArt.data.sheets.values():
@@ -183,6 +188,11 @@ func _physics_process(_delta: float) -> void:
 			sim.fighters[1].health = 1000
 			sim.fighters[0].health = 1000
 		sim.step(inputs)
+		var contacts := sim.events.filter(
+			func(e: Dictionary) -> bool: return e.kind in ["hit", "block"]
+		)
+		if not contacts.is_empty():
+			last_contacts = contacts.duplicate(true)
 		impact.consume(sim.events, sim)
 		power_view.consume(sim.events)
 		if mode == "training" and sim.winner < 0:
@@ -215,6 +225,8 @@ func _draw() -> void:
 func _process(_delta: float) -> void:
 	for view in views:
 		view.impact_offset = impact.offset()
+	power_view.position = impact.offset()
+	impact.position = impact.offset()
 	impact.camera_x = story.camera_x if screen == "story" else 0.0
 	power_view.camera_x = impact.camera_x
 	queue_redraw()
@@ -240,6 +252,32 @@ func _publish_qa() -> void:
 		data.y = [sim.fighters[0].y, sim.fighters[1].y]
 		data.moves = [sim.fighters[0].move_id, sim.fighters[1].move_id]
 		data.meter = [sim.fighters[0].meter, sim.fighters[1].meter]
+		data.fx_revision = 3
+		data.last_contacts = last_contacts
+		data.hurtboxes = sim.fighters.map(
+			func(f: FighterModel) -> Array:
+				return f.hurtboxes().map(
+					func(r: Rect2i) -> Array:
+						return [
+							r.position.x / 256.0,
+							r.position.y / 256.0,
+							r.size.x / 256.0,
+							r.size.y / 256.0
+						]
+				)
+		)
+		data.hitboxes = sim.fighters.map(
+			func(f: FighterModel) -> Array:
+				return f.attack_boxes().map(
+					func(r: Rect2i) -> Array:
+						return [
+							r.position.x / 256.0,
+							r.position.y / 256.0,
+							r.size.x / 256.0,
+							r.size.y / 256.0
+						]
+				)
+		)
 		data.projectiles = sim.projectiles.size()
 		data.power_kinds = sim.projectiles.map(func(p: Dictionary) -> String: return str(p.kind))
 		data.power_sprites = power_view.visible
