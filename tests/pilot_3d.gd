@@ -20,6 +20,10 @@ static func run(suite: SceneTree) -> void:
 		for tick in [0, 6, 18, 40]:
 			f.state_tick = tick
 			var pose := Fighter3DPose.sample(f)
+			suite.check(
+				Vector3(pose.head).distance_to(pose.hip) < 1.5,
+				"Queda/levantamento preservam comprimento do tronco"
+			)
 			rig.apply_pose(pose)
 			rig.skeleton.force_update_all_bone_transforms()
 			if (

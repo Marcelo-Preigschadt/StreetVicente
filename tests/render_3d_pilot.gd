@@ -38,6 +38,10 @@ func capture() -> void:
 	f.facing = -1
 	game.views[0].sync(true)
 	await shot("02-left")
+	f.facing = 1
+	f.state = FighterState.Id.KNOCKDOWN
+	f.state_tick = 35
+	await shot("03-knockdown")
 	print("3D_VISUAL_CAPTURE_COMPLETE")
 	quit()
 

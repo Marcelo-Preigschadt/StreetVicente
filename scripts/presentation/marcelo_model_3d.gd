@@ -13,6 +13,7 @@ var materials: Array[ShaderMaterial] = []
 var surfaces: int = 0
 var vertex_count: int = 0
 var bind_poses: Dictionary = {}
+var surface_groups: Dictionary = {}
 
 
 func _init() -> void:
@@ -249,6 +250,7 @@ func build() -> void:
 		24
 	)
 	face(material("ffffff", true))
+	commit_geometry()
 
 
 func rings(bone: String, profile: Array, mat: ShaderMaterial, segments: int = 16) -> void:
@@ -349,27 +351,57 @@ func surface(
 	indices: PackedInt32Array,
 	mat: ShaderMaterial
 ) -> void:
-	var builder := SurfaceTool.new()
-	builder.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var key := mat.get_instance_id()
+	if not surface_groups.has(key):
+		surface_groups[key] = {
+			"vertices": PackedVector3Array(),
+			"uv": PackedVector2Array(),
+			"indices": PackedInt32Array(),
+			"bones": PackedInt32Array(),
+			"material": mat
+		}
+	var group: Dictionary = surface_groups[key]
+	var offset: int = group.vertices.size()
 	for i in vertices.size():
-		builder.set_smooth_group(0)
-		builder.set_uv(uv[i])
-		builder.set_bones(PackedInt32Array([bones[bone], 0, 0, 0]))
-		builder.set_weights(PackedFloat32Array([1, 0, 0, 0]))
-		builder.add_vertex(bind_poses[bone] * vertices[i])
+		group.vertices.append(bind_poses[bone] * vertices[i])
+		group.uv.append(uv[i])
+		group.bones.append(bones[bone])
 	for index in indices:
-		builder.add_index(index)
-	builder.generate_normals()
+		group.indices.append(index + offset)
+	vertex_count += vertices.size()
+
+
+func commit_geometry() -> void:
+	# Batch by material: one skinned mesh/eight surfaces instead of 47 meshes.
+	# This sharply reduces WebGL draw calls, including the outline passes.
+	var combined := ArrayMesh.new()
+	for group in surface_groups.values():
+		append_surface(combined, group)
 	var mesh := MeshInstance3D.new()
-	mesh.name = bone + "_surface_%d" % surfaces
-	mesh.mesh = builder.commit()
-	mesh.material_override = mat
+	mesh.name = "MarceloSkinnedMesh"
+	mesh.mesh = combined
 	mesh.skin = skin
 	mesh.skeleton = NodePath("..")
 	mesh.custom_aabb = AABB(Vector3(-4, -2, -2), Vector3(8, 8, 4))
 	skeleton.add_child(mesh)
+	surface_groups.clear()
+
+
+func append_surface(combined: ArrayMesh, group: Dictionary) -> void:
+	var builder := SurfaceTool.new()
+	builder.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i in group.vertices.size():
+		builder.set_smooth_group(0)
+		builder.set_uv(group.uv[i])
+		builder.set_bones(PackedInt32Array([group.bones[i], 0, 0, 0]))
+		builder.set_weights(PackedFloat32Array([1, 0, 0, 0]))
+		builder.add_vertex(group.vertices[i])
+	for index in group.indices:
+		builder.add_index(index)
+	builder.generate_normals()
+	builder.commit(combined)
+	combined.surface_set_material(surfaces, group.material)
 	surfaces += 1
-	vertex_count += vertices.size()
 
 
 func transforms(p: Dictionary) -> Dictionary:
@@ -406,6 +438,10 @@ func transforms(p: Dictionary) -> Dictionary:
 			global_pose = Transform3D(
 				roll * global_pose.basis, pivot + roll * (global_pose.origin - pivot)
 			)
+			if str(key).begins_with("tail_"):
+				var down := clampf(absf(p.roll) / (PI * 0.48), 0, 1)
+				global_pose.basis = global_pose.basis.slerp(Basis(Vector3.BACK, PI * 0.5), down)
+				global_pose.origin.y = lerpf(global_pose.origin.y, 0.12, down)
 		goals[key] = global_pose
 	return goals
 

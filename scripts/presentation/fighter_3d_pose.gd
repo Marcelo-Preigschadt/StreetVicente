@@ -66,7 +66,15 @@ static func sample(f: FighterModel, fraction: float = 0.0) -> Dictionary:
 		if f.state == FighterState.Id.WAKEUP:
 			down = 1.0 - smoothstep(0.0, 32.0, f.state_tick)
 		p.roll = -PI * 0.48 * down
-		p.hip.y -= 1.12 * down
+		p.near_hand = p.near_hand.lerp(Vector3(-0.35, 1.90, 0.32), down)
+		p.far_hand = p.far_hand.lerp(Vector3(-0.15, 1.18, -0.18), down)
+		p.head.x = lerpf(p.head.x, -0.24, down)
+		# Translate the complete body before rolling it. Moving only the pelvis
+		# would stretch the torso and lift/clip the head during knockdown.
+		for key in ["hip", "chest", "head", "near_hand", "far_hand", "near_foot", "far_foot"]:
+			p[key].y -= 1.05 * down
+		p.near_foot.x = lerpf(p.near_foot.x, -0.36, down)
+		p.far_foot.x = lerpf(p.far_foot.x, -0.34, down)
 	return p
 
 

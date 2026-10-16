@@ -37,8 +37,8 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  // Screenshots can take longer than a whole jump on software WebGL. Capture the
  // first jump, then issue the kick immediately on a second jump before capturing.
  await wait(()=>window.svfQA?.state==='IDLE');await page.keyboard.press('w');await wait(()=>window.svfQA?.state==='JUMP');
- await page.keyboard.press('g');await wait(()=>window.svfQA?.pose==='air'&&window.svfQA?.pose_index>=3);
- assert.equal((await state()).moves[0],'airKick:1');await page.screenshot({path:'test-results/03a-air-kick.png'});
+ await page.keyboard.press('g');const kickHandle=await wait(()=>{const q=window.svfQA;return q?.pose==='air'&&q.pose_index>=3?q:null;});
+ const kickState=await kickHandle.jsonValue();await kickHandle.dispose();assert.equal(kickState.moves[0],'airKick:1');await page.screenshot({path:'test-results/03a-air-kick.png'});
  await wait(()=>window.svfQA?.state==='LANDING'||window.svfQA?.state==='IDLE');await delay(120);
  assert.equal((await state()).moves[0],'');assert.equal((await state()).state,'IDLE','Aterrissagem termina ataque aéreo');
  await page.keyboard.press('r');await delay(150);await page.keyboard.down('d');
