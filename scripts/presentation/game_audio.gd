@@ -44,7 +44,13 @@ func select_character(id: String) -> void:
 
 func consume(events: Array) -> void:
 	for e in events:
-		if e.kind == "voice":
+		if e.kind == "announcer":
+			var cue := str(e.cue)
+			play(
+				LegacyRoster.catalog.sounds.get(cue if cue == "ko" else "announcer-" + cue, ""),
+				"voice"
+			)
+		elif e.kind == "voice":
 			var c := LegacyRoster.get_character(e.character)
 			if e.move in ["special", "uppercut", "super", "drone"]:
 				play(c.legacy.voices.get(e.move, ""), "voice")
@@ -65,5 +71,3 @@ func consume(events: Array) -> void:
 			)
 		elif e.kind == "laser":
 			play(LegacyRoster.catalog.sounds.get("special", ""))
-		elif e.kind == "round":
-			play(LegacyRoster.catalog.sounds.get("announcer-fight", ""), "voice")

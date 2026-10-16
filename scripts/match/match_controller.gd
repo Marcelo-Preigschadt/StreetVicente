@@ -43,6 +43,7 @@ var last_contacts: Array = []
 var reference_heights: Dictionary = {}
 var qa_trace: Array = []
 var qa_trace_key: String = ""
+var qa_round_calls: Array = []
 
 
 func _ready() -> void:
@@ -138,9 +139,10 @@ func confirm_selection() -> void:
 		_start_fight()
 
 
-func _start_fight() -> void:
+func _start_fight(show_intro: bool = true) -> void:
 	qa_trace.clear()
 	qa_trace_key = ""
+	qa_round_calls.clear()
 	if arcade != null:
 		selected = [arcade.player_id, arcade.opponents[arcade.index]]
 	impact.clear()
@@ -155,6 +157,8 @@ func _start_fight() -> void:
 	sim = FightSimulation.new(
 		LegacyRoster.get_character(selected[0]), LegacyRoster.get_character(selected[1])
 	)
+	if show_intro:
+		sim.begin_round_intro()
 	if mode == "training":
 		for f in sim.fighters:
 			f.meter = 100
@@ -170,7 +174,6 @@ func _start_fight() -> void:
 	power_view.setup(sim)
 	power_view.show()
 	story_view.hide()
-	audio.play(LegacyRoster.catalog.sounds.get("announcer-fight", ""), "voice")
 
 
 func _start_story(resume: bool = false) -> void:
@@ -268,9 +271,18 @@ func _physics_process(_delta: float) -> void:
 
 
 func _draw() -> void:
-	if screen == "fight":
-		draw_texture_rect(
-			LegacyRoster.texture(LegacyRoster.catalog.arena), Rect2(0, 0, 1280, 720), false
+	# Cover the expanded viewport as well as the logical 16:9 playfield. The floor
+	# stays at y625 while the camera reveals more scenery on wide/tall windows.
+	var area := Rect2(-position / scale, get_viewport_rect().size / scale)
+	var texture := LegacyRoster.texture(LegacyRoster.catalog.arena)
+	var k := maxf(1.0, maxf(area.size.x / 1280.0, (625.0 - area.position.y) / 625.0))
+	var target := Rect2(Vector2(640 - 640 * k, 625 - 625 * k), Vector2(1280, 720) * k)
+	draw_texture_rect(texture, target, false)
+	if target.end.y < area.end.y:
+		draw_texture_rect_region(
+			texture,
+			Rect2(area.position.x, target.end.y, area.size.x, area.end.y - target.end.y),
+			Rect2(0, texture.get_height() - 32, texture.get_width(), 32)
 		)
 
 
@@ -282,10 +294,13 @@ func _process(_delta: float) -> void:
 		save_clock = 0.0
 	for view in views:
 		view.impact_offset = impact.offset()
+		view.presentation_paused = paused
 		view.presentation_frozen = (
 			paused or (screen == "fight" and sim != null and sim.freeze_ticks > 0)
 		)
 	power_view.position = impact.offset()
+	power_view.presentation_paused = paused
+	impact.presentation_paused = paused
 	impact.position = impact.offset()
 	impact.camera_x = story.camera_x if screen == "story" else 0.0
 	power_view.camera_x = impact.camera_x
@@ -295,6 +310,11 @@ func _process(_delta: float) -> void:
 
 
 func _capture_qa_trace() -> void:
+	for event in sim.events:
+		if event.kind == "announcer":
+			qa_round_calls.append({"cue": event.cue, "tick": sim.tick})
+			if qa_round_calls.size() > 32:
+				qa_round_calls.pop_front()
 	# Record transient poses at physics rate, publish once per rendered frame.
 	# This is observation only: no browser command or debug hook mutates simulation.
 	var f: FighterModel = sim.fighters[0]
@@ -366,6 +386,8 @@ func _publish_qa() -> void:
 				}
 		)
 		data.tick = sim.tick
+		data.intro_ticks = sim.intro_ticks
+		data.round_calls = qa_round_calls
 		data.trace = qa_trace
 		data.hp = [sim.fighters[0].health, sim.fighters[1].health]
 		data.x = [sim.fighters[0].x, sim.fighters[1].x]
@@ -374,7 +396,7 @@ func _publish_qa() -> void:
 		data.move_tick = sim.fighters[0].move_tick
 		data.vy = sim.fighters[0].vy
 		data.meter = [sim.fighters[0].meter, sim.fighters[1].meter]
-		data.fx_revision = 6
+		data.fx_revision = 8
 		data.last_contacts = last_contacts
 		data.hurtboxes = sim.fighters.map(
 			func(f: FighterModel) -> Array:
@@ -458,7 +480,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				_next_arcade()
 			elif arcade.state == "defeated":
 				arcade.continue_run()
-				_start_fight()
+				_start_fight(mode != "training")
 			else:
 				screen = "menu"
 		elif screen == "selection":
@@ -578,7 +600,7 @@ func _unhandled_input(event: InputEvent) -> void:
 						_show_arcade_outcome()
 						return
 					arcade.continue_run()
-				_start_fight()
+				_start_fight(mode != "training")
 			else:
 				story.retry_act()
 				_bind_story()

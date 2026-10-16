@@ -141,7 +141,7 @@ func _menu() -> void:
 		if active:
 			text_at(rect.position + Vector2(490, 33), ">", 26, INK)
 	ArcadeTheme.plate(self, Rect2(1000, 32, 280, 36), BLUE, 16)
-	text_at(Vector2(1032, 57), "13 LUTADORES / 2D", 18, INK)
+	text_at(Vector2(1032, 57), "13 LUTADORES / 2D V8", 18, INK)
 	text_at(Vector2(1000, 92), "RECORDE  %08d" % game.progress.record, 15, GOLD)
 	wrapped(Vector2(88, 648), DESCRIPTIONS[game.menu_index], 540, 16, PAPER)
 	_footer("W/S NAVEGAR     ENTER CONFIRMAR     F11 TELA CHEIA")
@@ -287,6 +287,8 @@ func _hud() -> void:
 	var story_mode: bool = game.screen == "story"
 	if not story_mode and game.sim == null:
 		return
+	if not story_mode and not game.paused:
+		_round_call()
 	var a: FighterModel = game.story.hero if story_mode else game.sim.fighters[0]
 	var b: FighterModel = null if story_mode else game.sim.fighters[1]
 	_draw_player(a, false, BLUE)
@@ -368,7 +370,7 @@ func _hud() -> void:
 		message = "NIT RESGATADO! / ENTER VOLTAR"
 	elif story_mode and game.story.defeated:
 		message = "FIM DE JOGO / R REPETIR ATO"
-	elif not story_mode and game.sim.winner >= 0:
+	elif not story_mode and game.sim.winner >= 0 and game.sim.round_wait >= 90:
 		message = (
 			"EMPATE"
 			if game.sim.winner == 2
@@ -388,6 +390,30 @@ func _hud() -> void:
 		else:
 			panel(Rect2(0, 281, 1280, 126), Color(INK, 0.92))
 			ArcadeTheme.title(self, Vector2(120, 358), message, 36, GOLD)
+
+
+func _round_call() -> void:
+	var sim: FightSimulation = game.sim
+	var label := ""
+	var color := GOLD
+	var slide := 0.0
+	if sim.intro_ticks > 0:
+		var fight := sim.intro_ticks <= 72
+		label = "FIGHT!" if fight else "ROUND %d" % sim.round_number
+		var elapsed := (72 if fight else FightSimulation.INTRO_TICKS) - sim.intro_ticks
+		slide = pow(maxf(0, 1.0 - elapsed / 18.0), 3) * (680 if fight else -680)
+		color = PAPER if fight else GOLD
+	elif sim.winner >= 0 and sim.round_wait < 90:
+		label = "TIME OVER" if sim.remaining_ticks <= 0 else "K.O."
+		color = RED
+	if label.is_empty():
+		return
+	var width := ArcadeTheme.title_font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 94).x
+	ArcadeTheme.title(self, Vector2(640 - width / 2 + slide, 352), label, 94, color, 8)
+	draw_line(Vector2(436 + slide, 375), Vector2(844 + slide, 375), BLUE, 4, true)
+	if sim.winner >= 0 and sim.winner != 2 and sim.round_wait >= 50:
+		if sim.fighters[sim.winner].health == sim.fighters[sim.winner].character.max_health:
+			centered(Vector2(640, 414), "PERFECT", 28, GOLD)
 
 
 func _draw_player(f: FighterModel, right: bool, color: Color) -> void:

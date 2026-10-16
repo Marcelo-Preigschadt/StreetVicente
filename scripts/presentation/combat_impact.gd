@@ -9,6 +9,7 @@ var super_character: String = "marcelo"
 var shake: float = 0.0
 var camera_x: float = 0.0
 var clock: float = 0.0
+var presentation_paused: bool = false
 
 
 func clear() -> void:
@@ -46,6 +47,7 @@ func consume(events: Array, simulation: FightSimulation) -> void:
 					"blocked": e.kind == "block",
 					"strong": strong,
 					"seed": int(e.get("tick", 0)) % 13,
+					"facing": int(e.get("facing", 1 if int(e.get("attacker", 0)) == 0 else -1)),
 					"color": LegacyRoster.get_character(str(e.character)).color
 				}
 			)
@@ -57,6 +59,9 @@ func consume(events: Array, simulation: FightSimulation) -> void:
 
 
 func _process(delta: float) -> void:
+	if presentation_paused:
+		queue_redraw()
+		return
 	clock += delta
 	flash = maxf(0.0, flash - delta)
 	super_time = maxf(0.0, super_time - delta)
@@ -77,32 +82,22 @@ func _draw() -> void:
 		var phase := 1.0 - float(p.life) / float(p.max)
 		var color := Color("80e8ff") if p.blocked else Color("ffe599")
 		color.a = 1.0 - phase
+		draw_set_transform(origin, 0, Vector2(int(p.facing), 1))
+		ArcadeEffects.draw_cel(
+			self,
+			"block" if p.blocked else "hit",
+			mini(3, int(phase * 4)),
+			0.65 if p.strong else 0.43,
+			Color(1, 1, 1, minf(1.0, (1.0 - phase) * 2.5))
+		)
+		draw_set_transform(Vector2.ZERO)
 		if p.blocked:
-			draw_arc(origin, 14 + phase * 30, -1.2, 1.2, 18, color, 4, true)
+			continue
 		else:
 			# Three exposures: white contact, graphic star, then tapered sparks.
 			# Filled cel shapes remain legible against the detailed school stage.
 			var fade := pow(1.0 - phase, 1.35)
 			var radius := (57.0 if p.strong else 36.0) * (0.7 + phase * 0.8)
-			if phase < 0.62:
-				for layer in 2:
-					var polygon := PackedVector2Array()
-					for i in 16:
-						var angle := float(i) * PI / 8 + float(p.seed) * 0.17
-						var reach := radius * (0.23 if i % 2 else 1.0 + float(i % 3) * 0.14)
-						polygon.append(
-							(
-								origin
-								+ (
-									Vector2(cos(angle) * 1.15, sin(angle) * 0.8)
-									* reach
-									* (1.0 if layer == 0 else 0.62)
-								)
-							)
-						)
-					draw_colored_polygon(
-						polygon, Color(Color("ffaf49") if layer == 0 else Color("fff9df"), fade)
-					)
 			for i in 10 if p.strong else 6:
 				var angle := TAU * i / (10.0 if p.strong else 6.0) + float(p.seed) * 0.2
 				var direction := Vector2(cos(angle), sin(angle))

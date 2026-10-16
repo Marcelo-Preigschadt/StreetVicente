@@ -8,7 +8,7 @@ static func select(f: FighterModel) -> Dictionary:
 	var index := 0
 	match f.state:
 		FighterState.Id.IDLE:
-			index = [0, 1, 0, 1][(f.state_tick / 28) % 4]
+			index = [0, 0, 1, 0][(f.state_tick / 60) % 4]
 		FighterState.Id.WALK:
 			sheet = "walk"
 			index = posmod(int(f.walk_distance * 8 / (160 * FighterModel.SCALE)), 8)
@@ -22,7 +22,7 @@ static func select(f: FighterModel) -> Dictionary:
 		FighterState.Id.CROUCH, FighterState.Id.PREJUMP:
 			index = 4
 		FighterState.Id.BLOCK:
-			index = 5 if f.input.has(CombatInput.DOWN) else 2
+			index = 5 if f.input.has(CombatInput.DOWN) else 3 if f.stun_ticks > 0 else 2
 		FighterState.Id.JUMP:
 			index = 6 if f.vy < -450 else 7 if f.vy < 500 else 8
 		FighterState.Id.LANDING:
@@ -36,6 +36,8 @@ static func select(f: FighterModel) -> Dictionary:
 			)
 		FighterState.Id.DIZZY:
 			index = 13
+		FighterState.Id.VICTORY:
+			index = 15
 		FighterState.Id.KNOCKDOWN, FighterState.Id.KO:
 			index = 14
 		FighterState.Id.WAKEUP:
@@ -52,6 +54,8 @@ static func select(f: FighterModel) -> Dictionary:
 				start_keys = [0, 1, 2]
 				active_keys = [3, 4]
 				recovery_keys = [5, 6, 7]
+			elif name == "airPunch":
+				sheet = "air_punch"
 			elif name == "kick":
 				sheet = "combat"
 			elif name == "crouchPunch":

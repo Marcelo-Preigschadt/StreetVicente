@@ -16,7 +16,8 @@ enum Id {
 	PREJUMP,
 	LANDING,
 	STEP_IN,
-	STEP_BACK
+	STEP_BACK,
+	VICTORY
 }
 const NAMES := [
 	"IDLE",
@@ -33,7 +34,8 @@ const NAMES := [
 	"PREJUMP",
 	"LANDING",
 	"STEP_IN",
-	"STEP_BACK"
+	"STEP_BACK",
+	"VICTORY"
 ]
 
 

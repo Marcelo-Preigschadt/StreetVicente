@@ -6,6 +6,7 @@ var camera_x: float = 0.0
 var clock: float = 0.0
 var bursts: Array = []
 var seen: Dictionary = {}
+var presentation_paused: bool = false
 
 
 func setup(value) -> void:
@@ -46,6 +47,9 @@ func consume(events: Array) -> void:
 
 
 func _process(delta: float) -> void:
+	if presentation_paused:
+		queue_redraw()
+		return
 	clock += delta
 	for b in bursts:
 		b.life -= delta
@@ -88,11 +92,13 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO)
 
 
-func _draw_projectile(theme: String, age: int, color: Color, origin: Vector2, facing: int) -> void:
+func _draw_projectile(
+	theme: String, age: int, color: Color, _origin: Vector2, _facing: int
+) -> void:
 	var frame := int(age / 6)
 	match theme:
 		"code":
-			MarceloPowerFX.code(self, age, origin, facing)
+			ArcadeEffects.draw_cel(self, "code", frame, 0.40)
 		"smoke":
 			PowerArt.draw(self, "smoke", frame, 0.55)
 		"fork":
@@ -109,7 +115,7 @@ func _draw_projectile(theme: String, age: int, color: Color, origin: Vector2, fa
 					Color(1, 0.85, 0.9, 0.7 - i * 0.1)
 				)
 		"scroll":
-			PowerArt.draw(self, "book", frame, 0.4, Color(1, 0.8, 0.45))
+			ArcadeEffects.draw_cel(self, "scroll", frame, 0.35)
 		"lightning":
 			_bolt(Vector2(-90, 0), Vector2(20, 0), color, age)
 			_bolt(Vector2(-65, 14), Vector2(15, 0), Color("deffff"), age + 7)
@@ -134,7 +140,8 @@ func _draw_charge(f: FighterModel) -> void:
 	if name not in ["special", "super", "drone", "uppercut"]:
 		return
 	var root := Vector2(float(f.x) / FighterModel.SCALE - camera_x, float(f.y) / FighterModel.SCALE)
-	var hand := root + Vector2(f.facing * 135, -195)
+	var socket := CombatGeometry.hand(f)
+	var hand := Vector2(socket) / FighterModel.SCALE - Vector2(camera_x, 0)
 	var color := f.character.color
 	var phase := move.phase(f.move_tick)
 	if phase == "STARTUP":

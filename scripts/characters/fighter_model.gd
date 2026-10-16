@@ -220,9 +220,17 @@ func begin_tick(opponent_x: int) -> void:
 			and move_tick >= current_move().startup * 2 + 4
 			and not current_move().legacy.get("knockdown", false)
 		)
+		# A short confirmed air chain. A whiff or a repeated normal cannot cancel.
+		var air_chain: bool = (
+			not grounded() and has_contact and current_move().legacy.get("name", "") == "airPunch"
+		)
 		if (
 			not character.legacy.is_empty()
-			and ((has_contact and current_move().legacy.get("cancellable", false)) or custom_cancel)
+			and (
+				(has_contact and current_move().legacy.get("cancellable", false))
+				or custom_cancel
+				or air_chain
+			)
 		):
 			if _legacy_command(true):
 				x += vx
@@ -665,7 +673,14 @@ func _legacy_command(cancel: bool) -> bool:
 				)
 			)
 		if not grounded() and air_normal_used and name in ["punch", "kick"]:
-			continue
+			var air_chain: bool = (
+				cancel
+				and has_contact
+				and current_move().legacy.get("name", "") == "airPunch"
+				and resolved == "airKick"
+			)
+			if not air_chain:
+				continue
 		if not grounded() and name in ["uppercut", "throw"]:
 			continue
 		var move := character.get_move(resolved, strength)

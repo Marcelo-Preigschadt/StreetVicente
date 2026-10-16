@@ -53,18 +53,3 @@ func _draw() -> void:
 			22,
 			Color(ArcadeTheme.PAPER, alpha)
 		)
-
-		if impact.super_character == "marcelo":
-			for i in 15:
-				var x := 50.0 + i * 85
-				var y := 130.0 + fposmod(impact.clock * 310 + i * 37, 490)
-				for j in 4:
-					draw_string(
-						ThemeDB.fallback_font,
-						Vector2(x, y - j * 20),
-						["0", "1", "{", "}"][(i + j) % 4],
-						HORIZONTAL_ALIGNMENT_LEFT,
-						-1,
-						16,
-						Color(0.25, 1, 0.65, impact.super_time * (1.4 - j * 0.25))
-					)

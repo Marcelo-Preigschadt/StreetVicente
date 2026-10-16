@@ -8,6 +8,7 @@ var trails: Array = []
 var trail_clock: float = 0.0
 var use_3d: bool = false  # Rejected visual prototype; opt-in only in its native fixture.
 var presentation_frozen: bool = false
+var presentation_paused: bool = false
 var pilot_3d: Fighter3DView
 
 
@@ -35,11 +36,19 @@ func _process(_delta: float) -> void:
 		if pilot_3d.visible:
 			queue_redraw()
 			return
+	if presentation_paused:
+		queue_redraw()
+		return
 	trail_clock += _delta
 	for ghost in trails:
 		ghost.life -= _delta
 	trails = trails.filter(func(g: Dictionary) -> bool: return g.life > 0.0)
-	if model.state == FighterState.Id.ATTACK and trail_clock > 0.035 and use_new_art:
+	if (
+		model.state == FighterState.Id.ATTACK
+		and trail_clock > 0.035
+		and use_new_art
+		and not presentation_frozen
+	):
 		var move := model.current_move()
 		if move.phase(model.move_tick) == "ACTIVE":
 			trails.append(

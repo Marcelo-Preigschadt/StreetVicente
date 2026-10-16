@@ -25,7 +25,7 @@ func run() -> void:
 	assert(not app.views[0].use_3d and app.views[0].pilot_3d == null)
 	app.sim.wins[0] = 1
 	app.sim.fighters[1].health = 0
-	for i in 242:
+	for i in 242 + FightSimulation.INTRO_TICKS:
 		app._physics_process(1.0 / 120)
 	assert(app.screen == "arcade_route")
 	assert(app.arcade.index == 0 and app.arcade.score > 0)
@@ -36,7 +36,7 @@ func run() -> void:
 	assert(app.arcade.score == score)
 	app.sim.wins[1] = 1
 	app.sim.fighters[0].health = 0
-	for i in 242:
+	for i in 242 + FightSimulation.INTRO_TICKS:
 		app._physics_process(1.0 / 120)
 	assert(app.screen == "arcade_result" and app.arcade.state == "defeated")
 	var confirm := InputEventKey.new()

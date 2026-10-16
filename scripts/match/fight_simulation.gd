@@ -6,6 +6,7 @@ const TICK_RATE := 120
 const LEFT_WALL := 60 * FighterModel.SCALE
 const RIGHT_WALL := 1220 * FighterModel.SCALE
 const BODY_WIDTH := 76 * FighterModel.SCALE
+const INTRO_TICKS := 192  # ROUND (1 s), FIGHT (0.6 s), then input unlocks.
 var powers := PowerSystem.new()
 var projectiles: Array:
 	get:
@@ -27,20 +28,63 @@ var remaining_ticks: int = 99 * TICK_RATE
 var freeze_ticks: int = 0
 var winner: int = -1  # -1 em curso; 0/1 vencedor; 2 empate.
 var events: Array = []
+var round_intros: bool = false
+var intro_ticks: int = 0
 
 
 func _init(p1: CharacterData, p2: CharacterData) -> void:
 	fighters = [FighterModel.new(p1, 0, 410), FighterModel.new(p2, 1, 870)]
 
 
+func begin_round_intro() -> void:
+	round_intros = true
+	intro_ticks = INTRO_TICKS
+
+
+func _announce(cue: String) -> void:
+	events.append({"id": "%d:announce:%s" % [tick, cue], "kind": "announcer", "cue": cue})
+
+
 func step(inputs: Array[CombatInput]) -> void:
 	assert(inputs.size() == 2)
 	events.clear()
 	powers.events.clear()
+	if intro_ticks > 0:
+		# Discard pre-fight buttons instead of buffering an accidental opening attack.
+		for f in fighters:
+			f.record_input(CombatInput.new(), tick)
+			f.buffer = CommandBuffer.new()
+			f.state_tick += 1
+		if intro_ticks == INTRO_TICKS:
+			_announce("round")
+		elif intro_ticks == INTRO_TICKS - 48:
+			_announce(str(mini(round_number, 9)))
+		elif intro_ticks == 72:
+			_announce("fight")
+		intro_ticks -= 1
+		tick += 1
+		return
 	for i in 2:
 		fighters[i].record_input(inputs[i], tick)
 	if winner >= 0:
 		round_wait += 1
+		for f in fighters:
+			f._integrate_air()
+			f.state_tick += 1
+			if round_wait == 1 and f.health > 0:
+				f.move_id = ""
+				f.transition(FighterState.Id.IDLE if f.grounded() else FighterState.Id.JUMP)
+		if winner != 2 and round_wait >= 90 and fighters[winner].grounded():
+			fighters[winner].transition(FighterState.Id.VICTORY)
+		if round_wait == 1:
+			_announce("ko")
+		elif round_wait == 90 and winner != 2:
+			_announce("you")
+		elif round_wait == 127 and winner != 2:
+			_announce("win" if winner == 0 else "lose")
+		elif round_wait == 180 and winner != 2:
+			if fighters[winner].health == fighters[winner].character.max_health:
+				_announce("perfect")
 		if round_wait >= 240 and not match_over:
 			var charge := [fighters[0].meter, fighters[1].meter]
 			fighters = [
@@ -55,6 +99,8 @@ func step(inputs: Array[CombatInput]) -> void:
 			remaining_ticks = 99 * TICK_RATE
 			projectiles.clear()
 			freeze_ticks = 0
+			if round_intros:
+				intro_ticks = INTRO_TICKS
 			events.append(
 				{"id": "%d:round" % tick, "kind": "round", "tick": tick, "slot": 0, "x": 0, "y": 0}
 			)
@@ -210,6 +256,8 @@ func _resolve_bodies() -> void:
 func snapshot() -> Dictionary:
 	return {
 		"schema": 1,
+		"round_intros": round_intros,
+		"intro_ticks": intro_ticks,
 		"projectiles": projectiles.duplicate(true),
 		"projectile_seq": projectile_seq,
 		"wins": wins.duplicate(),
@@ -227,6 +275,8 @@ func snapshot() -> Dictionary:
 func restore(data: Dictionary) -> void:
 	data = SnapshotCodec.integers(data)
 	assert(data.schema == 1)
+	round_intros = data.get("round_intros", false)
+	intro_ticks = data.get("intro_ticks", 0)
 	projectiles = data.get("projectiles", []).duplicate(true)
 	projectile_seq = data.get("projectile_seq", 0)
 	wins = data.get("wins", [0, 0]).duplicate()

@@ -15,6 +15,8 @@ static func load_data() -> void:
 
 static func has_frame(f: FighterModel) -> bool:
 	load_data()
+	if ArcadeArt.has_frame(f):
+		return true
 	return (
 		f.character.id == "marcelo"
 		or (
@@ -31,6 +33,8 @@ static func has_frame(f: FighterModel) -> bool:
 
 
 static func pose(f: FighterModel) -> Dictionary:
+	if ArcadeArt.has_frame(f):
+		return ArcadeArt.pose(f)
 	if f.character.id == "marcelo":
 		return FighterPose.select(f)
 	var index := 0 if (f.state_tick / 40) % 2 == 0 else 7
@@ -41,6 +45,9 @@ static func pose(f: FighterModel) -> Dictionary:
 
 static func frame(f: FighterModel) -> Dictionary:
 	load_data()
+	var arcade := ArcadeArt.frame(f)
+	if not arcade.is_empty():
+		return arcade
 	if f.character.id == "marcelo":
 		return PilotArt.frame(f)
 	if has_frame(f):

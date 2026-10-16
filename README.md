@@ -6,13 +6,13 @@ Projeto em Godot 4.5.1 / GDScript, 1280×720, simulação a 120 Hz e exportaçã
 
 ## Apresentação padrão
 
-A primeira opção, **TREINO LIVRE**, abre Marcelo × Rafael com a apresentação 2D anterior. Os retratos e a arte dos personagens foram preservados. **F3** demonstra os movimentos; **F4** compara com a arte importada.
+A primeira opção, **TREINO LIVRE**, abre Marcelo × Rafael com animação 2D. A revisão v8 integra 64 desenhos novos do Rafael, 64 do Adriano e 8 de soco aéreo do Marcelo; mantém os retratos e os drones anteriores. **F3** demonstra os movimentos; **F4** compara com a arte importada. [Escopo, fontes e validação da revisão](docs/ARCADE_V8.md).
 
-O protótipo procedural 3D foi rejeitado por qualidade visual insuficiente e retirado dos fluxos publicados, incluindo o atalho F6. Seu código permanece isolado para referência técnica, sem instanciar o modelo durante as partidas. [Registro técnico e limitações do protótipo](docs/PILOT_3D.md). A modelagem 3D com a qualidade solicitada continua pendente; o protótipo não a substitui.
+O protótipo procedural 3D foi rejeitado e retirado dos fluxos publicados, incluindo F6. Seu código permanece isolado para referência técnica; a direção atual é 2D quadro a quadro. [Registro do protótipo arquivado](docs/PILOT_3D.md).
 
-## Arte 2D preservada
+## Arte 2D
 
-A interface arcade inclui menu, seleção com os 13 rostos e prévias em corpo inteiro, barras espelhadas, impactos e apresentação de super por personagem. A alternativa 2D do Marcelo possui 64 desenhos; Rafael e Gustavo têm 8 desenhos completos de soco cada. Os demais movimentos desses dois e os outros personagens preservam a arte importada. **F3** demonstra os movimentos. [Detalhes, fontes e evolução da migração](docs/ART_PILOT.md).
+A interface inclui menu, seleção com 13 rostos, prévias em corpo inteiro, barras espelhadas e apresentação de super. A revisão v8 acrescenta cels de contato/defesa, onda de código e pergaminho, sequência ROUND → FIGHT → K.O./TIME OVER → vitória, cenário em toda a janela e cancel confirmado de soco aéreo em chute. A revisão completa do restante do elenco continua pendente. [Evolução anterior da arte](docs/ART_PILOT.md).
 
 [Auditoria da migração e correções desta revisão](docs/MIGRATION_V6.md): recuperação após golpes, escala do Adriano, circuito/pontuação e progresso do História.
 
@@ -23,9 +23,9 @@ A interface arcade inclui menu, seleção com os 13 rostos e prévias em corpo i
 | Seleção | 13 personagens; professores/alunos; retratos, frases e vozes preservados |
 | Combate | CPU, 2 jogadores locais e treinamento; forças leve/média/forte; golpes baixos/aéreos, cancels básicos, defesa, agarrão, tontura com recuperação, levantamento rápido, double tap, Custom e contra-ataque de guarda |
 | Arcade / CPU | Circuito de 12 rivais, rota, bônus, Continue e recorde persistente |
-| Rounds | Melhor de três; barra super preservada entre rounds |
+| Rounds | Melhor de três; Round/número/Fight com bloqueio de comandos; K.O./Time Over/vitória/Perfect; barra super preservada |
 | Poderes | Projéteis e efeitos por personagem; código e drones/enxame do Marcelo; VFX animados e lasers independentes; compartilhados com o História |
-| Arte nova | Marcelo e socos novos de Rafael/Gustavo; restante da arte preservado |
+| Arte nova | Marcelo com 72 cels; Rafael com 64 novos + 8 socos v5; Adriano com 64 novos; Gustavo com 8 socos v5; demais preservados |
 | História | Quatro atos, ondas/chefes e exoesqueleto, diálogos de entrada, turno de 15 minutos, pontos por derrotas, objetos/perigos, retry de ato e save/retomada; coop ainda pendente |
 | Rollback | Snapshot/replay local verificado; online permanece indisponível até implementação e testes reais de sessão/rede |
 | Web | GitHub Actions importa/testa/exporta e só publica após QA do WASM |

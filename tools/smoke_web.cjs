@@ -22,10 +22,11 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.waitForFunction(()=>window.svfQA?.screen==='menu',null,{timeout:90000});
  assert.equal((await state()).roster,13);assert.equal((await state()).record,17,'Importa recorde do Canvas no mesmo origin');await page.screenshot({path:'test-results/01-menu.png'});
  // First menu entry directly starts the new-art pilot in native Godot training.
- await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight');
+ await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight'&&window.svfQA.intro_ticks===0);
  assert.deepEqual((await state()).selected,['marcelo','rafael']);assert.equal((await state()).new_art,true);
- assert.equal((await state()).fx_revision,6,'Pacote novo de geometria e VFX');
+ assert.equal((await state()).fx_revision,8,'Pacote novo de geometria e VFX');
  assert.deepEqual((await state()).pilot_3d,{},'Protótipo 3D rejeitado não substitui a arte aprovada');
+ assert.deepEqual((await state()).round_calls.slice(0,3).map(e=>e.cue),['round','1','fight'],'Abertura Round/One/Fight completa no WASM');
  await page.screenshot({path:'test-results/02-pilot-ready.png'});
  let before=await state();await page.keyboard.down('d');await delay(350);await page.keyboard.up('d');
  let moved=await state();assert(moved.x[0]>before.x[0]+40*256,'Movimento real no WASM');
@@ -93,13 +94,13 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.keyboard.press('Escape');await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');
  // Visual review playback, actual commands into the same simulation as the player.
  await page.keyboard.press('ArrowUp');await page.keyboard.press('ArrowUp');await page.keyboard.press('ArrowUp');await page.keyboard.press('Enter');
- await wait(()=>window.svfQA?.screen==='fight');await page.keyboard.press('F3');await delay(11000);await page.screenshot({path:'test-results/12-demo.png'});
+ await wait(()=>window.svfQA?.screen==='fight'&&window.svfQA.intro_ticks===0);await page.keyboard.press('F3');await delay(11000);await page.screenshot({path:'test-results/12-demo.png'});
  // Select and cast all new thematic VFX using only normal UI/keyboard controls.
  await page.keyboard.press('Escape');await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');
  for(const id of ['rafael','gustavo','khauany','dienes']){
   for(let i=0;i<4;i++)await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='selection');
   let q=await state();const target=q.roster_ids.indexOf(id);for(let i=0;i<(target-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
-  await page.keyboard.press('Enter');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight');
+  await page.keyboard.press('Enter');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight'&&window.svfQA.intro_ticks===0);
   if(['rafael','gustavo'].includes(id)){
    await page.keyboard.down('d');await wait(()=>window.svfQA.x[1]-window.svfQA.x[0]<180*256);await page.keyboard.up('d');
    await page.keyboard.press('f');await wait(()=>window.svfQA?.hp?.[1]<1000);
@@ -116,9 +117,16 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  let q=await state();for(let i=0;i<(q.roster_ids.indexOf('adriano')-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
  await page.screenshot({path:'test-results/15-adriano-selection.png'});await page.keyboard.press('Enter');await wait(()=>window.svfQA?.slot===1);
  q=await state();for(let i=0;i<(q.roster_ids.indexOf('rafael')-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
- await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight');
+ await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight'&&window.svfQA.intro_ticks===0);
  q=await state();assert(Math.abs(q.reactions[0].height-q.reactions[1].height)<2,'Adriano mantém a mesma altura de referência do Rafael');
  await pausedShot('test-results/15a-adriano-fight.png');
+ await page.setViewportSize({width:1720,height:720});await delay(200);
+ const wide=PNG.sync.read(await pausedShot('test-results/15c-ultrawide.png'));
+ for(const x of [10,1710]){const i=(360*wide.width+x)*4;assert(wide.data[i]+wide.data[i+1]+wide.data[i+2]>80,'Cenário preenche a margem ultrawide');}
+ await page.setViewportSize({width:1024,height:768});await delay(200);
+ const tall=PNG.sync.read(await pausedShot('test-results/15d-four-three.png'));
+ for(const y of [10,750]){const i=(y*tall.width+512)*4;assert(tall.data[i]+tall.data[i+1]+tall.data[i+2]>80,'Cenário preenche as margens 4:3');}
+ await page.setViewportSize({width:1280,height:720});await delay(200);
  await page.keyboard.down('d');await wait(()=>window.svfQA.x[1]-window.svfQA.x[0]<170*256);await page.keyboard.up('d');
  for(let i=0;i<3;i++){await page.keyboard.press('f');await delay(700);assert.equal((await state()).states[1],'IDLE','Pokes separados não geram trava/tontura');}
  await page.keyboard.press('c');await wait(()=>window.svfQA?.meter[0]===50);await pausedShot('test-results/15b-custom.png');
@@ -126,7 +134,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  // CPU score is earned by real gameplay, then verified after reloading WASM.
  for(let i=0;i<3;i++)await page.keyboard.press('ArrowUp');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='selection');
  q=await state();for(let i=0;i<(q.roster_ids.indexOf('marcelo')-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
- await page.keyboard.press('Enter');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight');
+ await page.keyboard.press('Enter');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight'&&window.svfQA.intro_ticks===0);
  assert.equal((await state()).arcade.opponents.length,12);
  // The CPU stops outside jab range and attacks with long kicks. Cast the
  // actual zero-cost code projectile from neutral instead of whiffing jabs.
@@ -145,6 +153,6 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');
  await page.setViewportSize({width:960,height:540});await delay(200);await page.screenshot({path:'test-results/13-resize.png'});
  assert.equal(responses['index.wasm'],200);assert.equal(responses['index.pck'],200);assert.deepEqual(errors,[],'Console Web sem erros');
- fs.writeFileSync('test-results/web-smoke.json',JSON.stringify({status:'passed',checks:['WASM/PCK sob /StreetVicente/','13 personagens: seleção com prévias e grade','socos novos Rafael/Gustavo','nova arte por estados','voadora dedicada e aterrissagem','gancho: subida e queda sem pose de chão no ar','efeito código visível em pixels','drone estacionário e laser','efeitos no História','fumaça/garfos/livros','movimento','prejump/salto','soco com dano','chute','rasteira','código','cinco drones','comparação de arte','pausa','seleção','história','demonstração','resize','Adriano com 300px e colisão uniforme','reação e recuperação sem trava','custom','pontos CPU e recorde persistente','diálogo e checkpoint com reload','console sem erros'],responses,codePixels},null,2));
+ fs.writeFileSync('test-results/web-smoke.json',JSON.stringify({status:'passed',checks:['WASM/PCK sob /StreetVicente/','13 personagens: seleção com prévias e grade','socos novos Rafael/Gustavo','nova arte por estados','voadora dedicada e aterrissagem','gancho: subida e queda sem pose de chão no ar','efeito código visível em pixels','drone estacionário e laser','efeitos no História','fumaça/garfos/livros','movimento','prejump/salto','soco com dano','chute','rasteira','código','cinco drones','comparação de arte','pausa','seleção','história','demonstração','Round/One/Fight com bloqueio de comandos','cenário cobre 21:9 e 4:3','resize','Adriano com 300px e colisão uniforme','reação e recuperação sem trava','custom','pontos CPU e recorde persistente','diálogo e checkpoint com reload','console sem erros'],responses,codePixels},null,2));
  await page.close();console.log('WEB SMOKE PASSED: novo Marcelo + combate/poderes + roster + história');
 })().catch(async e=>{console.error(e);console.error('Browser errors:',JSON.stringify(errors));if(page&&!page.isClosed()){await page.screenshot({path:'test-results/failure.png'}).catch(()=>{});const status=await page.evaluate(()=>({url:location.href,qa:window.svfQA,status:document.getElementById('status')?.innerText})).catch(()=>({}));console.error('Browser state:',JSON.stringify(status));fs.writeFileSync('test-results/failure.json',JSON.stringify({error:String(e),errors,status},null,2));}process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();server.kill();});

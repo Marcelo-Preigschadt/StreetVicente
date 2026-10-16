@@ -1,0 +1,182 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "version": "arcade-v8",
+  "jobs": [
+    {
+      "id": "rafael_walk",
+      "character": "rafael",
+      "key": "walk",
+      "cols": 4,
+      "rows": 2,
+      "root": 0.4375,
+      "floor": 0.9375,
+      "design_height": 0.84375,
+      "refs": [
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/legacy/runtime/rafael-head-menu-v3.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/references/rafael-guard.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/guides/walk-8.png"
+      ],
+      "prompt": "Use case: identity-preserve. Production hand-drawn 2D fighting game animation atlas, truly TRANSPARENT RGBA, complete full-body cels, crisp classic Marvel vs. Capcom 2 arcade animation direction: strong ink contours, coherent cel shadows, clean color shapes, expressive but anatomically believable adult bodies. Preserve the exact face IDENTITY/age/hair/facial structure of reference 1. Reference 2 is OUTFIT and BUILD only; do not simply copy its static pose. Draw the entire figure coherently, never paste the portrait on a body. All bodies face RIGHT in the same fixed three-quarter side camera, same head size across every cell, same costume details, no body parts missing. Same floor at 94% of each cell, same physical root x within that cell. Foot placement must be clear. No effects, speed lines, words, labels, grids, stage, shadows outside the body, mannequins or 3D. Keep 5% transparent gutters and every extremity inside its own cell. Character is an ORIGINAL person, not a Capcom cast member. Rafael: approved mature clean-shaven face, short dark brown hair, brown eyes, strong brows and square jaw exactly matching portrait. Light blue collared button-up shirt sleeves rolled to elbows, dark blue jeans, brown lace-up shoes with tan soles, bare hands. BOXING identity, compact fists and shoulder/chin protection; do not add gloves or change costume. EXACTLY EIGHT frames in 4 columns by 2 rows, wide landscape. Reference 3 is an exact JOINT PLACEMENT GUIDE for one continuous 8-frame walking cycle: follow the positions of head, shoulder, pelvis, knees, ankles and hands in each cell. Replace every diagram mark with a fully illustrated human in Rafael's clothes. No stick limbs, no geometric body parts, no diagram lines. Rear and front legs alternate, feet lift/plant and pass, knees and hips move together, torso counter-rotates subtly, both hands maintain boxing guard. It must visibly walk through eight DISTINCT contact/down/passing/up phases, not repeat the same idle or punching pose. Stable identity and scale, smooth last-to-first loop. Root at x43.75% of cell and floor at y93.75%. Use source pose guide's 270px equivalent adult body height within each 320px cell; no individual pose scaling.",
+      "selected_source": "rafael_walk.webp"
+    },
+    {
+      "id": "rafael_states",
+      "character": "rafael",
+      "key": "states",
+      "cols": 4,
+      "rows": 4,
+      "root": 0.4375,
+      "floor": 0.94,
+      "design_height": 0.8,
+      "refs": [
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/legacy/runtime/rafael-head-menu-v3.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/references/rafael-guard.webp"
+      ],
+      "prompt": "Use case: identity-preserve. Production hand-drawn 2D fighting game animation atlas, truly TRANSPARENT RGBA, complete full-body cels, crisp classic Marvel vs. Capcom 2 arcade animation direction: strong ink contours, coherent cel shadows, clean color shapes, expressive but anatomically believable adult bodies. Preserve the exact face IDENTITY/age/hair/facial structure of reference 1. Reference 2 is OUTFIT and BUILD only; do not simply copy its static pose. Draw the entire figure coherently, never paste the portrait on a body. All bodies face RIGHT in the same fixed three-quarter side camera, same head size across every cell, same costume details, no body parts missing. Same floor at 94% of each cell, same physical root x within that cell. Foot placement must be clear. No effects, speed lines, words, labels, grids, stage, shadows outside the body, mannequins or 3D. Keep 5% transparent gutters and every extremity inside its own cell. Character is an ORIGINAL person, not a Capcom cast member. Rafael: approved mature clean-shaven face, short dark brown hair, brown eyes, strong brows and square jaw exactly matching portrait. Light blue collared button-up shirt sleeves rolled to elbows, dark blue jeans, brown lace-up shoes with tan soles, bare hands. BOXING identity, compact fists and shoulder/chin protection; do not add gloves or change costume. EXACTLY SIXTEEN cels, 4 columns by 4 rows, square atlas. Neutral full standing-guard body height is 80% of a cell, unchanged head size in all other poses; crouches occupy less height, never scale the man to fill the cell. Root at x43.75%, virtual floor y94%. Ordered 0 compact neutral boxing guard; 1 small breathing weight shift with same planted feet; 2 standing high forearm block; 3 block recoil; 4 deep crouch, full pelvis/torso compressed; 5 crouching forearm block; 6 ascending airborne guard with knees tucked; 7 airborne apex with tucked legs; 8 descending airborne guard, preparing legs; 9 grounded landing absorption; 10 whole-body abdominal hit recoil, body compressing; 11 whole-body head hit recoil, torso/head tipping back and arms reacting; 12 recovering balance with hands returning to guard; 13 dizzy stance with loosened guard and unstable shoulders; 14 knocked down on his side along the floor, body drawn horizontally at the SAME anatomical/head scale, keep entire shoes/head within cell; 15 standing victory with one clenched fist raised. Keep faces faithful and expressive without changing identity. All sixteen are complete newly drawn figures.",
+      "selected_source": "rafael_states.webp"
+    },
+    {
+      "id": "marcelo_air_punch",
+      "character": "marcelo",
+      "key": "air_punch",
+      "cols": 4,
+      "rows": 2,
+      "root": 0.34,
+      "floor": 0.94,
+      "design_height": 0.8,
+      "refs": [
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/legacy/runtime/marcelo-head-menu-v3.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/references/marcelo-guard.webp"
+      ],
+      "prompt": "Use case: identity-preserve. Production hand-drawn 2D fighting game animation atlas, truly TRANSPARENT RGBA, complete full-body cels, crisp classic Marvel vs. Capcom 2 arcade animation direction: strong ink contours, coherent cel shadows, clean color shapes, expressive but anatomically believable adult bodies. Preserve the exact face IDENTITY/age/hair/facial structure of reference 1. Reference 2 is OUTFIT and BUILD only; do not simply copy its static pose. Draw the entire figure coherently, never paste the portrait on a body. All bodies face RIGHT in the same fixed three-quarter side camera, same head size across every cell, same costume details, no body parts missing. Same floor at 94% of each cell, same physical root x within that cell. Foot placement must be clear. No effects, speed lines, words, labels, grids, stage, shadows outside the body, mannequins or 3D. Keep 5% transparent gutters and every extremity inside its own cell. Character is an ORIGINAL person, not a Capcom cast member. Marcelo: approved mature face, swept-back dark hair, brown eyes, full dark beard/moustache and strong brows exactly matching portrait. Long open black Neo-style coat, black shirt, loose charcoal trousers, black boots, bare hands, NO glasses. KUNG FU identity and rooted coordinated torso/arm actions. EXACTLY EIGHT cels in 4 columns by 2 rows, wide landscape, a continuous jumping punch. This is AIRBORNE for the ENTIRE sequence: knees tucked and both boots off the virtual floor in EVERY frame. Do not reuse a grounded standing punch with planted boots. Body scale corresponds to a standing 80% cell height; the tucked body is shorter but head remains same size. Root x34%, virtual floor94%; head stays near14% cell height, boots generally near72%. 0 airborne compact guard with knees folded; 1 shoulders and hips counter-load, striking hand chambered at ribs; 2 torso unwinding with lead fist halfway out; 3 extended jumping straight punch toward RIGHT with connected forearm and clenched fist at chest/shoulder height; 4 short strong follow-through, coat tails lag left and down, other hand guards; 5 elbow retracting and torso recentering; 6 fist returns near sternum, knees still tucked; 7 descending airborne guard ready to land, feet still lifted and no ground pose. No energy or impact graphics baked into character.",
+      "selected_source": "marcelo_air_punch.webp"
+    },
+    {
+      "id": "rafael_combat",
+      "character": "rafael",
+      "key": "combat",
+      "cols": 4,
+      "rows": 4,
+      "root": 0.37,
+      "floor": 0.94,
+      "design_height": 0.8,
+      "refs": [
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/legacy/runtime/rafael-head-menu-v3.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/references/rafael-guard.webp"
+      ],
+      "prompt": "Use case: identity-preserve. Production hand-drawn 2D fighting game animation atlas, truly TRANSPARENT RGBA, complete full-body cels, crisp classic Marvel vs. Capcom 2 arcade animation direction: strong ink contours, coherent cel shadows, clean color shapes, expressive but anatomically believable adult bodies. Preserve the exact face IDENTITY/age/hair/facial structure of reference 1. Reference 2 is OUTFIT and BUILD only; do not simply copy its static pose. Draw the entire figure coherently, never paste the portrait on a body. All bodies face RIGHT in the same fixed three-quarter side camera, same head size across every cell, same costume details, no body parts missing. Same floor at 94% of each cell, same physical root x within that cell. Foot placement must be clear. No effects, speed lines, words, labels, grids, stage, shadows outside the body, mannequins or 3D. Keep 5% transparent gutters and every extremity inside its own cell. Character is an ORIGINAL person, not a Capcom cast member. Rafael: approved mature clean-shaven face, short dark brown hair, brown eyes, strong brows and square jaw exactly matching portrait. Light blue collared button-up shirt sleeves rolled to elbows, dark blue jeans, brown lace-up shoes with tan soles, bare hands. BOXING identity, compact fists and shoulder/chin protection; do not add gloves or change costume. EXACTLY SIXTEEN complete cels in 4 columns by 4 rows. Stable adult anatomy and head scale: standing height80% of a cell, including in kicking/airborne poses, never enlarge a crouch to fill the cell. Root x37% floor94%. Order ROW1: 0 boxing guard loading front kick with knee lifting,1 knee chambered,2 pelvis drives forward knee half extending,3 front kick fully extending RIGHT chest height with other boot planted and hands guard. ROW2:4 short kick follow-through boot RIGHT,5 knee bends retracting,6 foot lowering and weight settling,7 recovered boxing guard. ROW3:8 crouched uppercut load fist at ribs;9 rising fist driving shoulder,10 airborne uppercut fist above head with both boots lifted,11 landing recovery with hands returning. ROW4:12 gathering his history-themed energy with both hands by abdomen,13 rotating hips/torso to drive release hand,14 arm thrust forward palm open toward RIGHT at shoulder height,15 release arm recoils and body returns guard. NO energy VFX baked in. Distinct full-body poses with weight transfer. Preserve entire extremities and transparent gutter.",
+      "selected_source": "rafael_combat.webp"
+    },
+    {
+      "id": "rafael_low",
+      "character": "rafael",
+      "key": "low",
+      "cols": 4,
+      "rows": 2,
+      "root": 0.37,
+      "floor": 0.94,
+      "design_height": 0.8,
+      "refs": [
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/legacy/runtime/rafael-head-menu-v3.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/references/rafael-guard.webp"
+      ],
+      "prompt": "Use case: identity-preserve. Production hand-drawn 2D fighting game animation atlas, truly TRANSPARENT RGBA, complete full-body cels, crisp classic Marvel vs. Capcom 2 arcade animation direction: strong ink contours, coherent cel shadows, clean color shapes, expressive but anatomically believable adult bodies. Preserve the exact face IDENTITY/age/hair/facial structure of reference 1. Reference 2 is OUTFIT and BUILD only; do not simply copy its static pose. Draw the entire figure coherently, never paste the portrait on a body. All bodies face RIGHT in the same fixed three-quarter side camera, same head size across every cell, same costume details, no body parts missing. Same floor at 94% of each cell, same physical root x within that cell. Foot placement must be clear. No effects, speed lines, words, labels, grids, stage, shadows outside the body, mannequins or 3D. Keep 5% transparent gutters and every extremity inside its own cell. Character is an ORIGINAL person, not a Capcom cast member. Rafael: approved mature clean-shaven face, short dark brown hair, brown eyes, strong brows and square jaw exactly matching portrait. Light blue collared button-up shirt sleeves rolled to elbows, dark blue jeans, brown lace-up shoes with tan soles, bare hands. BOXING identity, compact fists and shoulder/chin protection; do not add gloves or change costume. EXACTLY EIGHT complete full-body cels, 4 columns by2 rows. Same adult head size as neutral80% cell height standing body: crouching bodies only occupy bottom HALF to two-thirds of each cell, do NOT enlarge the man. Root x37%,floor94%. ROW1 four-cel low boxing punch:0 deep guard knees bent,1 shoulders/hips chamber,2 rightward straight fist at low abdomen height with torso connected and opposing guard,3 fist retracting returns low guard. ROW2 four-cel low sweep:4 full low crouch with hands guarding,5 pelvis rotates with weight on bent support knee and attacking knee opening,6 long leg sweeps RIGHT low over floor with shoe fully visible,7 leg retracts under pelvis returning deep guard. No effects. All faces preserve exact portrait identity. Every frame keeps head/torso/knees/boots connected, no floating limbs, no pasted head.",
+      "selected_source": "rafael_low.webp"
+    },
+    {
+      "id": "rafael_air",
+      "character": "rafael",
+      "key": "air_actions",
+      "cols": 4,
+      "rows": 4,
+      "root": 0.4,
+      "floor": 1.04,
+      "design_height": 1,
+      "refs": [
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/legacy/runtime/rafael-head-menu-v3.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/references/rafael-guard.webp"
+      ],
+      "prompt": "Use case: identity-preserve. Production hand-drawn 2D fighting game animation atlas, truly TRANSPARENT RGBA, complete full-body cels, crisp classic Marvel vs. Capcom 2 arcade animation direction: strong ink contours, coherent cel shadows, clean color shapes, expressive but anatomically believable adult bodies. Preserve the exact face IDENTITY/age/hair/facial structure of reference 1. Reference 2 is OUTFIT and BUILD only; do not simply copy its static pose. Draw the entire figure coherently, never paste the portrait on a body. All bodies face RIGHT in the same fixed three-quarter side camera, same head size across every cell, same costume details, no body parts missing. Same floor at 94% of each cell, same physical root x within that cell. Foot placement must be clear. No effects, speed lines, words, labels, grids, stage, shadows outside the body, mannequins or 3D. Keep 5% transparent gutters and every extremity inside its own cell. Character is an ORIGINAL person, not a Capcom cast member. Rafael: approved mature clean-shaven face, short dark brown hair, brown eyes, strong brows and square jaw exactly matching portrait. Light blue collared button-up shirt sleeves rolled to elbows, dark blue jeans, brown lace-up shoes with tan soles, bare hands. BOXING identity, compact fists and shoulder/chin protection; do not add gloves or change costume. EXACTLY SIXTEEN complete full-body cels 4 columns by4rows. ALL SIXTEEN ARE AIRBORNE with both boots lifted. Same head and limb scale in every cell. The tucked man fits about80% of cell height, head near8% and shoes near85%. No grounded pose. ROW1/ROW2 frames0..7 jumping PUNCH:0 tucked guard,1 hips/shoulders counter-load fist at ribs,2 fist drives halfway,3 extended straight punch RIGHT,4 strong short follow-through with opposite arm guarding,5 elbow retracts,6 shoulders recenter,7 descending tucked guard. ROW3/ROW4 frames8..15 jumping KICK:8 tucked airborne guard,9 knee chambered,10 hip turns knee drives,11 diagonal forward side kick RIGHT chest height,12 full boot follow-through,13 knee flexes retracting,14 both legs recollect,15 descending guard. Keep 5% transparent gutter, extended fists/shoes inside each cell. Airborne limbs use whole body coordination, no grounded front kicks, no planted boots. Draw face anatomically with head part of body, no composited portrait.",
+      "selected_source": "rafael_air.webp"
+    },
+    {
+      "id": "adriano_states",
+      "character": "adriano",
+      "key": "states",
+      "cols": 4,
+      "rows": 4,
+      "refs": [
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/legacy/runtime/adriano-head-menu-v1.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/references/adriano-guard.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/references/rafael-guard.webp"
+      ],
+      "prompt": "Use case: identity-preserve. Production full-body hand-drawn 2D fighting game cels in the established Street Vicente inked/cel shaded arcade style, inspired by classic Marvel vs Capcom2 animation direction. Genuine transparent RGBA; no scenery, labels, UI, text, floor shadow, effects or diagram lines. Original ADRIANO, NOT a Capcom character. Preserve EXACT FACE IDENTITY of portrait reference1: mature man, short receding dark brown hair, high forehead, strong dark eyebrows, brown eyes, long full dark beard and moustache. Do not change age, ethnicity or face structure, do not paste a portrait. Draw whole face as part of anatomically connected neck/body. Outfit from reference2 ONLY: plain white short sleeve T shirt, loose dark charcoal pants, black lowtop sneakers with white soles/laces; no gloves or gi. Reference3 establishes rendering standard and adult physical stature ONLY, NOT identity or clothing. SAME adult anatomical proportions/head size, broad adult torso, not chibi/small. KARATE COUNTERATTACK style, disciplined stance and precise connected hip rotation. Every cel faces RIGHT in fixed three-quarter side camera. Equal grid; keep every entire extremity inside its cell with8% transparent gutter. Consistent neutral standing full height80% of cell and root x38% with floor94%, no enlarging crouches/airborne figures. Strong contours, flat coherent highlights, 2-3 shadow tones, no 3D. EXACTLY16 cels 4columns4rows. Order0 firm karate guard,1 subtle breath with feet planted,2 high forearm block,3 whole-body block recoil,4 deep crouch guard,5 crouch forearm block,6 airborne rise knees folded both boots lifted,7 airborne apex knees folded,8 airborne descent feet preparing,9 grounded landing knees absorb,10 abdominal hit recoil torso compresses,11 head hit recoil whole torso leans back,12 balance recovery hands return guard,13 dizzy unstable shoulders lowered guard,14 full horizontal knocked-down body on side along floor same head scale,15 victory fist raised. Keep same anatomical scale in EVERY cel; crouches much shorter than standing.",
+      "selected_source": "adriano_states.webp"
+    },
+    {
+      "id": "adriano_walk",
+      "character": "adriano",
+      "key": "walk",
+      "cols": 4,
+      "rows": 2,
+      "refs": [
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/legacy/runtime/adriano-head-menu-v1.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/references/adriano-guard.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/references/rafael-guard.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/guides/walk-8.png"
+      ],
+      "prompt": "Use case: identity-preserve. Production full-body hand-drawn 2D fighting game cels in the established Street Vicente inked/cel shaded arcade style, inspired by classic Marvel vs Capcom2 animation direction. Genuine transparent RGBA; no scenery, labels, UI, text, floor shadow, effects or diagram lines. Original ADRIANO, NOT a Capcom character. Preserve EXACT FACE IDENTITY of portrait reference1: mature man, short receding dark brown hair, high forehead, strong dark eyebrows, brown eyes, long full dark beard and moustache. Do not change age, ethnicity or face structure, do not paste a portrait. Draw whole face as part of anatomically connected neck/body. Outfit from reference2 ONLY: plain white short sleeve T shirt, loose dark charcoal pants, black lowtop sneakers with white soles/laces; no gloves or gi. Reference3 establishes rendering standard and adult physical stature ONLY, NOT identity or clothing. SAME adult anatomical proportions/head size, broad adult torso, not chibi/small. KARATE COUNTERATTACK style, disciplined stance and precise connected hip rotation. Every cel faces RIGHT in fixed three-quarter side camera. Equal grid; keep every entire extremity inside its cell with8% transparent gutter. Consistent neutral standing full height80% of cell and root x38% with floor94%, no enlarging crouches/airborne figures. Strong contours, flat coherent highlights, 2-3 shadow tones, no 3D. EXACTLY8 cels 4columns2rows of one continuous full-body walking cycle, contact/down/passing/up/contact/down/passing/up with front and rear legs exchanging. Follow JOINT POSITIONS of reference4 for hips, knees, feet, head and hands, replace diagrams with fully illustrated man, no diagrams in art. Hands keep compact karate guard, pelvis drives each step, feet visibly lift/plant, torso counter-rotates subtly. No punching or kick poses. Smooth last-to-first. Do not repeat guard with only knees changing. Root x43.75%,floor93.75%,standing height84.375% per guide.",
+      "selected_source": "adriano_walk.webp"
+    },
+    {
+      "id": "adriano_punch",
+      "character": "adriano",
+      "key": "punch",
+      "cols": 4,
+      "rows": 2,
+      "refs": [
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/legacy/runtime/adriano-head-menu-v1.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/references/adriano-guard.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/references/rafael-guard.webp"
+      ],
+      "prompt": "Use case: identity-preserve. Production full-body hand-drawn 2D fighting game cels in the established Street Vicente inked/cel shaded arcade style, inspired by classic Marvel vs Capcom2 animation direction. Genuine transparent RGBA; no scenery, labels, UI, text, floor shadow, effects or diagram lines. Original ADRIANO, NOT a Capcom character. Preserve EXACT FACE IDENTITY of portrait reference1: mature man, short receding dark brown hair, high forehead, strong dark eyebrows, brown eyes, long full dark beard and moustache. Do not change age, ethnicity or face structure, do not paste a portrait. Draw whole face as part of anatomically connected neck/body. Outfit from reference2 ONLY: plain white short sleeve T shirt, loose dark charcoal pants, black lowtop sneakers with white soles/laces; no gloves or gi. Reference3 establishes rendering standard and adult physical stature ONLY, NOT identity or clothing. SAME adult anatomical proportions/head size, broad adult torso, not chibi/small. KARATE COUNTERATTACK style, disciplined stance and precise connected hip rotation. Every cel faces RIGHT in fixed three-quarter side camera. Equal grid; keep every entire extremity inside its cell with8% transparent gutter. Consistent neutral standing full height80% of cell and root x38% with floor94%, no enlarging crouches/airborne figures. Strong contours, flat coherent highlights, 2-3 shadow tones, no 3D. EXACTLY8 cels 4columns2rows, one continuous reverse karate punch RIGHT:0 rooted guard,1 hip/shoulder counter-load fist chambers near belt,2 rear heel pivots pelvis unwinds fist halfway,3 fully connected reverse punch extension RIGHT chest height with rear fist chambered,4 short powerful follow-through hips/torso drive,5 elbow bends retracts,6 rear foot resets and hand near guard,7 settled neutral guard. No extra arm, no effects. Lower body participates; keep feet baseline stable. Every fist inside own cell, entire shoes.",
+      "selected_source": "adriano_punch.webp"
+    },
+    {
+      "id": "adriano_combat",
+      "character": "adriano",
+      "key": "combat",
+      "cols": 4,
+      "rows": 4,
+      "refs": [
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/legacy/runtime/adriano-head-menu-v1.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/references/adriano-guard.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/references/rafael-guard.webp"
+      ],
+      "prompt": "Use case: identity-preserve. Production full-body hand-drawn 2D fighting game cels in the established Street Vicente inked/cel shaded arcade style, inspired by classic Marvel vs Capcom2 animation direction. Genuine transparent RGBA; no scenery, labels, UI, text, floor shadow, effects or diagram lines. Original ADRIANO, NOT a Capcom character. Preserve EXACT FACE IDENTITY of portrait reference1: mature man, short receding dark brown hair, high forehead, strong dark eyebrows, brown eyes, long full dark beard and moustache. Do not change age, ethnicity or face structure, do not paste a portrait. Draw whole face as part of anatomically connected neck/body. Outfit from reference2 ONLY: plain white short sleeve T shirt, loose dark charcoal pants, black lowtop sneakers with white soles/laces; no gloves or gi. Reference3 establishes rendering standard and adult physical stature ONLY, NOT identity or clothing. SAME adult anatomical proportions/head size, broad adult torso, not chibi/small. KARATE COUNTERATTACK style, disciplined stance and precise connected hip rotation. Every cel faces RIGHT in fixed three-quarter side camera. Equal grid; keep every entire extremity inside its cell with8% transparent gutter. Consistent neutral standing full height80% of cell and root x38% with floor94%, no enlarging crouches/airborne figures. Strong contours, flat coherent highlights, 2-3 shadow tones, no 3D. EXACTLY16 cels 4columns4rows. Frames0..7 one controlled karate front kick:0 guard preparing,1 knee lifted chambered,2 knee drives half extended,3 front kick fully extended RIGHT chest height other boot planted,4 follow-through sole faces target,5 knee retracting,6 foot lowering knees absorbing,7 settled karate guard. Frames8..11 rising strike:8 compressed stance fist near ribs,9 shoulder drives fist upward,10 airborne rising punch with boots lifted,11 landing returning guard. Frames12..15 his established imperial/history power:12 open hands gather near belt,13 hips counter-rotate and lead palm chambers,14 palm thrust RIGHT at shoulder height,15 arm retracting returns guard. No effects baked in; distinct entire body poses.",
+      "selected_source": "adriano_combat.webp"
+    },
+    {
+      "id": "adriano_actions",
+      "character": "adriano",
+      "key": "actions",
+      "cols": 4,
+      "rows": 4,
+      "refs": [
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/legacy/runtime/adriano-head-menu-v1.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/references/adriano-guard.webp",
+        "/workspace/scratch/4dc537a6d0a2/StreetVicente/assets/source/arcade-v8/references/rafael-guard.webp"
+      ],
+      "prompt": "Use case: identity-preserve. Production full-body hand-drawn 2D fighting game cels in the established Street Vicente inked/cel shaded arcade style, inspired by classic Marvel vs Capcom2 animation direction. Genuine transparent RGBA; no scenery, labels, UI, text, floor shadow, effects or diagram lines. Original ADRIANO, NOT a Capcom character. Preserve EXACT FACE IDENTITY of portrait reference1: mature man, short receding dark brown hair, high forehead, strong dark eyebrows, brown eyes, long full dark beard and moustache. Do not change age, ethnicity or face structure, do not paste a portrait. Draw whole face as part of anatomically connected neck/body. Outfit from reference2 ONLY: plain white short sleeve T shirt, loose dark charcoal pants, black lowtop sneakers with white soles/laces; no gloves or gi. Reference3 establishes rendering standard and adult physical stature ONLY, NOT identity or clothing. SAME adult anatomical proportions/head size, broad adult torso, not chibi/small. KARATE COUNTERATTACK style, disciplined stance and precise connected hip rotation. Every cel faces RIGHT in fixed three-quarter side camera. Equal grid; keep every entire extremity inside its cell with8% transparent gutter. Consistent neutral standing full height80% of cell and root x38% with floor94%, no enlarging crouches/airborne figures. Strong contours, flat coherent highlights, 2-3 shadow tones, no 3D. EXACTLY16 cels 4columns4rows. Row1 low karate punch4frames:0deep crouch guard,1hips load fist chambered,2low straight punch RIGHT fully connected,3retract low guard. Row2 sweep4frames:4deep crouch,5pelvis rotates extending attacking knee,6long low sweep RIGHT shoe above floor,7leg retract low guard. Row3 AIR PUNCH4frames ALL boots off virtualfloor:8tucked airborne guard,9shoulders wind with fist chambered,10rightward fully extended punch connected shoulder/hip with knees tucked,11retracting airborne guard ready descend. Row4 AIR KICK4frames ALL boots lifted:12tucked guard,13knee chambered,14full side kick RIGHT chest height opposite knee folded,15retracting airborne guard. Same head/limb size as neutral standing80% cell height; crouches and tucked jumps occupy less height, never enlarge them. No grounded frame in rows3/4.",
+      "selected_source": "adriano_actions.webp"
+    },
+    {
+      "id": "effects",
+      "cols": 4,
+      "rows": 4,
+      "refs": [],
+      "prompt": "Use case: game-asset. Draw a PRODUCTION 2D fighting game VFX spritesheet with EXACTLY16 frames in a clean4columns by4rows equal grid, truly transparent RGBA background. Classic late1990s hand-inked arcade cel animation direction: bold tapered contours, hard flat color shapes with very few cel-shaded highlights, NOT soft painted balls and NOT realistic plasma. Separate every cel with at least8% transparent gutters. No text, UI, portraits, characters, checkerboard, ground, panels or labels. ROW1 frames0..3 HIT CONTACT expanding then dissipating:0 small pure white needle contact with gold rim;1 bold orange-gold asymmetric burst of five broad spear shapes with white core;2 burst tears into long clean pointed streaks and small orange shards;3 only short fading fragments. Dark warm orange outlines keep it legible. ROW2 frames4..7 BLOCK CONTACT:0 compact white/cyan slash curved arc,1 luminous half-circle shield shock facing RIGHT with crisp white/cyan broken rim,2 arc breaks into two curved slashes,3 fading crescent fragments; NO solid opaque shield disk. ROW3 frames8..11 MARCELO CODE WAVE four continuous travel exposures: original power is CODE. A compact angular emerald-white packet core on RIGHT, hard polygonal green light slabs and circuit traces streaming LEFT100% of width, one broad tapering emerald ribbon behind, thin white central edge. NO floating text, NO binary digits, NO printed code, NO dark round orb. Core occupies right quarter and remains same scale/position in all four exposures, tails undulate modestly. ROW4 frames12..15 RAFAEL HISTORY SCROLL four continuous travel exposures: parchment scroll flying RIGHT with rolled ends, clearly warm ivory parchment and gold/ochre ink edging, angular golden time-energy streak streaming LEFT. Same centered scroll object and scale each cel, subtle scroll edge flutter, NOT a book, no readable symbols/letters, no fireball. All cels hand-drawn with strong graphic silhouettes and sharp inked cel effects; enough transparent space to not touch neighboring cels.",
+      "selected_source": "effects.webp"
+    }
+  ]
+}

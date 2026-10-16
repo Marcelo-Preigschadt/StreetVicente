@@ -17,6 +17,9 @@ static func load_data() -> void:
 
 static func frame(f: FighterModel) -> Dictionary:
 	load_data()
+	var arcade := ArcadeArt.frame(f)
+	if not arcade.is_empty():
+		return arcade
 	var pose := FighterPose.select(f)
 	var atlas: Dictionary = data.sheets[pose.key]
 	return {"sheet": atlas, "frame": atlas.frames[pose.index], "key": pose.key, "index": pose.index}

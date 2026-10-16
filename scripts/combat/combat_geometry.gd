@@ -13,6 +13,9 @@ static func load_data() -> void:
 
 static func frame(f: FighterModel) -> Dictionary:
 	load_data()
+	var arcade := ArcadeArt.frame(f)
+	if not arcade.is_empty():
+		return arcade.frame.collision
 	if not profiles.has(f.character.id):
 		return {}
 	var pose: Dictionary
@@ -29,7 +32,7 @@ static func attack(f: FighterModel):
 	if f.state != FighterState.Id.ATTACK:
 		return null
 	if (
-		f.character.id not in ["marcelo", "rafael"]
+		f.character.id not in ["marcelo", "rafael", "adriano"]
 		and not (f.character.id == "gustavo" and CharacterArt.has_frame(f))
 	):
 		return null
@@ -47,7 +50,12 @@ static func attack(f: FighterModel):
 		var b: Array = data.hit
 		result.append(
 			BoxMath.world_rect(
-				Rect2i(int(b[0]), int(b[1]), int(b[2]), int(b[3])), f.x, f.y, f.facing
+				CharacterMetrics.rect(
+					f.character.id, Rect2i(int(b[0]), int(b[1]), int(b[2]), int(b[3]))
+				),
+				f.x,
+				f.y,
+				f.facing
 			)
 		)
 	return result
