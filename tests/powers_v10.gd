@@ -5,6 +5,7 @@ const UNIT := FighterModel.SCALE
 
 static func run(s: SceneTree) -> void:
 	_round_end(s)
+	_roll_final_hitstop(s)
 	for direction in [1, -1]:
 		for distance in [220, 500, 900]:
 			for strength in 3:
@@ -139,6 +140,28 @@ static func _roll(s: SceneTree, distance: int, direction: int, strength: int, gu
 		f.state == FighterState.Id.IDLE and f.grounded(),
 		"Rolinho termina no chão com controle recuperado"
 	)
+
+
+static func _roll_final_hitstop(s: SceneTree) -> void:
+	var sim := _sim("joao", 220)
+	var f := sim.fighters[0]
+	sim.fighters[1].health = 1
+	f._start_move(f.character.get_move("special", 1))
+	for tick in 200:
+		sim.step(_inputs())
+		if sim.winner >= 0:
+			break
+	var phase := f.roll_phase
+	var pose := FighterPose.select(f)
+	s.check(phase == RollMotion.SHOCK, "Rolinho letal preserva a pose do contato")
+	for tick in sim.freeze_ticks:
+		sim.step(_inputs())
+		s.check(
+			f.roll_phase == phase and FighterPose.select(f) == pose,
+			"Hitstop final conserva o mesmo cel"
+		)
+	sim.step(_inputs())
+	s.check(f.roll_phase == 0 and f.move_id.is_empty(), "Vitória só limpa o rolinho após o hitstop")
 
 
 static func _roll_whiff_and_interrupt(s: SceneTree) -> void:

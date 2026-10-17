@@ -77,6 +77,8 @@ func step(inputs: Array[CombatInput]) -> void:
 		for f in fighters:
 			f._integrate_air()
 			f.state_tick += 1
+			if round_wait == 1:
+				f.roll_phase = 0
 			if round_wait == 1 and f.health > 0:
 				f.move_id = ""
 				f.transition(FighterState.Id.IDLE if f.grounded() else FighterState.Id.JUMP)
@@ -252,7 +254,6 @@ func step(inputs: Array[CombatInput]) -> void:
 		for f in fighters:
 			f.input = CombatInput.new()
 			f.buffer = CommandBuffer.new()
-			f.roll_phase = 0
 			f.push_remaining = 0
 			f.push_ticks = 0
 		events.append(
