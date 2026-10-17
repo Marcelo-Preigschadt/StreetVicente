@@ -17,16 +17,16 @@ static func run(s: SceneTree) -> void:
 		f.state = state
 		s.check(ArcadeArt.has_frame(f), "João usa corpo novo no estado %d" % state)
 	for name in [
-		"punch", "kick", "crouchPunch", "sweep", "airPunch", "airKick", "uppercut", "special"
+		"punch", "kick", "crouchPunch", "sweep", "airPunch", "airKick", "uppercut", "special", "super"
 	]:
 		f.state = FighterState.Id.ATTACK
 		f.move_id = name + ":1"
 		for tick in f.current_move().total_ticks():
 			f.move_tick = tick
 			var frame := CharacterArt.frame(f)
-			var revision := "powers-v10" if name == "special" else "arcade-v9"
+			var revision := "powers-v10" if name == "super" else "arcade-v9"
 			s.check(revision in frame.sheet.image, "Sem retorno à arte antiga durante %s" % name)
-			if name != "special":
+			if name != "super":
 				s.check(
 					f.attack_boxes().is_empty() == (f.current_move().phase(tick) != "ACTIVE"),
 					"Contato somente no active: João/%s" % name

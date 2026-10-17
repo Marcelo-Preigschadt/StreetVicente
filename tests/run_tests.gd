@@ -51,6 +51,7 @@ func _run() -> void:
 	ArcadeV8Tests.run(self)
 	ArcadeV9Tests.run(self)
 	PowersV10Tests.run(self)
+	PresentationV11Tests.run(self)
 	print("COMBAT TESTS: %d checks, %d failures" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 
@@ -643,7 +644,10 @@ func _test_roster_art_v5() -> void:
 				var f := sim.fighters[0]
 				if f.state == FighterState.Id.ATTACK:
 					var art := CharacterArt.frame(f)
-					check(art.key == "punch_v5", "Soco usa sequência nova: " + id)
+					check(
+						art.key == ("punch" if id == "gustavo" else "punch_v5"),
+						"Soco usa sequência nova: " + id
+					)
 					if f.current_move().phase(f.move_tick) != "ACTIVE":
 						check(f.attack_boxes().is_empty(), "Sem dano fora da extensão: " + id)
 				for event in sim.events:

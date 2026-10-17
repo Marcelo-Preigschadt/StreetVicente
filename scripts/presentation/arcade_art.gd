@@ -26,6 +26,9 @@ static func load_data() -> void:
 	)
 	data.joao.sheets.merge(roll.sheets, true)
 
+	data.gustavo = JSON.parse_string(
+		FileAccess.get_file_as_string("res://data/characters/gustavo-arcade-v11.json")
+	)
 
 static func pose(f: FighterModel) -> Dictionary:
 	load_data()

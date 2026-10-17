@@ -45,6 +45,12 @@ var reference_heights: Dictionary = {}
 var qa_trace: Array = []
 var qa_trace_key: String = ""
 var qa_round_calls: Array = []
+var stage_id := "patio"
+var stage_cursor := 0
+var stage_return := "menu"
+var stage_view: ArenaView
+var stage_audio: StageAudio
+var status_view: FighterStatusV11
 
 
 func _ready() -> void:
@@ -55,6 +61,11 @@ func _ready() -> void:
 	add_child(input_source)
 	audio = GameAudio.new()
 	add_child(audio)
+	stage_view = ArenaView.new()
+	add_child(stage_view)
+	stage_audio = StageAudio.new()
+	stage_audio.game = self
+	add_child(stage_audio)
 	story_view = StoryView.new()
 	add_child(story_view)
 	impact = CombatImpact.new()
@@ -68,6 +79,8 @@ func _ready() -> void:
 	power_view = PowerView.new()
 	add_child(power_view)
 	add_child(impact)
+	status_view = FighterStatusV11.new()
+	add_child(status_view)
 	ui = GameScreen.new()
 	ui.game = self
 	add_child(ui)
@@ -140,9 +153,54 @@ func confirm_selection() -> void:
 		if selected[0] == selected[1]:
 			cursor = (cursor + 1) % LegacyRoster.ids().size()
 	else:
+		open_stage_selection("selection")
+
+
+func open_stage_selection(origin: String) -> void:
+	stage_return = origin
+	stage_cursor = ArenaCatalog.IDS.find(stage_id)
+	screen = "stage_selection"
+	paused = true
+	input_source.clear()
+	_hide_world()
+
+
+func confirm_stage() -> void:
+	stage_id = ArenaCatalog.IDS[stage_cursor]
+	if stage_return == "menu":
+		screen = "menu"
+		paused = false
+	elif stage_return == "fight":
+		screen = "fight"
+		paused = false
+		for view in views:
+			view.show()
+		power_view.show()
+		input_source.clear()
+	else:
 		if mode == "cpu":
 			arcade = ArcadeRun.new(LegacyRoster.ids(), selected[0], selected[1], progress.record)
 		_start_fight()
+
+
+func cancel_stage() -> void:
+	if stage_return == "fight":
+		screen = "fight"
+		paused = false
+		for view in views:
+			view.show()
+		power_view.show()
+	else:
+		screen = stage_return
+		paused = false
+
+
+func presentation_stage() -> String:
+	if screen == "stage_selection":
+		return ArenaCatalog.IDS[stage_cursor]
+	if screen in ["story", "story_dialog", "story_resume"] and story != null:
+		return ArenaCatalog.STORY[mini(story.act_index, 3)]
+	return stage_id
 
 
 func _start_fight(show_intro: bool = true) -> void:
@@ -276,23 +334,15 @@ func _physics_process(_delta: float) -> void:
 		_capture_qa_trace()
 
 
-func _draw() -> void:
-	# Cover the expanded viewport as well as the logical 16:9 playfield. The floor
-	# stays at y625 while the camera reveals more scenery on wide/tall windows.
-	var area := Rect2(-position / scale, get_viewport_rect().size / scale)
-	var texture := LegacyRoster.texture(LegacyRoster.catalog.arena)
-	var k := maxf(1.0, maxf(area.size.x / 1280.0, (625.0 - area.position.y) / 625.0))
-	var target := Rect2(Vector2(640 - 640 * k, 625 - 625 * k), Vector2(1280, 720) * k)
-	draw_texture_rect(texture, target, false)
-	if target.end.y < area.end.y:
-		draw_texture_rect_region(
-			texture,
-			Rect2(area.position.x, target.end.y, area.size.x, area.end.y - target.end.y),
-			Rect2(0, texture.get_height() - 32, texture.get_width(), 32)
-		)
-
-
 func _process(_delta: float) -> void:
+	var current_stage := presentation_stage()
+	stage_view.stage_id = current_stage
+	stage_view.paused = paused
+	stage_audio.play_arena(current_stage)
+	stage_view.impact_offset = impact.offset() * .25
+	status_view.world = story if screen == "story" else sim if screen == "fight" else null
+	status_view.camera_x = story.camera_x if screen == "story" else 0.0
+	status_view.visible = screen in ["fight", "story"]
 	save_clock += _delta
 	if save_clock >= 1.0 and progress.record != saved_record:
 		progress.save()
@@ -360,7 +410,11 @@ func _publish_qa() -> void:
 		"roster_ids": LegacyRoster.ids(),
 		"paused": paused,
 		"record": progress.record,
-		"checkpoint": progress.valid_checkpoint()
+		"checkpoint": progress.valid_checkpoint(),
+		"arena": presentation_stage(),
+		"arena_ids": ArenaCatalog.IDS,
+		"stage_cursor": stage_cursor,
+		"audio": stage_audio.observation()
 	}
 	if progress.valid_checkpoint():
 		data.checkpoint_meta = {
@@ -405,7 +459,8 @@ func _publish_qa() -> void:
 		data.move_tick = sim.fighters[0].move_tick
 		data.vy = sim.fighters[0].vy
 		data.meter = [sim.fighters[0].meter, sim.fighters[1].meter]
-		data.fx_revision = 10
+		data.fx_revision = 11
+		data.contact_clips = impact.particles.map(func(p: Dictionary) -> String: return p.clip)
 		data.roll = {
 			"phase": sim.fighters[0].roll_phase,
 			"tick": sim.fighters[0].roll_tick,
@@ -484,6 +539,9 @@ func _publish_qa() -> void:
 			"y": story.hero.y
 		}
 	data.controls_open = controls.visible
+	data.dizzy_indicators = FighterStatusV11.dizzy_actors(status_view.world).size()
+	if screen == "fight":
+		data.art_sheet = CharacterArt.frame(sim.fighters[0]).sheet.image
 	data.controller_devices = AppSettings.devices
 	if controls.visible:
 		data.controller_ui = {
@@ -519,6 +577,25 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var local: Vector2 = (event.position - position) / scale
+		if ui.audio_rect().has_point(local):
+			stage_audio.toggle()
+			get_viewport().set_input_as_handled()
+			return
+		if ui.stage_rect().has_point(local) and screen in ["menu", "fight"]:
+			open_stage_selection(screen)
+			get_viewport().set_input_as_handled()
+			return
+		if screen == "stage_selection":
+			if ui.music_file_rect().has_point(local):
+				stage_audio.choose_music()
+				return
+			for i in ArenaCatalog.IDS.size():
+				if ui.arena_card_rect(i).has_point(local):
+					if stage_cursor == i:
+						confirm_stage()
+					else:
+						stage_cursor = i
+					return
 		if ui.fullscreen_rect().has_point(local):
 			toggle_fullscreen()
 			get_viewport().set_input_as_handled()
@@ -566,12 +643,36 @@ func _pad_navigation(key: int) -> void:
 
 
 func _handle_key(key: int) -> void:
+	if key == KEY_F9:
+		stage_audio.toggle()
+		return
+	if key == KEY_F5 and screen in ["menu", "fight"]:
+		open_stage_selection(screen)
+		return
 	if key == KEY_F11:
 		toggle_fullscreen()
 		get_viewport().set_input_as_handled()
 		return
 	if key == KEY_F10:
 		controls.open()
+		return
+	if screen == "stage_selection":
+		if key in [KEY_A, KEY_LEFT, KEY_W, KEY_UP]:
+			stage_cursor = posmod(stage_cursor - 1, ArenaCatalog.IDS.size())
+		elif key in [KEY_D, KEY_RIGHT, KEY_S, KEY_DOWN]:
+			stage_cursor = (stage_cursor + 1) % ArenaCatalog.IDS.size()
+		elif key == KEY_ENTER:
+			confirm_stage()
+		elif key == KEY_ESCAPE:
+			cancel_stage()
+		elif key == KEY_F6:
+			stage_audio.choose_music()
+		elif key == KEY_DELETE:
+			stage_audio.remove_music()
+		elif key == KEY_MINUS:
+			stage_audio.set_level(stage_audio.level - .1)
+		elif key in [KEY_EQUAL, KEY_PLUS]:
+			stage_audio.set_level(stage_audio.level + .1)
 		return
 	if screen == "menu":
 		if key in [KEY_W, KEY_UP]:
@@ -725,6 +826,7 @@ func _demo_inputs() -> Array[CombatInput]:
 func _next_arcade() -> void:
 	if arcade != null and arcade.state == "route":
 		arcade.advance()
+		stage_id = ArenaCatalog.opponent_arena(arcade.opponents[arcade.index])
 		_start_fight()
 
 

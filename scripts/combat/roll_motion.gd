@@ -100,7 +100,7 @@ static func can_contact(f: FighterModel, target: FighterModel) -> bool:
 
 static func contact_move(f: FighterModel) -> MoveData:
 	var base := f.current_move()
-	var move := base.duplicate(true) as MoveData
+	var move := base.duplicate() as MoveData
 	move.legacy = base.legacy.duplicate()
 	move.legacy.erase("launch")
 	move.damage = maxi(1, roundi(base.damage * (0.5 if f.roll_hits == 2 else 0.25)))

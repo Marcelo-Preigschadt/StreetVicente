@@ -19,7 +19,7 @@ func emit(f: FighterModel, tick: int, lane_aware: bool = false) -> bool:
 	if m.get("body_roll", false):
 		if f.move_tick == move.startup * 2:
 			events.append(_event("cast", f, tick, m.name, f.x, f.y - 130 * UNIT))
-		return false
+		return super_started
 
 	if not m.get("projectile", false) and not m.get("summon", false):
 		if f.move_tick == move.startup * 2 and m.name in ["uppercut", "special", "super"]:
@@ -45,7 +45,7 @@ func emit(f: FighterModel, tick: int, lane_aware: bool = false) -> bool:
 	height = CharacterMetrics.units(f.character.id, height)
 	var hand := (
 		CombatGeometry.hand(f)
-		if f.character.id in ["marcelo", "rafael", "adriano", "joao"]
+		if f.character.id in ["marcelo", "rafael", "adriano", "joao", "gustavo"]
 		else Vector2i(f.x + f.facing * offset * UNIT, f.y - height * UNIT)
 	)
 	var x := hand.x

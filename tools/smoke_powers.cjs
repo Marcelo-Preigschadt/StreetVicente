@@ -12,6 +12,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(/SCRIPT ERROR|Parse Error|ERROR:/i.test(m.text()))errors.push(m.text());});
  const state=()=>page.evaluate(()=>window.svfQA);
  const wait=fn=>page.waitForFunction(fn,null,{timeout:25000});
+ const fightReady=async()=>{await wait(()=>['fight','stage_selection'].includes(window.svfQA?.screen));if((await state()).screen==='stage_selection'){await page.keyboard.press('Enter');}await wait(()=>window.svfQA?.screen==='fight'&&window.svfQA.intro_ticks===0);};
  const shot=async file=>{await page.keyboard.press('Escape');await wait(()=>window.svfQA.paused);await page.screenshot({path:'test-results/'+file});await page.keyboard.press('Enter');await wait(()=>!window.svfQA.paused);};
  await page.goto('http://127.0.0.1:8063/StreetVicente/?qa=1',{timeout:120000});
  await wait(()=>window.svfQA?.screen==='menu');
@@ -19,9 +20,12 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  let q=await state();for(let i=0;i<(q.roster_ids.indexOf('joao')-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
  await page.keyboard.press('Enter');await wait(()=>window.svfQA.slot===1);
  q=await state();for(let i=0;i<(q.roster_ids.indexOf('rafael')-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
- await page.keyboard.press('Enter');await wait(()=>window.svfQA.screen==='fight'&&window.svfQA.intro_ticks===0);
+ await page.keyboard.press('Enter');await fightReady();
  assert.deepEqual((await state()).selected,['joao','rafael']);
- const start=(await state()).x[0];await page.keyboard.press('h');
+ await page.keyboard.press('h');await wait(()=>window.svfQA.moves[0]==='special:1');
+ assert.equal((await state()).pose,'punch','H é Super Soco com quadros de soco');assert.equal((await state()).roll.phase,0);
+ await wait(()=>window.svfQA.state==='IDLE');
+ const start=(await state()).x[0];await page.keyboard.press('q');
  await wait(()=>window.svfQA?.roll?.phase===1);assert.equal((await state()).projectiles,0,'Rolinho não lança projétil no lugar do corpo');
  await shot('18-joao-roll-travel.png');
  await wait(()=>window.svfQA?.roll?.hits===3);q=await state();
@@ -29,16 +33,17 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  assert(q.x[0]>start+100*256,'João viaja fisicamente até o adversário');
  await shot('18a-joao-roll-combo.png');await wait(()=>window.svfQA.state==='IDLE');
  assert.equal((await state()).y[0],625*256,'Recupera no chão após o rebote');
- await page.keyboard.press('F8');await delay(150);await page.keyboard.press('F2');await page.keyboard.press('h');
+ await page.keyboard.press('F8');await delay(150);await page.keyboard.press('F2');await page.keyboard.press('q');
  await wait(()=>window.svfQA?.last_contacts?.some(e=>e.kind==='block'&&e.effect==='electricRoll'));
  await shot('18b-joao-roll-block.png');await wait(()=>window.svfQA.state==='IDLE');q=await state();
  assert.equal(q.roll.hits,0,'Defesa impede a sequência elétrica');
  const rebound=q.trace.filter(t=>t.roll_phase===3);assert(rebound.length>=2,'Rebote possui trajetória observável');
  assert(Math.max(...rebound.map(t=>t.x))-Math.min(...rebound.map(t=>t.x))>20*256,'Defesa devolve o corpo para trás');
- // Win a real round with successive casts. No health, positions or timers are injected.
+ // Win a real round with successive close kicks. Q keeps its real meter cost. No health, positions or timers are injected.
  await page.keyboard.press('F8');await delay(150);
  for(let attempt=0;attempt<16&&(await state()).winner<0;attempt++){
-  await page.keyboard.press('h');await wait(()=>window.svfQA.moves[0]==='special:1'||window.svfQA.winner>=0);
+  await page.keyboard.down('d');await wait(()=>window.svfQA.x[1]-window.svfQA.x[0]<170*256||window.svfQA.winner>=0);await page.keyboard.up('d');
+  await page.keyboard.press('b');await wait(()=>window.svfQA.moves[0]==='kick:2'||window.svfQA.winner>=0);
   await wait(()=>window.svfQA.winner>=0||(window.svfQA.state==='IDLE'&&window.svfQA.states[1]==='IDLE'));
  }
  await wait(()=>window.svfQA.winner===0&&window.svfQA.round_wait>=45&&window.svfQA.round_wait<300);

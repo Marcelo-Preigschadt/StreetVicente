@@ -23,9 +23,15 @@ static func configure(c: CharacterData) -> void:
 		return
 	c.legacy = c.legacy.duplicate()
 	c.legacy.powers = c.legacy.powers.duplicate()
-	c.legacy.powers.special = "Rolinho Elétrico"
+	c.legacy.voices = c.legacy.voices.duplicate()
+	var roll_voice: String = c.legacy.voices.uppercut
+	c.legacy.voices.uppercut = c.legacy.voices.super
+	c.legacy.voices.super = roll_voice
+	c.legacy.powers.uppercut = "Curto-Circuito 301"
+	c.legacy.powers.super = "Rolamento Selvagem"
 	for strength in 3:
-		var move: MoveData = c.moves["special:%d" % strength]
+		c.moves["uppercut:%d" % strength].display_name = "Curto-Circuito 301"
+		var move: MoveData = c.moves["super:%d" % strength]
 		move.legacy = move.legacy.duplicate(true)
 		move.active = 90
 		move.recovery = 30
@@ -33,7 +39,7 @@ static func configure(c: CharacterData) -> void:
 		move.legacy.recovery = move.recovery
 		move.legacy.body_roll = true
 		move.legacy.effect = "electricRoll"
-		move.display_name = "Rolinho Elétrico"
+		move.display_name = "Rolamento Selvagem"
 		# Legacy comparison remains index-safe; the normal presenter uses new cels.
 		var original: Array = move.legacy.frames.duplicate(true)
 		move.legacy.frames = []

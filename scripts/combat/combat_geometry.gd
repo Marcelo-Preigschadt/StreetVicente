@@ -58,8 +58,11 @@ static func attack(f: FighterModel):
 		return null
 	var move := f.current_move()
 	if (
-		str(move.legacy.get("name", ""))
-		not in ["punch", "kick", "crouchPunch", "sweep", "airPunch", "airKick", "uppercut"]
+		(
+			str(move.legacy.get("name", ""))
+			not in ["punch", "kick", "crouchPunch", "sweep", "airPunch", "airKick", "uppercut"]
+		)
+		and not (f.character.id == "joao" and move.legacy.get("name", "") == "special")
 	):
 		return null
 	var result: Array[Rect2i] = []
@@ -93,6 +96,27 @@ static func half_width(f: FighterModel) -> int:
 
 static func hand(f: FighterModel) -> Vector2i:
 	var socket: Array = frame(f).get("hand", [134, -199])
+	if (
+		f.character.id == "joao"
+		and f.state == FighterState.Id.ATTACK
+		and f.current_move().legacy.get("name", "") == "special"
+	):
+		# H uses punch cels, so its charge follows their fist instead of the cast palm.
+		var data := frame(f)
+		if data.has("hit"):
+			var hit: Array = data.hit
+			socket = [int(hit[0] + hit[2] / 2), int(hit[1] + hit[3] / 2)]
+		else:
+			socket = [
+				[32, -190],
+				[19, -206],
+				[104, -230],
+				[156, -222],
+				[185, -226],
+				[93, -215],
+				[57, -200],
+				[35, -197]
+			][int(FighterPose.select(f).index)]
 	return Vector2i(
 		(
 			f.x

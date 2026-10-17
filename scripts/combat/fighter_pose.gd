@@ -60,6 +60,10 @@ static func select(f: FighterModel) -> Dictionary:
 				sheet = "air_punch"
 			elif name == "kick":
 				sheet = "combat"
+				if f.character.id == "gustavo":
+					start_keys = [0, 1]
+					active_keys = [2]
+					recovery_keys = [3, 4, 5, 6, 7]
 			elif name == "crouchPunch":
 				sheet = "low"
 				start_keys = [0, 1]
@@ -70,13 +74,18 @@ static func select(f: FighterModel) -> Dictionary:
 				start_keys = [4, 5]
 				active_keys = [6]
 				recovery_keys = [7, 4]
-			elif name == "uppercut" and f.character.id in ["marcelo", "rafael", "adriano", "joao"]:
+			elif (
+				name == "uppercut"
+				and f.character.id in ["marcelo", "rafael", "adriano", "joao", "gustavo"]
+			):
 				return uppercut(f)
 			elif name == "uppercut":
 				sheet = "combat"
 				start_keys = [8, 9]
 				active_keys = [9, 10]
 				recovery_keys = [10, 11, 0]
+			elif name == "special" and f.character.id == "joao":
+				sheet = "punch"  # H remains Super Soco; Q owns the body roll.
 			elif name in ["special", "super", "drone"]:
 				sheet = "combat"
 				start_keys = [12, 13]

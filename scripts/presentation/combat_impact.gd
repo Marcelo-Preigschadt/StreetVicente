@@ -6,6 +6,7 @@ var seen: Dictionary = {}
 var flash: float = 0.0
 var super_time: float = 0.0
 var super_character: String = "marcelo"
+var super_origin := Vector2(410, 420)
 var shake: float = 0.0
 var camera_x: float = 0.0
 var clock: float = 0.0
@@ -29,8 +30,9 @@ func consume(events: Array, _simulation: FightSimulation) -> void:
 		if seen.size() > 100:
 			seen.erase(seen.keys()[0])
 		if e.kind == "voice" and e.move == "super":
-			super_time = 0.5
+			super_time = 0.65
 			super_character = e.character
+			super_origin = Vector2(e.x, e.y) / 256.0 - Vector2(0, 150)
 			flash = 0.07
 		if e.kind in ["hit", "block"]:
 			var strong: bool = (
@@ -38,6 +40,20 @@ func consume(events: Array, _simulation: FightSimulation) -> void:
 				or str(e.get("move", "")).begins_with("uppercut")
 				or str(e.get("move", "")).ends_with(":2")
 				or (e.get("power_kind", "") != "" and e.get("effect", "") != "sentinelLaser")
+			)
+			var move := str(e.get("move", ""))
+			var clip := (
+				"block"
+				if e.kind == "block"
+				else (
+					"power"
+					if e.get("power_kind", "") != ""
+					else (
+						"heavy"
+						if strong or "kick" in move.to_lower() or "sweep" in move
+						else "light"
+					)
+				)
 			)
 			particles.append(
 				{
@@ -47,6 +63,7 @@ func consume(events: Array, _simulation: FightSimulation) -> void:
 					"max": 0.24 if strong else 0.16,
 					"blocked": e.kind == "block",
 					"strong": strong,
+					"clip": clip,
 					"seed": int(e.get("tick", 0)) % 13,
 					"facing": int(e.get("facing", 1 if int(e.get("attacker", 0)) == 0 else -1)),
 					"color": LegacyRoster.get_character(str(e.character)).color
@@ -82,12 +99,12 @@ func _draw() -> void:
 		var color := Color("80e8ff") if p.blocked else Color("ffe599")
 		color.a = 1.0 - phase
 		draw_set_transform(origin, 0, Vector2(int(p.facing), 1))
-		ArcadeEffects.draw_cel(
+		ImpactArtV11.draw(
 			self,
-			"block" if p.blocked else "hit",
+			p.clip,
 			mini(3, int(phase * 4)),
-			0.65 if p.strong else 0.43,
-			Color(1, 1, 1, minf(1.0, (1.0 - phase) * 2.5))
+			.62 if p.clip == "power" else .48 if p.clip == "heavy" else .43 if p.blocked else .34,
+			Color(1, 1, 1, minf(1, (1 - phase) * 2.4))
 		)
 		draw_set_transform(Vector2.ZERO)
 		if p.blocked:

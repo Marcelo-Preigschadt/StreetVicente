@@ -44,6 +44,50 @@ func run() -> void:
 	confirm.pressed = true
 	app._unhandled_input(confirm)
 	assert(app.screen == "fight" and app.arcade.index == 1 and app.arcade.score == 0)
+	app.choose_menu(4)
+	app.cursor = LegacyRoster.ids().find("gustavo")
+	app.confirm_selection()
+	app.cursor = LegacyRoster.ids().find("rafael")
+	app.confirm_selection()
+	assert(app.screen == "stage_selection" and app.paused)
+	app.stage_cursor = 2
+	app.confirm_stage()
+	assert(app.screen == "fight" and app.stage_id == "cobertura")
+	app.sim.fighters[0].health = 501
+	var saved_hash: String = app.sim.state_hash()
+	app.open_stage_selection("fight")
+	app.stage_cursor = 3
+	app.confirm_stage()
+	assert(app.sim.state_hash() == saved_hash and app.stage_id == "servidor")
+	app.open_stage_selection("fight")
+	app.stage_cursor = 0
+	app.cancel_stage()
+	assert(app.sim.state_hash() == saved_hash and app.stage_id == "servidor")
+	app.stage_audio.play_arena("servidor")
+	assert(app.stage_audio.observation().ambience_playing)
+	assert(not app.stage_audio.observation().playing)
+	var bytes := FileAccess.get_file_as_bytes("res://assets/audio/v11/impact-light.ogg")
+	assert(app.stage_audio.load_music(bytes, "fixture.ogg", "servidor"))
+	app.stage_audio._process(1)
+	assert(app.stage_audio.observation().playing and app.stage_audio.observation().decks == 1)
+	app.stage_audio.play_arena("patio")
+	app.stage_audio._process(1)
+	assert(
+		(
+			not app.stage_audio.observation().playing
+			and app.stage_audio.observation().local_tracks == 1
+		)
+	)
+	app.stage_audio.play_arena("servidor")
+	assert(app.stage_audio.observation().playing)
+	app.stage_audio.remove_music()
+	assert(
+		(
+			not app.stage_audio.observation().playing
+			and app.stage_audio.observation().local_tracks == 0
+		)
+	)
+	print("V11 SHELL: arena selection/resume and session-only local audio passed")
 	app.choose_menu(3)
 	assert(app.screen == "selection")
 	app.confirm_selection()
@@ -61,7 +105,9 @@ func run() -> void:
 	for player in app.audio.effects:
 		player.stop()
 	app.audio.streams.clear()
+	app.stage_audio.stop_all()
 	app.queue_free()
+	await create_timer(.1).timeout
 	await process_frame
 	await process_frame
 	quit(0)

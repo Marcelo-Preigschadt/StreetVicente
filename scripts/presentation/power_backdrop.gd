@@ -14,6 +14,18 @@ func _draw() -> void:
 			Rect2(0, 112, 1280, 552), Color(0.0, 0.025, 0.055, minf(0.65, impact.super_time * 2.0))
 		)
 		var c := LegacyRoster.get_character(impact.super_character)
+		var origin := impact.super_origin - Vector2(impact.camera_x, 0)
+		var progress := clampf((.65 - impact.super_time) / .65, 0, 1)
+		for i in 28:
+			var angle := i * TAU / 28
+			var direction := Vector2(cos(angle), sin(angle))
+			var normal := direction.orthogonal()
+			var inside := origin + direction * (90 + progress * 90)
+			var outside := origin + direction * 1500
+			draw_colored_polygon(
+				PackedVector2Array([inside, outside - normal * 13, outside + normal * 13]),
+				Color(c.color, impact.super_time * .16)
+			)
 		for i in 18:
 			var x := fposmod(i * 83.0 + impact.clock * 500, 1480) - 100
 			draw_line(
@@ -23,7 +35,7 @@ func _draw() -> void:
 				2,
 				true
 			)
-		var slide := clampf((0.5 - impact.super_time) * 10, 0, 1)
+		var slide := clampf((0.65 - impact.super_time) * 10, 0, 1)
 		var alpha := minf(1.0, impact.super_time * 5)
 		ArcadeTheme.plate(
 			self, Rect2(-90 + slide * 90, 205, 1370, 222), Color(ArcadeTheme.INK, alpha * 0.8), 60

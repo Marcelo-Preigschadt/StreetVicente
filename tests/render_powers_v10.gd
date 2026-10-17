@@ -19,7 +19,7 @@ func run() -> void:
 	for guard in [false, true]:
 		start("joao")
 		var f: FighterModel = game.sim.fighters[0]
-		f._start_move(f.character.get_move("special", 1))
+		f._start_move(f.character.get_move("super", 1))
 		var captured := {}
 		for tick in 270:
 			advance(guard)

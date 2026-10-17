@@ -74,7 +74,7 @@ static func _roll(s: SceneTree, distance: int, direction: int, strength: int, gu
 	var sim := _sim("joao", distance, direction)
 	var f := sim.fighters[0]
 	var start := f.x
-	f._start_move(f.character.get_move("special", strength))
+	f._start_move(f.character.get_move("super", strength))
 	var hits: Array = []
 	var blocks := 0
 	var contact_x := 0
@@ -146,7 +146,7 @@ static func _roll_final_hitstop(s: SceneTree) -> void:
 	var sim := _sim("joao", 220)
 	var f := sim.fighters[0]
 	sim.fighters[1].health = 1
-	f._start_move(f.character.get_move("special", 1))
+	f._start_move(f.character.get_move("super", 1))
 	for tick in 200:
 		sim.step(_inputs())
 		if sim.winner >= 0:
@@ -168,7 +168,7 @@ static func _roll_whiff_and_interrupt(s: SceneTree) -> void:
 	var sim := _sim("joao", 900)
 	var f := sim.fighters[0]
 	sim.fighters[1].invincible_ticks = 2000
-	f._start_move(f.character.get_move("special", 1))
+	f._start_move(f.character.get_move("super", 1))
 	var hits := 0
 	for i in 500:
 		sim.step(_inputs())
@@ -178,7 +178,7 @@ static func _roll_whiff_and_interrupt(s: SceneTree) -> void:
 	)
 	s.check(f.roll_hits == 0, "Whiff não cria combo fantasma")
 	for phase in [RollMotion.TRAVEL, RollMotion.SHOCK, RollMotion.REBOUND]:
-		f._start_move(f.character.get_move("special", 1))
+		f._start_move(f.character.get_move("super", 1))
 		f.roll_phase = phase
 		f.receive_hit(sim.fighters[1].character.get_move("punch", 1), -1, false)
 		s.check(
@@ -236,7 +236,7 @@ static func _story(s: SceneTree) -> void:
 	target.y = target.ground_y
 	target.x = story.hero.x + 500 * UNIT
 	story.enemies[0].cooldown = 2000
-	story.hero._start_move(story.hero.character.get_move("special", 1))
+	story.hero._start_move(story.hero.character.get_move("super", 1))
 	var hits := 0
 	for tick in 400:
 		story.step(CombatInput.new())

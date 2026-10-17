@@ -1,5 +1,7 @@
 # Revisão v10 — rolinho, ganchos e efeitos
 
+> Atualização v11: o rolinho do João foi movido para **Q**, conforme o comando confirmado pelo autor. **H é Super Soco**; consulte [a revisão atual](PRESENTATION_V11.md).
+
 A movimentação aprovada, retratos, roupas, menu e controles permanecem. Esta
 revisão altera as ações de poder e corrige o encerramento dos rounds. O projeto
 Canvas original não recebe alterações.

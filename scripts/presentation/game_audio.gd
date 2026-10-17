@@ -54,20 +54,23 @@ func consume(events: Array) -> void:
 			var c := LegacyRoster.get_character(e.character)
 			if e.move in ["special", "uppercut", "super", "drone"]:
 				play(c.legacy.voices.get(e.move, ""), "voice")
-		elif e.kind == "hit":
-			play(
-				LegacyRoster.catalog.sounds.get(
-					(
+		elif e.kind in ["hit", "block"]:
+			var kind := (
+				"block"
+				if e.kind == "block"
+				else (
+					"power"
+					if e.get("power_kind", "") != ""
+					else (
 						"heavy"
 						if (
-							e.get("move", "").begins_with("super")
-							or e.get("move", "").begins_with("uppercut")
-							or e.get("move", "").ends_with(":2")
+							"kick" in str(e.get("move", "")).to_lower()
+							or str(e.get("move", "")).ends_with(":2")
 						)
 						else "light"
-					),
-					""
+					)
 				)
 			)
+			play("res://assets/audio/v11/impact-%s.ogg" % kind)
 		elif e.kind == "laser":
 			play(LegacyRoster.catalog.sounds.get("special", ""))

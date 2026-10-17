@@ -266,7 +266,7 @@ static func projectile(c: CanvasItem, p: Dictionary, camera: float) -> void:
 
 
 static func hand(f: FighterModel, camera: float) -> Vector2:
-	if f.character.id in ["marcelo", "rafael", "adriano", "joao"]:
+	if f.character.id in ["marcelo", "rafael", "adriano", "joao", "gustavo"]:
 		return Vector2(CombatGeometry.hand(f)) / 256 - Vector2(camera, 0)
 	var source: Dictionary = f.character.legacy.get("projectile", {})
 	return Vector2(
@@ -424,6 +424,9 @@ static func charge(c: CanvasItem, f: FighterModel, camera: float, actors: Array)
 	if RollMotion.active(f):
 		roll(c, f, camera, actors)
 		return
+	if f.character.id == "joao" and name == "special":
+		super_punch(c, f, camera)
+		return
 	if name == "uppercut":
 		upper(c, f, camera)
 		return
@@ -494,6 +497,43 @@ static func charge(c: CanvasItem, f: FighterModel, camera: float, actors: Array)
 				c.draw_line(r.position, r.end, Color(WHITE, 0.5), 2, true)
 		else:
 			stroke(c, color, f.move_tick, 135, 60)
+	c.draw_set_transform(Vector2.ZERO)
+
+
+static func super_punch(c: CanvasItem, f: FighterModel, camera: float) -> void:
+	# H concentrates electricity on the drawn fist. Q alone wraps the rolling body.
+	var move := f.current_move()
+	var phase := move.phase(f.move_tick)
+	var strength := clampf(f.move_tick / float(maxi(1, move.startup * 2)), 0, 1)
+	if phase == "RECOVERY":
+		strength = clampf(
+			(
+				1
+				- (
+					(f.move_tick - (move.startup + move.active) * 2)
+					/ float(maxi(1, move.recovery * 2))
+				)
+			),
+			0,
+			1
+		)
+	var at := hand(f, camera)
+	c.draw_set_transform(at, 0, Vector2(f.facing, 1))
+	glow(c, Vector2.ZERO, 28 + strength * 48, Color("caff58"), .28 + strength * .4)
+	PowerCelsV10.draw(c, "ring", f.move_tick / 4, .20 + strength * .14, Color(1, 1, .6, strength))
+	for i in 3:
+		var a := i * TAU / 3 + f.move_tick * .13
+		bolt(
+			c,
+			Vector2(cos(a), sin(a)) * 16,
+			Vector2(cos(a + .9), sin(a + .9)) * 40,
+			Color("c4ff55"),
+			f.move_tick / 3 + i * 19,
+			strength
+		)
+	if phase == "ACTIVE":
+		stroke(c, Color("caff58"), f.move_tick, 115, 16)
+		c.draw_circle(Vector2.ZERO, 8, WHITE)
 	c.draw_set_transform(Vector2.ZERO)
 
 

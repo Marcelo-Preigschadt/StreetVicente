@@ -14,6 +14,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  page.on('response',r=>{if(/index\.(wasm|pck)$/.test(r.url()))responses[r.url().split('/').pop()]=r.status();});
  const state=()=>page.evaluate(()=>window.svfQA);
  const wait=fn=>page.waitForFunction(fn,null,{timeout:25000});
+ const fightReady=async()=>{await wait(()=>['fight','stage_selection'].includes(window.svfQA?.screen));if((await state()).screen==='stage_selection'){await page.keyboard.press('Enter');}await wait(()=>window.svfQA?.screen==='fight'&&window.svfQA.intro_ticks===0);};
  const pausedShot=async file=>{await page.keyboard.press('Escape');await wait(()=>window.svfQA?.paused===true);const png=await page.screenshot(file?{path:file}:{});await page.keyboard.press('Enter');await wait(()=>window.svfQA?.paused===false);return png;};
  // Texture coverage uses an area: a dark PC in the stage must not be mistaken
  // for a black letterbox. A uniform clear band fails both coverage and variation.
@@ -36,9 +37,9 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.mouse.click(1155,693);await wait(()=>!!document.fullscreenElement);
  await page.mouse.click(1155,693);await wait(()=>!document.fullscreenElement);
  // First menu entry directly starts the new-art pilot in native Godot training.
- await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight'&&window.svfQA.intro_ticks===0);
+ await page.keyboard.press('Enter');await fightReady();
  assert.deepEqual((await state()).selected,['marcelo','rafael']);assert.equal((await state()).new_art,true);
- assert.equal((await state()).fx_revision,10,'Pacote novo de geometria e VFX');
+ assert.equal((await state()).fx_revision,11,'Pacote novo de geometria e VFX');
  assert.deepEqual((await state()).pilot_3d,{},'Protótipo 3D rejeitado não substitui a arte aprovada');
  assert.deepEqual((await state()).round_calls.slice(0,3).map(e=>e.cue),['round','1','fight'],'Abertura Round/One/Fight completa no WASM');
  await page.screenshot({path:'test-results/02-pilot-ready.png'});
@@ -116,13 +117,13 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.keyboard.press('Escape');await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');
  // Visual review playback, actual commands into the same simulation as the player.
  await page.keyboard.press('ArrowUp');await page.keyboard.press('ArrowUp');await page.keyboard.press('ArrowUp');await page.keyboard.press('Enter');
- await wait(()=>window.svfQA?.screen==='fight'&&window.svfQA.intro_ticks===0);await page.keyboard.press('F3');await delay(11000);await page.screenshot({path:'test-results/12-demo.png'});
+ await fightReady();await page.keyboard.press('F3');await delay(11000);await page.screenshot({path:'test-results/12-demo.png'});
  // Select and cast all new thematic VFX using only normal UI/keyboard controls.
  await page.keyboard.press('Escape');await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');
  for(const id of ['adriano','rafael','gustavo','gelton','marcelino','marcos','tais','luciana','khauany','dienes','ruan']){
   for(let i=0;i<4;i++)await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='selection');
   let q=await state();const target=q.roster_ids.indexOf(id);for(let i=0;i<(target-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
-  await page.keyboard.press('Enter');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight'&&window.svfQA.intro_ticks===0);
+  await page.keyboard.press('Enter');await page.keyboard.press('Enter');await fightReady();
   if(['rafael','gustavo'].includes(id)){
    await page.keyboard.down('d');await wait(()=>window.svfQA.x[1]-window.svfQA.x[0]<180*256);await page.keyboard.up('d');
    await page.keyboard.press('f');await wait(()=>window.svfQA?.hp?.[1]<1000);
@@ -146,7 +147,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  let q=await state();for(let i=0;i<(q.roster_ids.indexOf('adriano')-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
  await page.screenshot({path:'test-results/15-adriano-selection.png'});await page.keyboard.press('Enter');await wait(()=>window.svfQA?.slot===1);
  q=await state();for(let i=0;i<(q.roster_ids.indexOf('rafael')-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
- await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight'&&window.svfQA.intro_ticks===0);
+ await page.keyboard.press('Enter');await fightReady();
  q=await state();assert(Math.abs(q.reactions[0].height-q.reactions[1].height)<2,'Adriano mantém a mesma altura de referência do Rafael');
  await pausedShot('test-results/15a-adriano-fight.png');
  await page.setViewportSize({width:1720,height:720});await delay(200);
@@ -163,7 +164,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  // CPU score is earned by real gameplay, then verified after reloading WASM.
  for(let i=0;i<3;i++)await page.keyboard.press('ArrowUp');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='selection');
  q=await state();for(let i=0;i<(q.roster_ids.indexOf('marcelo')-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
- await page.keyboard.press('Enter');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight'&&window.svfQA.intro_ticks===0);
+ await page.keyboard.press('Enter');await page.keyboard.press('Enter');await fightReady();
  assert.equal((await state()).arcade.opponents.length,12);
  // The CPU stops outside jab range and attacks with long kicks. Cast the
  // actual zero-cost code projectile from neutral instead of whiffing jabs.

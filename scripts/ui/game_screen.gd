@@ -82,6 +82,8 @@ func _draw() -> void:
 		_menu()
 	elif game.screen == "selection":
 		_selection()
+	elif game.screen == "stage_selection":
+		_stage_selection()
 	elif game.screen in ["arcade_route", "arcade_result"]:
 		_arcade_summary()
 	elif game.screen in ["story_dialog", "story_resume"]:
@@ -108,7 +110,7 @@ func menu_rect(index: int) -> Rect2:
 func _menu() -> void:
 	ArcadeTheme.backdrop(self, clock)
 	draw_texture_rect_region(
-		LegacyRoster.texture(LegacyRoster.catalog.arena),
+		LegacyRoster.texture(ArenaCatalog.get_arena(game.stage_id).image),
 		Rect2(620, 0, 660, 720),
 		Rect2(310, 0, 660, 720),
 		Color(0.4, 0.4, 0.6, 0.3)
@@ -142,7 +144,7 @@ func _menu() -> void:
 		if active:
 			text_at(rect.position + Vector2(490, 33), ">", 26, INK)
 	ArcadeTheme.plate(self, Rect2(1000, 32, 280, 36), BLUE, 16)
-	text_at(Vector2(1032, 57), "13 LUTADORES / 2D V10", 18, INK)
+	text_at(Vector2(1032, 57), "13 LUTADORES / 2D V11", 18, INK)
 	text_at(Vector2(1000, 92), "RECORDE  %08d" % game.progress.record, 15, GOLD)
 	wrapped(Vector2(88, 648), DESCRIPTIONS[game.menu_index], 540, 16, PAPER)
 	_footer("W/S NAVEGAR     ENTER CONFIRMAR")
@@ -318,7 +320,7 @@ func _hud() -> void:
 	_footer(
 		(
 			"A/D MOVER · W PULAR · T/F/Y SOCOS · V/G/B CHUTES · R DEFESA"
-			+ " · H PODER · U GANCHO · Q SUPER · ESC PAUSA"
+			+ " · H PODER · U GANCHO · Q ESPECIAL · ESC PAUSA"
 		)
 	)
 	if game.mode == "training" and not story_mode:
@@ -642,6 +644,80 @@ func controls_rect() -> Rect2:
 
 
 func _utilities() -> void:
+	ArcadeTheme.plate(self, audio_rect(), INK, 7)
+	centered(
+		audio_rect().position + Vector2(75, 20),
+		"ÁUDIO " + ("ON" if game.stage_audio.enabled else "OFF") + " · F9",
+		13,
+		GOLD
+	)
+	if game.screen in ["menu", "fight"]:
+		ArcadeTheme.plate(self, stage_rect(), Color(INK, .85), 7)
+		centered(
+			stage_rect().position + Vector2(177, 19),
+			ArenaCatalog.get_arena(game.stage_id).name + " · F5",
+			12,
+			BLUE
+		)
 	for item in [[controls_rect(), "CONTROLE USB · F10"], [fullscreen_rect(), "TELA CHEIA · F11"]]:
 		ArcadeTheme.plate(self, item[0], Color("202c4a"), 8)
 		centered(item[0].position + Vector2(102, 23), item[1], 15, GOLD)
+
+
+func arena_card_rect(index: int) -> Rect2:
+	return Rect2(42 + index * 309, 385, 285, 188)
+
+
+func _stage_selection() -> void:
+	panel(Rect2(0, 0, 1280, 720), Color(INK, .65))
+	ArcadeTheme.title(self, Vector2(52, 74), "ESCOLHA A ARENA", 48, PAPER)
+	var arena := ArenaCatalog.get_arena(ArenaCatalog.IDS[game.stage_cursor])
+	panel(Rect2(43, 106, 738, 250), INK)
+	_arena_preview(arena.image, Rect2(46, 109, 732, 244))
+	ArcadeTheme.plate(self, Rect2(808, 144, 430, 49), GOLD, 14)
+	text_at(Vector2(826, 176), arena.name, 20, INK)
+	wrapped(Vector2(817, 222), arena.place, 396, 22, PAPER)
+	text_at(Vector2(817, 272), "AMBIENTE: " + arena.track, 17, BLUE)
+	wrapped(Vector2(817, 304), game.stage_audio.observation().track, 398, 16, PAPER)
+	text_at(Vector2(817, 345), "F6 ARQUIVO LOCAL  ·  DEL REMOVER", 15, GOLD)
+	for i in ArenaCatalog.IDS.size():
+		var c := ArenaCatalog.get_arena(ArenaCatalog.IDS[i])
+		var rect := arena_card_rect(i)
+		panel(rect.grow(5), GOLD if i == game.stage_cursor else INK)
+		_arena_preview(c.image, Rect2(rect.position, Vector2(rect.size.x, 145)))
+		panel(Rect2(rect.position + Vector2(0, 145), Vector2(rect.size.x, 43)), INK)
+		text_at(rect.position + Vector2(9, 173), c.name, 15, PAPER)
+		if i == game.stage_cursor:
+			ArcadeTheme.plate(self, Rect2(rect.position + Vector2(8, 8), Vector2(90, 25)), GOLD, 8)
+			text_at(rect.position + Vector2(18, 26), "PRONTO", 14, INK)
+	centered(
+		Vector2(640, 625),
+		(
+			"ÁUDIO  %d%%   /   −  +  VOLUME   /   F9 LIGAR/DESLIGAR"
+			% roundi(game.stage_audio.level * 100)
+		),
+		17,
+		GOLD
+	)
+	centered(Vector2(640, 657), game.stage_audio.file_status, 15, PAPER)
+	_footer("A/D OU DIRECIONAL ESCOLHER  ·  ENTER/START CONFIRMAR  ·  ESC/B VOLTAR")
+
+
+func _arena_preview(path: String, rect: Rect2) -> void:
+	var texture := LegacyRoster.texture(path)
+	var source := texture.get_size()
+	var k := maxf(rect.size.x / source.x, rect.size.y / source.y)
+	var crop := rect.size / k
+	draw_texture_rect_region(texture, rect, Rect2((source - crop) / 2, crop))
+
+
+func music_file_rect() -> Rect2:
+	return Rect2(808, 323, 230, 35)
+
+
+func audio_rect() -> Rect2:
+	return Rect2(1107, 108, 150, 28)
+
+
+func stage_rect() -> Rect2:
+	return Rect2(901, 143, 355, 27)
