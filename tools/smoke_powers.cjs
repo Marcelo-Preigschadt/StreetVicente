@@ -42,7 +42,10 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  // Win a real round with successive close kicks. Q keeps its real meter cost. No health, positions or timers are injected.
  await page.keyboard.press('F8');await delay(150);
  for(let attempt=0;attempt<16&&(await state()).winner<0;attempt++){
-  await page.keyboard.down('d');await wait(()=>window.svfQA.x[1]-window.svfQA.x[0]<170*256||window.svfQA.winner>=0);await page.keyboard.up('d');
+  // Keep the actual boot in range; at point-blank its extension passes the torso.
+  const gap=(await state()).x[1]-(await state()).x[0];
+  if(gap<200*256){await page.keyboard.down('a');await wait(()=>window.svfQA.x[1]-window.svfQA.x[0]>215*256||window.svfQA.winner>=0);await page.keyboard.up('a');}
+  else if(gap>230*256){await page.keyboard.down('d');await wait(()=>window.svfQA.x[1]-window.svfQA.x[0]<225*256||window.svfQA.winner>=0);await page.keyboard.up('d');}
   await page.keyboard.press('b');await wait(()=>window.svfQA.moves[0]==='kick:2'||window.svfQA.winner>=0);
   await wait(()=>window.svfQA.winner>=0||(window.svfQA.state==='IDLE'&&window.svfQA.states[1]==='IDLE'));
  }
