@@ -647,7 +647,9 @@ func _move_speed() -> int:
 
 
 func _legacy_command(cancel: bool) -> bool:
-	var strength := 2 if input.has(CombatInput.STRONG) else 0 if input.has(CombatInput.LIGHT) else 1
+	var default_strength := (
+		2 if input.has(CombatInput.STRONG) else 0 if input.has(CombatInput.LIGHT) else 1
+	)
 	var choices := [
 		[CombatInput.SUPER, "super"],
 		[CombatInput.SPECIAL, "special"],
@@ -658,6 +660,7 @@ func _legacy_command(cancel: bool) -> bool:
 		[CombatInput.PUNCH, "punch"]
 	]
 	for pair in choices:
+		var strength := buffer.strength(pair[0], default_strength)
 		var name: String = pair[1]
 		if custom_ticks > 0 and (custom_moves >= 8 or name in ["throw", "super"]):
 			continue
@@ -730,7 +733,7 @@ func _attack_motion() -> void:
 	# Marcelo drives the fist for two design frames on the floor, then launches.
 	# All timing is simulation-owned and therefore survives replay/hitstop.
 	var launch_tick := (
-		move.startup * 2 + (4 if character.id in ["marcelo", "rafael", "adriano"] else 0)
+		move.startup * 2 + (4 if character.id in ["marcelo", "rafael", "adriano", "joao"] else 0)
 	)
 	if m.name == "uppercut" and move_tick >= launch_tick and not move_motion_started:
 		move_motion_started = true

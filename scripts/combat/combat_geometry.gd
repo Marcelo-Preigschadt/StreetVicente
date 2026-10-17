@@ -32,7 +32,7 @@ static func attack(f: FighterModel):
 	if f.state != FighterState.Id.ATTACK:
 		return null
 	if (
-		f.character.id not in ["marcelo", "rafael", "adriano"]
+		f.character.id not in ["marcelo", "rafael", "adriano", "joao"]
 		and not (f.character.id == "gustavo" and CharacterArt.has_frame(f))
 	):
 		return null

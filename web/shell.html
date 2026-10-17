@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Street Vicente Fighter</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#090d22;color:#fff3d6;font-family:Arial,sans-serif;touch-action:none}#canvas{display:block;width:100%;height:100%;outline:none}#loading{position:fixed;inset:0;display:grid;place-content:center;text-align:center;padding:24px;background:repeating-linear-gradient(115deg,transparent 0 100px,#54c8ff0b 100px 180px),linear-gradient(130deg,#111a39,#272044);z-index:10}#loading h1{font-size:clamp(30px,7vw,84px);font-style:italic;line-height:.9;margin:0;text-shadow:4px 5px #090d22}#loading h1 strong{display:block;color:#ffcb59;font-size:1.35em;margin-top:12px}#loading p{color:#54c8ff;letter-spacing:2px;font-size:13px;margin:24px 0 16px}#loading progress{width:min(70vw,450px);height:12px;accent-color:#ffcb59;border:0;margin:auto}#notice{max-width:580px;line-height:1.5;white-space:pre-line}#retry{margin:18px auto;background:#ffcb59;color:#090d22;border:0;padding:12px 28px;font-size:16px;cursor:pointer}#notice:empty,#retry[hidden]{display:none}
+</style>
+$GODOT_HEAD_INCLUDE
+</head>
+<body>
+<canvas id="canvas" tabindex="0" aria-label="Street Vicente Fighter">Seu navegador precisa oferecer suporte a Canvas e WebGL 2.</canvas>
+<noscript>Ative o JavaScript para jogar Street Vicente Fighter.</noscript>
+<section id="loading" aria-label="Carregando Street Vicente Fighter" aria-live="polite">
+<h1>STREET VICENTE<strong>FIGHTER</strong></h1>
+<p id="loading-label">PREPARANDO A ARENA…</p>
+<progress id="progress" aria-label="Download do jogo"></progress>
+<div id="notice" role="alert"></div>
+<button id="retry" type="button" hidden>Tentar novamente</button>
+</section>
+<script src="$GODOT_URL"></script>
+<script>
+const GODOT_CONFIG = $GODOT_CONFIG;
+const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
+const engine = new Engine(GODOT_CONFIG);
+const loader = document.getElementById('loading');
+const bar = document.getElementById('progress');
+const label = document.getElementById('loading-label');
+const retry = document.getElementById('retry');
+retry.addEventListener('click', () => location.reload());
+function failure(error) {
+ console.error(error);
+ label.textContent = 'NÃO FOI POSSÍVEL ABRIR A ARENA';
+ document.getElementById('notice').textContent = error instanceof Error ? error.message : String(error);
+ bar.hidden = true; retry.hidden = false;
+}
+const missing = Engine.getMissingFeatures({threads:GODOT_THREADS_ENABLED});
+if (missing.length) {
+ failure('Este navegador não oferece os recursos necessários: ' + missing.join(', ') + '. Use uma versão atual do Chrome, Edge ou Firefox com WebGL 2 habilitado.');
+} else {
+ engine.startGame({canvas:document.getElementById('canvas'),onProgress(current,total) {
+  if (current > 0 && total > 0) {
+   bar.max=total; bar.value=current;
+   label.textContent=current < total ? 'CARREGANDO A ARENA… ' + Math.floor(current/total*100) + '%' : 'PREPARANDO OS LUTADORES…';
+  } else {bar.removeAttribute('value'); label.textContent='PREPARANDO OS LUTADORES…';}
+ }}).then(() => {loader.remove();document.getElementById('canvas').focus();},failure);
+}
+</script>
+</body>
+</html>

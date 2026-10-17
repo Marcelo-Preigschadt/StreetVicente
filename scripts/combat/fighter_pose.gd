@@ -68,7 +68,7 @@ static func select(f: FighterModel) -> Dictionary:
 				start_keys = [4, 5]
 				active_keys = [6]
 				recovery_keys = [7, 4]
-			elif name == "uppercut" and f.character.id in ["marcelo", "rafael", "adriano"]:
+			elif name == "uppercut" and f.character.id in ["marcelo", "rafael", "adriano", "joao"]:
 				return uppercut(f)
 			elif name == "uppercut":
 				sheet = "combat"

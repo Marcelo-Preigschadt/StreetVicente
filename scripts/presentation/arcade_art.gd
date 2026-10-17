@@ -13,6 +13,14 @@ static func load_data() -> void:
 			FileAccess.get_file_as_string("res://data/characters/%s-arcade-v8.json" % id)
 		)
 
+	for id in ["adriano", "joao"]:
+		var revision: Dictionary = JSON.parse_string(
+			FileAccess.get_file_as_string("res://data/characters/%s-arcade-v9.json" % id)
+		)
+		if not data.has(id):
+			data[id] = {"sheets": {}}
+		data[id].sheets.merge(revision.sheets, true)
+
 
 static func pose(f: FighterModel) -> Dictionary:
 	load_data()

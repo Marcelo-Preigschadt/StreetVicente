@@ -40,7 +40,7 @@ func emit(f: FighterModel, tick: int, lane_aware: bool = false) -> bool:
 	height = CharacterMetrics.units(f.character.id, height)
 	var hand := (
 		CombatGeometry.hand(f)
-		if f.character.id in ["marcelo", "rafael", "adriano"]
+		if f.character.id in ["marcelo", "rafael", "adriano", "joao"]
 		else Vector2i(f.x + f.facing * offset * UNIT, f.y - height * UNIT)
 	)
 	var x := hand.x

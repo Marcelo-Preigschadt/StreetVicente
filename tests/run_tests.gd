@@ -49,6 +49,7 @@ func _run() -> void:
 	MigrationV6Tests.run(self)
 	Pilot3DTests.run(self)
 	ArcadeV8Tests.run(self)
+	ArcadeV9Tests.run(self)
 	print("COMBAT TESTS: %d checks, %d failures" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 

@@ -22,7 +22,20 @@ func record(input: CombatInput, tick: int) -> void:
 	entries = entries.filter(func(e: Array) -> bool: return tick - int(e[1]) < WINDOW_TICKS)
 	for command in COMMANDS:
 		if (input.pressed & command) != 0:
-			entries.append([command, tick])
+			entries.append(
+				[
+					command,
+					tick,
+					2 if input.has(CombatInput.STRONG) else 0 if input.has(CombatInput.LIGHT) else 1
+				]
+			)
+
+
+func strength(command: int, fallback: int = 1) -> int:
+	for i in range(entries.size() - 1, -1, -1):
+		if entries[i][0] == command:
+			return int(entries[i][2]) if entries[i].size() > 2 else fallback
+	return fallback
 
 
 func consume(command: int) -> bool:

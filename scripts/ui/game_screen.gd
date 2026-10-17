@@ -90,6 +90,7 @@ func _draw() -> void:
 		_online()
 	else:
 		_hud()
+	_utilities()
 	if entrance > 0:
 		# Short edge wipe never obscures hitboxes or delays input/simulation.
 		ArcadeTheme.plate(
@@ -141,10 +142,10 @@ func _menu() -> void:
 		if active:
 			text_at(rect.position + Vector2(490, 33), ">", 26, INK)
 	ArcadeTheme.plate(self, Rect2(1000, 32, 280, 36), BLUE, 16)
-	text_at(Vector2(1032, 57), "13 LUTADORES / 2D V8", 18, INK)
+	text_at(Vector2(1032, 57), "13 LUTADORES / 2D V9", 18, INK)
 	text_at(Vector2(1000, 92), "RECORDE  %08d" % game.progress.record, 15, GOLD)
 	wrapped(Vector2(88, 648), DESCRIPTIONS[game.menu_index], 540, 16, PAPER)
-	_footer("W/S NAVEGAR     ENTER CONFIRMAR     F11 TELA CHEIA")
+	_footer("W/S NAVEGAR     ENTER CONFIRMAR")
 
 
 func card_rect(index: int) -> Rect2:
@@ -280,7 +281,7 @@ func _preview(
 
 func _footer(value: String) -> void:
 	panel(Rect2(0, 686, 1280, 34), INK)
-	centered(Vector2(640, 709), value, 15, PAPER)
+	text_at(Vector2(20, 709), value, 12, PAPER)
 
 
 func _hud() -> void:
@@ -316,8 +317,8 @@ func _hud() -> void:
 		)
 	_footer(
 		(
-			"A/D MOVER · W PULAR · S BAIXO · F/G GOLPES · C CUSTOM · X CONTRA"
-			+ "  ·  T/Y PODERES  ·  U SUPER  ·  H DEFESA  ·  ESC PAUSA"
+			"A/D MOVER · W PULAR · T/F/Y SOCOS · V/G/B CHUTES · R DEFESA"
+			+ " · H PODER · U GANCHO · Q SUPER · ESC PAUSA"
 		)
 	)
 	if game.mode == "training" and not story_mode:
@@ -327,7 +328,7 @@ func _hud() -> void:
 			(
 				"TREINO  /  ALVO: "
 				+ ["JOGADOR 2", "PARADO", "DEFESA ALTA", "DEFESA BAIXA"][game.dummy_mode]
-				+ "  /  F2 ALVO · R REINICIAR · F3 DEMO"
+				+ "  /  F2 ALVO · F8 REINICIAR · F3 DEMO"
 			),
 			13,
 			GOLD
@@ -369,7 +370,7 @@ func _hud() -> void:
 	elif story_mode and game.story.completed:
 		message = "NIT RESGATADO! / ENTER VOLTAR"
 	elif story_mode and game.story.defeated:
-		message = "FIM DE JOGO / R REPETIR ATO"
+		message = "FIM DE JOGO / F8 REPETIR ATO"
 	elif not story_mode and game.sim.winner >= 0 and game.sim.round_wait >= 90:
 		message = (
 			"EMPATE"
@@ -630,3 +631,17 @@ func _story_dialog() -> void:
 
 func action_rect() -> Rect2:
 	return Rect2(930, 624, 280, 45)
+
+
+func fullscreen_rect() -> Rect2:
+	return Rect2(1050, 675, 205, 35)
+
+
+func controls_rect() -> Rect2:
+	return Rect2(833, 675, 205, 35)
+
+
+func _utilities() -> void:
+	for item in [[controls_rect(), "CONTROLE USB · F10"], [fullscreen_rect(), "TELA CHEIA · F11"]]:
+		ArcadeTheme.plate(self, item[0], Color("202c4a"), 8)
+		centered(item[0].position + Vector2(102, 23), item[1], 15, GOLD)

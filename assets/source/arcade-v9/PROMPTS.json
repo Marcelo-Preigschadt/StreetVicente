@@ -1,0 +1,42 @@
+{
+  "tool": "image_gen.imagegen",
+  "revision": 9,
+  "jobs": [
+    {
+      "id": "adriano_walk",
+      "refs": [
+        "assets/source/arcade-v9/references/adriano-master.png"
+      ],
+      "prompt": "Use case: identity-preserve. Production 2D hand-drawn fighting game sprite sheet, 8 complete body cels in 4 columns x 2 rows, transparent background, no text. Animate ONLY the exact character in the input: same face, full black beard, salt/pepper short hair, broad stocky shoulders and belly, white short sleeve polo, charcoal pants, black white-soled sneakers. Keep the MASTER's crouched combat guard, broad anatomy and proportions precisely. 1990s cel animation ink and shading. He faces RIGHT in all cels. Grounded fighting SHUFFLE, NEVER upright walking, jogging, crossed legs, or floating. Keep BOTH fists up exactly near the master's cheek/chest with minimal torso rotation. Eight gradual cels: guard loaded, lead shoe slides 10px forward, lead shoe plants, rear shoe follows keeping wide stance, midpoint guard, rear foot slight lift 5px, rear foot catches up, settle into initial guard. Maintain same head height within 3%, same head size, same belly/upperarm/leg thickness across all8. Single consistent orthographic side view. Roomy separated equal 448x448 cells in 1792x896 sheet. Full figure each cell centered over x224, feet baseline y424 relative cell, height approximately385px. Do not slim, redesign, straighten knees, raise hips, add effects, or change the face. Every cel is a complete drawing; no cutout portrait."
+    },
+    {
+      "id": "joao_states",
+      "refs": [
+        "assets/legacy/runtime/joao-head-menu-v4.webp",
+        "assets/legacy/runtime/joao-v1.webp",
+        "assets/source/arcade-v9/references/adriano-master.png"
+      ],
+      "prompt": "Use case: identity-preserve. Production 2D classic arcade fighting game cels, complete body sheet 4 columns x4 rows, transparent, no text. Image1 locks João face: young adult man, round face, glasses, faint moustache/goatee, dark wavy fringe and black backward cap. Image2 locks white open rolled sleeve shirt over black T-shirt, loose blue jeans, gray white sneakers. Redraw him as adult human proportions, same head-to-body scale as Image3 (STYLE and proportional benchmark ONLY, never use its beard or body identity). Classic cel animation bold clean ink and 3-tone painted shading, not chibi not3D. Facing RIGHT. SAME head, glasses, cap, clothing, stocky youthful body in every cel. 16 cels ordered rowwise: row1 combat guardA, subtle guardB, standing forearm block, impact block recoil. Row2 low crouch, low block, jump rising tucked knees, airborne apex. Row3 falling legs preparing landing, low landing hand near floor, gut hit fold, head hit recoil. Row4 recovery to guard, dazed slump, lying KO on floor, fist-up victory. Each fully visible no overlap, equal cells around384x384 on1536x1536; guard standing height330px and feet baselinecell355. No magic effects or text. Leave generous space. Preserve face identity across allcels. Use full body drawings. Guard should be grounded broad stance knees bent, not generic walking pose."
+    },
+    {
+      "id": "joao_walk",
+      "rows": 2,
+      "prompt": "Use case: identity-preserve. Production 2D fighting game complete body hand-drawn cels. Input1 is the EXACT master model: João's face, glasses, black backward cap, dark wavy hair, faint moustache/goatee, white open rolled sleeve shirt over black T-shirt, blue jeans, gray sneakers. Preserve EXACT head size, broad youthful anatomy, face, proportions, costume and ink/3-tone cel shading of this master. Never slim or stand more upright; do not change the face. All cels face RIGHT. Transparent background, no shadows, no text, no powers/effects. Full figure separated in equal cells, no overlaps. 8 cels 4columns x2rows on1792x896. Height385px feetbaseline424 per448cell, hip rootx224. A complete grounded guard shuffle cycle: loadguard, lead shoe advances, plant, rear shoe catches up, loadguard, rear shoe advances, plant, leadshoe catches up. Knees remain bent, broad stance and torso/head stay within10px vertical ofmaster, both fists up. Onlyfeetmovegradually, nocrossedlegs norwalkingupright. Returncel8 smoothlytocel1."
+    },
+    {
+      "id": "joao_punch",
+      "rows": 2,
+      "prompt": "Use case: identity-preserve. Production 2D fighting game complete body hand-drawn cels. Input1 is the EXACT master model: João's face, glasses, black backward cap, dark wavy hair, faint moustache/goatee, white open rolled sleeve shirt over black T-shirt, blue jeans, gray sneakers. Preserve EXACT head size, broad youthful anatomy, face, proportions, costume and ink/3-tone cel shading of this master. Never slim or stand more upright; do not change the face. All cels face RIGHT. Transparent background, no shadows, no text, no powers/effects. Full figure separated in equal cells, no overlaps. 8 cels 4columns x2rows on1792x896. Height385px feetbaseline424 per448cell hiproot224. One full punch cycle: guardload, torso windup, elbowdrive, fullyextended straight rightpunch, extended followthrough, elbowretract, recoverguard, originalguard. Gradual physical rotation of shoulders, rearfootpush. SAME stocky guard anatomy, headsize and shirt throughout."
+    },
+    {
+      "id": "joao_combat",
+      "rows": 4,
+      "prompt": "Use case: identity-preserve. Production 2D fighting game complete body hand-drawn cels. Input1 is the EXACT master model: João's face, glasses, black backward cap, dark wavy hair, faint moustache/goatee, white open rolled sleeve shirt over black T-shirt, blue jeans, gray sneakers. Preserve EXACT head size, broad youthful anatomy, face, proportions, costume and ink/3-tone cel shading of this master. Never slim or stand more upright; do not change the face. All cels face RIGHT. Transparent background, no shadows, no text, no powers/effects. Full figure separated in equal cells, no overlaps. 16 cels4columns x4rows on1536x1536 with384cells. Masterguardheight330px feetbaseline355 hiproot192. Row1 and2 complete standing sidekick cycle8cels: guard, kneelift, chamber, extended highsidekick, extendedfollowthrough, kneeretract, footlanding, guard. Row3 uppercut4cels: compressguard, fistdriveupgrounded, risinguppercutkneestucked, landguard. Row4 powercast4cels: windingbothhandsnearhip, forwardshoulderdrive, extendedbothhandsrelease (NOeffect), retractguard. Do not generate fist orb/wall or change costume."
+    },
+    {
+      "id": "joao_actions",
+      "rows": 4,
+      "prompt": "Use case: identity-preserve. Production 2D fighting game complete body hand-drawn cels. Input1 is the EXACT master model: João's face, glasses, black backward cap, dark wavy hair, faint moustache/goatee, white open rolled sleeve shirt over black T-shirt, blue jeans, gray sneakers. Preserve EXACT head size, broad youthful anatomy, face, proportions, costume and ink/3-tone cel shading of this master. Never slim or stand more upright; do not change the face. All cels face RIGHT. Transparent background, no shadows, no text, no powers/effects. Full figure separated in equal cells, no overlaps. 16 cels4columns x4rows on1536x1536.384cells masterheight330px. Row1 crouchpunch4: crouchguard, loadelbow, full lowstraightpunch, crouchguard. Row2 sweep4: crouchload, turnhip, full straight leg ground sweep, crouchrecovery. Row3 airbornepunch4: compactjumpguard, elbowload, extendedairpunch, retractjumpguard. Row4 airbornekick4: jumpguard, chamberknee, fullyextendedairkick, kneeretract. Wholebody in allcells. Forairsprites keep sameactual anatomical lengths asgroundedmaster, do not enlargelegsorhead. Noeffect or ground/shadow."
+    }
+  ]
+}

@@ -13,6 +13,11 @@ config = re.search(r'const GODOT_CONFIG\s*=\s*(\{.*?\});', html)
 if not config:
     raise SystemExit('GODOT_CONFIG não encontrado no HTML exportado')
 data = json.loads(config.group(1))
+if 'id="loading"' not in html or 'STREET VICENTE' not in html:
+    raise SystemExit('Abertura própria do jogo ausente')
+if 'status-splash' in html or '$GODOT_' in html:
+    raise SystemExit('Shell padrão ou placeholders não substituídos')
+
 if data.get('ensureCrossOriginIsolationHeaders'):
     raise SystemExit('Export exige isolamento de origem; desative threads/PWA')
 if data.get('gdextensionLibs'):

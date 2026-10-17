@@ -25,6 +25,7 @@ var story: StorySimulation
 var input_source: LocalCombatInput
 var ai := CombatAI.new()
 var views: Array[SpriteFighterView] = []
+var controls: ControllerPanel
 var ui: GameScreen
 var audio: GameAudio
 var power_view: PowerView
@@ -70,6 +71,11 @@ func _ready() -> void:
 	ui = GameScreen.new()
 	ui.game = self
 	add_child(ui)
+	controls = ControllerPanel.new()
+	controls.game = self
+	add_child(controls)
+	AppSettings.controllers_changed.connect(_controller_changed)
+	AppSettings.menu_action.connect(_pad_navigation)
 	_hide_world()
 	get_viewport().size_changed.connect(_fit_viewport)
 	_fit_viewport()
@@ -396,7 +402,7 @@ func _publish_qa() -> void:
 		data.move_tick = sim.fighters[0].move_tick
 		data.vy = sim.fighters[0].vy
 		data.meter = [sim.fighters[0].meter, sim.fighters[1].meter]
-		data.fx_revision = 8
+		data.fx_revision = 9
 		data.last_contacts = last_contacts
 		data.hurtboxes = sim.fighters.map(
 			func(f: FighterModel) -> Array:
@@ -465,12 +471,43 @@ func _publish_qa() -> void:
 			"x": story.hero.x,
 			"y": story.hero.y
 		}
+	data.controls_open = controls.visible
+	data.controller_devices = AppSettings.devices
 	JavaScriptBridge.eval("window.svfQA = " + JSON.stringify(data), true)
 
 
+func toggle_fullscreen() -> void:
+	DisplayServer.window_set_mode(
+		(
+			DisplayServer.WINDOW_MODE_WINDOWED
+			if DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
+			else DisplayServer.WINDOW_MODE_FULLSCREEN
+		)
+	)
+
+
+func _controller_changed() -> void:
+	input_source.clear()
+	if screen in ["fight", "story"]:
+		paused = true
+		if controls.visible:
+			controls.was_paused = true
+		_snap_views()
+
+
 func _unhandled_input(event: InputEvent) -> void:
+	if controls.visible:
+		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var local: Vector2 = (event.position - position) / scale
+		if ui.fullscreen_rect().has_point(local):
+			toggle_fullscreen()
+			get_viewport().set_input_as_handled()
+			return
+		if ui.controls_rect().has_point(local):
+			controls.open()
+			get_viewport().set_input_as_handled()
+			return
 		if screen == "menu":
 			for i in MENU.size():
 				if ui.menu_rect(i).has_point(local):
@@ -490,37 +527,32 @@ func _unhandled_input(event: InputEvent) -> void:
 					confirm_selection()
 					break
 	var key := 0
-	if event is InputEventJoypadButton and event.pressed:
-		key = (
-			{
-				JOY_BUTTON_DPAD_UP: KEY_UP,
-				JOY_BUTTON_DPAD_DOWN: KEY_DOWN,
-				JOY_BUTTON_DPAD_LEFT: KEY_LEFT,
-				JOY_BUTTON_DPAD_RIGHT: KEY_RIGHT,
-				JOY_BUTTON_A: KEY_ENTER,
-				JOY_BUTTON_B: KEY_ESCAPE,
-				JOY_BUTTON_START: KEY_ENTER,
-				JOY_BUTTON_BACK: KEY_ESCAPE
-			}
-			. get(event.button_index, 0)
-		)
-		if screen in ["fight", "story"] and event.button_index == JOY_BUTTON_START:
-			key = KEY_ENTER if paused else KEY_ESCAPE
-		elif screen in ["fight", "story"] and event.button_index != JOY_BUTTON_BACK:
-			if event.button_index != JOY_BUTTON_START:
-				return
-	elif event is InputEventKey and event.pressed and not event.echo:
+	if event is InputEventKey and event.pressed and not event.echo:
 		key = event.physical_keycode
 	else:
 		return
+	_handle_key(key)
+
+
+func _pad_navigation(key: int) -> void:
+	if controls.visible:
+		return
+	if screen in ["fight", "story"]:
+		if key != KEY_PAUSE:
+			return
+		key = KEY_ENTER if paused else KEY_ESCAPE
+	elif key == KEY_PAUSE:
+		key = KEY_ENTER
+	_handle_key(key)
+
+
+func _handle_key(key: int) -> void:
 	if key == KEY_F11:
-		DisplayServer.window_set_mode(
-			(
-				DisplayServer.WINDOW_MODE_WINDOWED
-				if DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
-				else DisplayServer.WINDOW_MODE_FULLSCREEN
-			)
-		)
+		toggle_fullscreen()
+		get_viewport().set_input_as_handled()
+		return
+	if key == KEY_F10:
+		controls.open()
 		return
 	if screen == "menu":
 		if key in [KEY_W, KEY_UP]:
@@ -593,7 +625,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif screen == "story" and story.completed:
 				screen = "menu"
 				_hide_world()
-		elif key == KEY_R:
+		elif key == KEY_F8:
 			if screen == "fight":
 				if arcade != null:
 					if arcade.state not in ["defeated", "fighting"]:
