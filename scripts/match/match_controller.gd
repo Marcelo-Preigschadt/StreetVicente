@@ -476,7 +476,8 @@ func _publish_qa() -> void:
 	if controls.visible:
 		data.controller_ui = {
 			"device_label": controls.device_list.get_item_text(controls.device_list.selected),
-			"device_id": controls.device_list.get_selected_id()
+			"device_id": controls.device_list.get_selected_id(),
+			"popup_open": controls.device_list.get_popup().visible
 		}
 
 	JavaScriptBridge.eval("window.svfQA = " + JSON.stringify(data), true)

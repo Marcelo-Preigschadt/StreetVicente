@@ -1,7 +1,9 @@
 /* Synthetic browser Gamepad API devices exercise the actual exported Godot input
  * path. This is automated compatibility coverage, not a physical USB certification. */
 const {chromium}=require('playwright');const assert=require('node:assert/strict');
-const {spawn}=require('node:child_process');const fs=require('node:fs');
+const {spawn}=require('node:child_process');const fs=require('node:fs');const path=require('node:path');
+process.chdir(path.resolve(__dirname,'..'));fs.mkdirSync('test-results',{recursive:true});
+if(!fs.existsSync('build/StreetVicente'))fs.symlinkSync('web','build/StreetVicente');
 const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[];
 const server=spawn('python3',['-m','http.server','8062','--directory','build','--bind','127.0.0.1']);
 (async()=>{
@@ -26,11 +28,13 @@ const server=spawn('python3',['-m','http.server','8062','--directory','build','-
  assert.match((await state()).controller_ui.device_label,/USB 0.*SVF synthetic USB 0/);
  assert.equal((await state()).controller_ui.device_id,0);
  // Select keyboard and then the first USB through the real OptionButton popup.
- await page.mouse.click(500,170);await page.keyboard.press('Home');await page.keyboard.press('Enter');
- await wait(()=>window.svfQA?.controller_devices[0]===-1);
+ await page.mouse.click(500,170);await wait(()=>window.svfQA?.controller_ui?.popup_open);
+ await page.mouse.click(500,203);
+ await wait(()=>window.svfQA?.controller_devices[0]===-1&&!window.svfQA.controller_ui.popup_open);
  assert.equal((await state()).controller_ui.device_label,'Somente teclado');
- await page.mouse.click(500,170);await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');
- await wait(()=>window.svfQA?.controller_devices[0]===0);
+ await page.mouse.click(500,170);await wait(()=>window.svfQA?.controller_ui?.popup_open);
+ await page.mouse.click(500,230);
+ await wait(()=>window.svfQA?.controller_devices[0]===0&&!window.svfQA.controller_ui.popup_open);
  assert.match((await state()).controller_ui.device_label,/USB 0.*SVF synthetic USB 0/);
  await page.keyboard.press('Escape');await wait(()=>!window.svfQA?.controls_open);
  // Confirm from the first USB, movement from a non-keyboard input source.
