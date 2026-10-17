@@ -20,7 +20,7 @@ func clear() -> void:
 	shake = 0.0
 
 
-func consume(events: Array, simulation: FightSimulation) -> void:
+func consume(events: Array, _simulation: FightSimulation) -> void:
 	for e in events:
 		var id := str(e.id)
 		if seen.has(id):
@@ -37,6 +37,7 @@ func consume(events: Array, simulation: FightSimulation) -> void:
 				str(e.get("move", "")).begins_with("super")
 				or str(e.get("move", "")).begins_with("uppercut")
 				or str(e.get("move", "")).ends_with(":2")
+				or (e.get("power_kind", "") != "" and e.get("effect", "") != "sentinelLaser")
 			)
 			particles.append(
 				{
@@ -54,8 +55,6 @@ func consume(events: Array, simulation: FightSimulation) -> void:
 			shake = 6.0 if strong else 2.5
 			if strong:
 				flash = 0.045
-	if simulation != null and simulation.freeze_ticks > 0:
-		shake = maxf(shake, 1.0)
 
 
 func _process(delta: float) -> void:

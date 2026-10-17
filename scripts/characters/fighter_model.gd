@@ -8,6 +8,11 @@ const SCALE := 256
 const FLOOR_Y := 590 * SCALE
 const GRAVITY := 64  # 3600 px/s², integrado a 120 Hz.
 const JUMP_SPEED := -2560  # -1200 px/s.
+var roll_phase: int = 0
+var roll_tick: int = 0
+var roll_hits: int = 0
+var roll_target: int = -1
+var roll_direction: int = 1
 var custom_ticks: int = 0
 var custom_moves: int = 0
 var tap_direction: int = 0
@@ -211,6 +216,9 @@ func begin_tick(opponent_x: int) -> void:
 			transition(FighterState.Id.DIZZY)
 			return
 		transition(FighterState.Id.IDLE if grounded() else FighterState.Id.JUMP)
+	if RollMotion.active(self):
+		RollMotion.step(self)
+		return
 	if state == FighterState.Id.ATTACK:
 		_attack_motion()
 		var custom_cancel: bool = (
@@ -329,6 +337,8 @@ func _start_move(move: MoveData) -> void:
 	if grounded():
 		vx = 0
 	transition(FighterState.Id.ATTACK)
+	if move.legacy.get("body_roll", false):
+		RollMotion.start(self)
 
 
 func end_tick() -> void:
@@ -379,6 +389,8 @@ func attack_boxes() -> Array[Rect2i]:
 	var result: Array[Rect2i] = []
 	if state != FighterState.Id.ATTACK:
 		return result
+	if RollMotion.active(self):
+		return RollMotion.boxes(self)
 	var registered = CombatGeometry.attack(self)
 	if registered != null:
 		return registered
@@ -487,6 +499,8 @@ func receive_hit(
 	region: String = "body"
 ) -> void:
 	custom_ticks = 0
+	roll_phase = 0
+	roll_target = -1
 	if state == FighterState.Id.DIZZY:
 		_finish_dizzy()
 	hit_crouched = grounded() and input.has(CombatInput.DOWN)
@@ -509,7 +523,15 @@ func receive_hit(
 		meter = mini(100, meter + 4)
 		stun_quiet = 120
 		if dizzy_protection == 0 and move.legacy.get("level", "") != "throw":
-			stun_gauge = mini(100, stun_gauge + 18 + int(move.legacy.get("strength", 1)) * 9)
+			stun_gauge = mini(
+				100,
+				(
+					stun_gauge
+					+ int(
+						move.legacy.get("stun_points", 18 + int(move.legacy.get("strength", 1)) * 9)
+					)
+				)
+			)
 			if combo_size >= 3 and stun_gauge >= 65:
 				dizzy_pending = 282
 			var chemical := roundi(float(move.legacy.get("dizzyDuration", 0)) * 120.0)
@@ -525,6 +547,11 @@ func receive_hit(
 
 func snapshot() -> Dictionary:
 	return {
+		"roll_phase": roll_phase,
+		"roll_tick": roll_tick,
+		"roll_hits": roll_hits,
+		"roll_target": roll_target,
+		"roll_direction": roll_direction,
 		"dizzy_ticks": dizzy_ticks,
 		"dizzy_protection": dizzy_protection,
 		"dizzy_escape_cooldown": dizzy_escape_cooldown,
@@ -586,6 +613,11 @@ func restore(data: Dictionary) -> void:
 	assert(data.character == character.id and data.slot == slot)
 	chain = data.get("chain", []).duplicate()
 	for field in [
+		"roll_phase",
+		"roll_tick",
+		"roll_hits",
+		"roll_target",
+		"roll_direction",
 		"custom_ticks",
 		"custom_moves",
 		"tap_direction",
@@ -722,6 +754,10 @@ func _attack_motion() -> void:
 		)
 		* SCALE
 	)
+	if m.name == "uppercut" and PowerMoves.UPPER.has(character.id):
+		advance = (
+			(int(PowerMoves.upper_profile(character.id)[0]) + int(m.get("strength", 1)) * 8) * SCALE
+		)
 	if grounded() and move_tick < move.startup * 2:
 		@warning_ignore("integer_division")
 		var before: int = advance * move_tick / (move.startup * 2)
@@ -732,14 +768,12 @@ func _attack_motion() -> void:
 		vx = 0
 	# Marcelo drives the fist for two design frames on the floor, then launches.
 	# All timing is simulation-owned and therefore survives replay/hitstop.
-	var launch_tick := (
-		move.startup * 2 + (4 if character.id in ["marcelo", "rafael", "adriano", "joao"] else 0)
-	)
+	var launch_tick := move.startup * 2 + (4 if PowerMoves.UPPER.has(character.id) else 0)
 	if m.name == "uppercut" and move_tick >= launch_tick and not move_motion_started:
 		move_motion_started = true
 		if not m.get("grounded", false):
 			vy = roundi(float(m.get("jumpVelocity", -1080)) * SCALE / 120.0)
-			vx = facing * roundi(float(m.get("travelSpeed", 135)) * SCALE / 120.0)
+			vx = facing * roundi(float(PowerMoves.upper_profile(character.id)[1]) * SCALE / 120.0)
 
 
 func _double_tap() -> bool:

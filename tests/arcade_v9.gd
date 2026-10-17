@@ -24,7 +24,8 @@ static func run(s: SceneTree) -> void:
 		for tick in f.current_move().total_ticks():
 			f.move_tick = tick
 			var frame := CharacterArt.frame(f)
-			s.check("arcade-v9" in frame.sheet.image, "Sem retorno à arte antiga durante %s" % name)
+			var revision := "powers-v10" if name == "special" else "arcade-v9"
+			s.check(revision in frame.sheet.image, "Sem retorno à arte antiga durante %s" % name)
 			if name != "special":
 				s.check(
 					f.attack_boxes().is_empty() == (f.current_move().phase(tick) != "ACTIVE"),

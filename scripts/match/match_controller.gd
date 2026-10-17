@@ -339,7 +339,10 @@ func _capture_qa_trace() -> void:
 			"pose_index": pose.index,
 			"y": f.y,
 			"vy": f.vy,
-			"hit_count": f.attack_boxes().size()
+			"hit_count": f.attack_boxes().size(),
+			"x": f.x,
+			"roll_phase": f.roll_phase,
+			"roll_hits": f.roll_hits
 		}
 	)
 	if qa_trace.size() > 64:
@@ -402,7 +405,16 @@ func _publish_qa() -> void:
 		data.move_tick = sim.fighters[0].move_tick
 		data.vy = sim.fighters[0].vy
 		data.meter = [sim.fighters[0].meter, sim.fighters[1].meter]
-		data.fx_revision = 9
+		data.fx_revision = 10
+		data.roll = {
+			"phase": sim.fighters[0].roll_phase,
+			"tick": sim.fighters[0].roll_tick,
+			"hits": sim.fighters[0].roll_hits
+		}
+		data.freeze_ticks = sim.freeze_ticks
+		data.round_wait = sim.round_wait
+		data.winner = sim.winner
+		data.shake = impact.shake
 		data.last_contacts = last_contacts
 		data.hurtboxes = sim.fighters.map(
 			func(f: FighterModel) -> Array:

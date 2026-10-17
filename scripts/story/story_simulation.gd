@@ -205,7 +205,11 @@ func step(value: CombatInput) -> void:
 				for hurt in f.hurtboxes():
 					if BoxMath.overlap(hit, hurt):
 						contact = true
-			if contact and not enemy.id in hero.hit_targets:
+			if (
+				contact
+				and not enemy.id in hero.hit_targets
+				and (not RollMotion.active(hero) or RollMotion.can_contact(hero, f))
+			):
 				hero.hit_targets.append(enemy.id)
 				_apply_hero_hit(f, power, hero.facing, false, f.x, f.y - 130 * UNIT, "", 0)
 			var enemy_boxes: Array[Rect2i] = []
@@ -340,11 +344,16 @@ func _apply_hero_hit(
 	effect: String,
 	entity: int
 ) -> void:
+	var rolling := RollMotion.active(hero) and entity == 0
+	if rolling:
+		move = RollMotion.contact_move(hero)
 	hero.has_contact = true
 	if not blocked:
 		hero.meter = mini(100, hero.meter + int(move.legacy.get("meter", 8)))
 		hero.connect_hit(target, move)
 	target.receive_hit(move, facing, blocked, hero.slot, hero.combo, hero.scaled_damage(move))
+	if rolling:
+		RollMotion.contact(hero, target, blocked)
 	freeze_ticks = maxi(freeze_ticks, move.hitstop * 2)
 	events.append(
 		{
@@ -354,10 +363,24 @@ func _apply_hero_hit(
 			"character": hero.character.id,
 			"move": move.id,
 			"slot": target.slot,
+			"facing": facing,
 			"x": x,
 			"y": y,
-			"effect": effect,
-			"power_kind": "projectile" if entity > 0 else ""
+			"effect": "electricRoll" if rolling else effect,
+			"power_kind":
+			(
+				"roll"
+				if rolling
+				else (
+					"projectile"
+					if entity > 0
+					else (
+						"strike"
+						if move.legacy.get("name", "") in ["uppercut", "super", "special"]
+						else ""
+					)
+				)
+			)
 		}
 	)
 

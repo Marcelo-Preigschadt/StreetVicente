@@ -43,6 +43,7 @@ static func load_catalog() -> void:
 			move.hitstop = 5 if d.name in ["super", "uppercut"] else 3
 			move.push_pixels = roundi(float(d.get("push", 160)) / 15.0)
 			c.moves[key] = move
+		PowerMoves.configure(c)
 		c.jab = c.moves["punch:1"]
 		c.kick = c.moves["kick:1"]
 		c.sweep = c.moves["sweep:1"]

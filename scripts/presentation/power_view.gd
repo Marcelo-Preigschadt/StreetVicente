@@ -38,10 +38,12 @@ func consume(events: Array) -> void:
 					"character": e.character,
 					"effect": e.get("effect", ""),
 					"move": e.get("move", ""),
+					"slot": int(e.get("slot", -1)),
+					"facing": int(e.get("facing", 1)),
 					"origin_x": float(e.get("origin_x", e.x)) / FighterModel.SCALE,
 					"origin_y": float(e.get("origin_y", e.y)) / FighterModel.SCALE,
-					"life": 0.14 if e.kind == "beam" else 0.28,
-					"max": 0.14 if e.kind == "beam" else 0.28
+					"life": 0.14 if e.kind in ["beam", "cast"] else 0.32,
+					"max": 0.14 if e.kind in ["beam", "cast"] else 0.32
 				}
 			)
 
@@ -61,7 +63,7 @@ func _draw() -> void:
 	if world == null:
 		return
 	for f in world.power_actors():
-		_draw_charge(f)
+		PowerFXV10.charge(self, f, camera_x, world.power_actors())
 	for p in world.projectiles:
 		# Each entity starts in world space. A beam must not inherit the preceding
 		# drone's translation or facing transform.
@@ -69,7 +71,6 @@ func _draw() -> void:
 		var origin := Vector2(
 			float(p.x) / FighterModel.SCALE - camera_x, float(p.y) / FighterModel.SCALE
 		)
-		var facing := int(p.get("facing", signi(int(p.vx))))
 		if p.kind == "laser":
 			var start := Vector2(
 				float(p.origin_x) / FighterModel.SCALE - camera_x,
@@ -80,109 +81,14 @@ func _draw() -> void:
 		if p.drone:
 			MarceloPowerFX.drone(self, p, camera_x, clock, world.power_actors())
 			continue
-		draw_set_transform(origin, 0, Vector2(facing, 1))
-		var character := str(p.character)
-		var theme := PowerArt.theme(character, p.effect)
-		_draw_projectile(
-			theme, int(p.age), LegacyRoster.get_character(character).color, origin, facing
-		)
+		PowerFXV10.projectile(self, p, camera_x)
 	draw_set_transform(Vector2.ZERO)
 	for b in bursts:
-		_draw_burst(b)
-	draw_set_transform(Vector2.ZERO)
-
-
-func _draw_projectile(
-	theme: String, age: int, color: Color, _origin: Vector2, _facing: int
-) -> void:
-	var frame := int(age / 6)
-	match theme:
-		"code":
-			ArcadeEffects.draw_cel(self, "code", frame, 0.40)
-		"smoke":
-			PowerArt.draw(self, "smoke", frame, 0.55)
-		"fork":
-			PowerArt.draw(self, "fork", frame, 0.34)
-		"book":
-			PowerArt.draw(self, "book", frame, 0.36)
-		"chalk":
-			draw_line(Vector2(-60, 0), Vector2(5, 0), Color(1, 0.65, 0.95, 0.25), 9, true)
-			draw_rect(Rect2(-12, -5, 26, 10), Color("fff2e7"))
-			for i in 5:
-				draw_circle(
-					Vector2(-22 - i * 11, ((age + i * 7) % 13) - 6),
-					2,
-					Color(1, 0.85, 0.9, 0.7 - i * 0.1)
-				)
-		"scroll":
-			ArcadeEffects.draw_cel(self, "scroll", frame, 0.35)
-		"lightning":
-			_bolt(Vector2(-90, 0), Vector2(20, 0), color, age)
-			_bolt(Vector2(-65, 14), Vector2(15, 0), Color("deffff"), age + 7)
-		"paint":
-			for i in 5:
-				var c := Color.from_hsv(float(i) / 5, 0.8, 1)
-				draw_line(
-					Vector2(-100 + i * 8, -28 + i * 12), Vector2(18, 0), Color(c, 0.6), 9 - i, true
-				)
-		_:
-			_ribbon(color, age)
-
-
-func _draw_charge(f: FighterModel) -> void:
-	if f.character.id == "marcelo":
-		MarceloPowerFX.charge(self, f, camera_x)
-		return
-	if f.state != FighterState.Id.ATTACK or f.character.legacy.is_empty():
-		return
-	var move := f.current_move()
-	var name: String = move.legacy.name
-	if name not in ["special", "super", "drone", "uppercut"]:
-		return
-	var root := Vector2(float(f.x) / FighterModel.SCALE - camera_x, float(f.y) / FighterModel.SCALE)
-	var socket := CombatGeometry.hand(f)
-	var hand := Vector2(socket) / FighterModel.SCALE - Vector2(camera_x, 0)
-	var color := f.character.color
-	var phase := move.phase(f.move_tick)
-	if phase == "STARTUP":
-		var progress := float(f.move_tick) / maxf(1, move.startup * 2)
-		draw_set_transform(hand, 0, Vector2(f.facing, 1))
-		for i in 9:
-			var angle := float(i) * TAU / 9 + progress * 2
-			var d := 45 * (1.0 - progress) + 12
-			var p := Vector2(cos(angle), sin(angle)) * d
-			draw_line(p, p * 0.6, Color(color, 0.35 + progress * 0.5), 2, true)
-			draw_rect(Rect2(p - Vector2.ONE * 2, Vector2.ONE * 4), Color(color, 0.7))
-		draw_set_transform(Vector2.ZERO)
-	if (
-		phase == "ACTIVE"
-		and not move.legacy.get("projectile", false)
-		and not move.legacy.get("summon", false)
-	):
-		draw_set_transform(root + Vector2(0, -155), 0, Vector2(f.facing, 1))
-		if f.character.id in ["joao", "ruan"]:
-			for i in 4:
-				_bolt(
-					Vector2(-55, -100 + i * 55),
-					Vector2(80, -50 + i * 45),
-					color,
-					f.move_tick + i * 7
-				)
-		elif name == "uppercut":
-			for i in 3:
-				draw_arc(
-					Vector2(10 + i * 5, -20),
-					65 + i * 9,
-					-2.0,
-					0.9,
-					24,
-					Color(color, 0.8 - i * 0.2),
-					5 - i,
-					true
-				)
+		if b.kind == "beam" or b.effect == "sentinelLaser" or b.kind == "laser":
+			_draw_burst(b)
 		else:
-			_ribbon(color, f.move_tick)
-		draw_set_transform(Vector2.ZERO)
+			PowerFXV10.impact(self, b, world.power_actors(), camera_x)
+	draw_set_transform(Vector2.ZERO)
 
 
 func _draw_burst(b: Dictionary) -> void:
@@ -213,24 +119,3 @@ func _draw_burst(b: Dictionary) -> void:
 	else:
 		draw_arc(Vector2.ZERO, 12 + phase * 36, 0, TAU, 32, Color(color, alpha * 0.6), 2, true)
 	draw_set_transform(Vector2.ZERO)
-
-
-func _bolt(start: Vector2, end: Vector2, color: Color, seed_value: int) -> void:
-	var points := PackedVector2Array()
-	for i in 9:
-		var point := start.lerp(end, float(i) / 8)
-		if i > 0 and i < 8:
-			point.y += float((seed_value * 7 + i * 13) % 23 - 11)
-		points.append(point)
-	draw_polyline(points, Color(color, 0.25), 12, true)
-	draw_polyline(points, color, 5, true)
-	draw_polyline(points, Color("f2ffff"), 1.5, true)
-
-
-func _ribbon(color: Color, age: int) -> void:
-	var points := PackedVector2Array()
-	for i in 12:
-		points.append(Vector2(-100 + i * 11, sin(float(age + i * 6) * 0.15) * (10 + i)))
-	draw_polyline(points, Color(color, 0.25), 16, true)
-	draw_polyline(points, color, 6, true)
-	draw_polyline(points, Color(1, 1, 1, 0.9), 2, true)

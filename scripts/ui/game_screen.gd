@@ -142,7 +142,7 @@ func _menu() -> void:
 		if active:
 			text_at(rect.position + Vector2(490, 33), ">", 26, INK)
 	ArcadeTheme.plate(self, Rect2(1000, 32, 280, 36), BLUE, 16)
-	text_at(Vector2(1032, 57), "13 LUTADORES / 2D V9", 18, INK)
+	text_at(Vector2(1032, 57), "13 LUTADORES / 2D V10", 18, INK)
 	text_at(Vector2(1000, 92), "RECORDE  %08d" % game.progress.record, 15, GOLD)
 	wrapped(Vector2(88, 648), DESCRIPTIONS[game.menu_index], 540, 16, PAPER)
 	_footer("W/S NAVEGAR     ENTER CONFIRMAR")

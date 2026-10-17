@@ -48,6 +48,7 @@ func _process(_delta: float) -> void:
 		and trail_clock > 0.035
 		and use_new_art
 		and not presentation_frozen
+		and (not RollMotion.active(model) or model.roll_phase == RollMotion.TRAVEL)
 	):
 		var move := model.current_move()
 		if move.phase(model.move_tick) == "ACTIVE":

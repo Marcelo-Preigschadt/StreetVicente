@@ -16,6 +16,11 @@ func emit(f: FighterModel, tick: int, lane_aware: bool = false) -> bool:
 	if f.move_tick == 0:
 		events.append(_event("voice", f, tick, m.name, f.x, f.y))
 	var super_started: bool = f.move_tick == 0 and m.name == "super"
+	if m.get("body_roll", false):
+		if f.move_tick == move.startup * 2:
+			events.append(_event("cast", f, tick, m.name, f.x, f.y - 130 * UNIT))
+		return false
+
 	if not m.get("projectile", false) and not m.get("summon", false):
 		if f.move_tick == move.startup * 2 and m.name in ["uppercut", "special", "super"]:
 			events.append(
@@ -245,6 +250,9 @@ static func _event(
 		"move": move,
 		"tick": tick,
 		"slot": f.slot,
+		"facing": f.facing,
+		"effect":
+		str(f.current_move().legacy.get("effect", "")) if f.current_move() != null else "",
 		"x": x,
 		"y": y
 	}

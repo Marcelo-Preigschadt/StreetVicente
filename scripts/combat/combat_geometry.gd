@@ -32,6 +32,26 @@ static func attack(f: FighterModel):
 	if f.state != FighterState.Id.ATTACK:
 		return null
 	if (
+		f.current_move().legacy.get("name", "") == "uppercut"
+		and PowerMoves.UPPER.has(f.character.id)
+	):
+		var boxes := PowerMoves.upper_boxes(f)
+		if f.current_move().phase(f.move_tick) == "ACTIVE":
+			var band = frame(f).get("hit", f.character.pose_frame(f).get("hit"))
+			if band is Array:
+				boxes.append(
+					BoxMath.world_rect(
+						CharacterMetrics.rect(
+							f.character.id,
+							Rect2i(int(band[0]), int(band[1]), int(band[2]), int(band[3]))
+						),
+						f.x,
+						f.y,
+						f.facing
+					)
+				)
+		return boxes
+	if (
 		f.character.id not in ["marcelo", "rafael", "adriano", "joao"]
 		and not (f.character.id == "gustavo" and CharacterArt.has_frame(f))
 	):

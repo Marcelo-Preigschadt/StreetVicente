@@ -4,6 +4,8 @@ extends RefCounted
 
 
 static func select(f: FighterModel) -> Dictionary:
+	if RollMotion.active(f):
+		return RollMotion.pose(f)
 	var sheet := "states"
 	var index := 0
 	match f.state:

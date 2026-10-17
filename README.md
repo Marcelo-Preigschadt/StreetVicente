@@ -14,6 +14,8 @@ O protótipo procedural 3D foi rejeitado e retirado dos fluxos publicados, inclu
 
 A interface inclui menu, seleção com 13 rostos, prévias em corpo inteiro, barras espelhadas e apresentação de super. A revisão v8 acrescenta cels de contato/defesa, onda de código e pergaminho, sequência ROUND → FIGHT → K.O./TIME OVER → vitória, cenário em toda a janela e cancel confirmado de soco aéreo em chute. A revisão v9 redesenha João (64 cels) e a caminhada em guarda do Adriano. Os demais personagens continuam sendo revisados um por vez. [Revisão v9, controles e validação](docs/ARCADE_V9.md). [Evolução anterior da arte](docs/ART_PILOT.md).
 
+A revisão v10 corrige a vibração após K.O., implementa o **rolinho elétrico do João em H** com três acertos e rebote na defesa, amplia o avanço dos ganchos e apresenta novos efeitos de carga, rastro e impacto para os 13 lutadores. [Regras, arte e validação v10](docs/POWERS_V10.md).
+
 [Auditoria da migração e correções desta revisão](docs/MIGRATION_V6.md): recuperação após golpes, escala do Adriano, circuito/pontuação e progresso do História.
 
 ## Modos e estado da migração
@@ -24,8 +26,8 @@ A interface inclui menu, seleção com 13 rostos, prévias em corpo inteiro, bar
 | Combate | CPU, 2 jogadores locais e treinamento; forças leve/média/forte; golpes baixos/aéreos, cancels básicos, defesa, agarrão, tontura com recuperação, levantamento rápido, double tap, Custom e contra-ataque de guarda |
 | Arcade / CPU | Circuito de 12 rivais, rota, bônus, Continue e recorde persistente |
 | Rounds | Melhor de três; Round/número/Fight com bloqueio de comandos; K.O./Time Over/vitória/Perfect; barra super preservada |
-| Poderes | Projéteis e efeitos por personagem; código e drones/enxame do Marcelo; VFX animados e lasers independentes; compartilhados com o História |
-| Arte nova | Marcelo com 72 cels; Rafael com 64 novos + 8 socos v5; Adriano com 64 novos (caminhada v9); João com 64 novos; Gustavo com 8 socos v5; demais preservados |
+| Poderes | Rolinho elétrico físico do João; ganchos com avanço e arco ativo; projéteis e efeitos por personagem; código e drones/enxame do Marcelo; VFX animados e lasers independentes; compartilhados com o História |
+| Arte nova | Marcelo com 72 cels; Rafael com 64 novos + 8 socos v5; Adriano com 64 novos (caminhada v9); João com 64 novos + 8 cels de rolinho; Gustavo com 8 socos v5; demais preservados |
 | História | Quatro atos, ondas/chefes e exoesqueleto, diálogos de entrada, turno de 15 minutos, pontos por derrotas, objetos/perigos, retry de ato e save/retomada; coop ainda pendente |
 | Rollback | Snapshot/replay local verificado; online permanece indisponível até implementação e testes reais de sessão/rede |
 | Web | GitHub Actions importa/testa/exporta e só publica após QA do WASM |

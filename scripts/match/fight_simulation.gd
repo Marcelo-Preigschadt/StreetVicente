@@ -69,6 +69,10 @@ func step(inputs: Array[CombatInput]) -> void:
 	for i in 2:
 		fighters[i].record_input(inputs[i], tick)
 	if winner >= 0:
+		if freeze_ticks > 0:
+			freeze_ticks -= 1
+			tick += 1
+			return
 		round_wait += 1
 		for f in fighters:
 			f._integrate_air()
@@ -125,6 +129,8 @@ func step(inputs: Array[CombatInput]) -> void:
 	for i in 2:
 		var attacker := fighters[i]
 		var defender := fighters[1 - i]
+		if RollMotion.active(attacker) and not RollMotion.can_contact(attacker, defender):
+			continue
 		if defender.slot in attacker.hit_targets:
 			continue
 		var connected := false
@@ -139,7 +145,11 @@ func step(inputs: Array[CombatInput]) -> void:
 			if connected:
 				break
 		if connected:
-			var move := attacker.current_move()
+			var move := (
+				RollMotion.contact_move(attacker)
+				if RollMotion.active(attacker)
+				else attacker.current_move()
+			)
 			if move.legacy.get("level", "") == "throw" and not defender.grounded():
 				continue
 			contacts.append(
@@ -182,6 +192,9 @@ func step(inputs: Array[CombatInput]) -> void:
 			attacker.scaled_damage(move),
 			region
 		)
+		var rolling := RollMotion.active(attacker)
+		if rolling:
+			RollMotion.contact(attacker, defender, contact.blocked)
 		freeze_ticks = maxi(freeze_ticks, move.hitstop * 2)
 		events.append(
 			{
@@ -193,11 +206,31 @@ func step(inputs: Array[CombatInput]) -> void:
 				"character": attacker.character.id,
 				"slot": defender.slot,
 				"attacker": attacker.slot,
+				"facing": contact.facing,
 				"damage": before_health - defender.health,
 				"combo": attacker.combo,
 				"combo_name": combo_name,
-				"effect": str(contact.get("effect", "")),
-				"power_kind": str(contact.get("power_kind", "")),
+				"effect":
+				(
+					"electricRoll"
+					if rolling
+					else str(contact.get("effect", move.legacy.get("effect", "")))
+				),
+				"power_kind":
+				(
+					"roll"
+					if rolling
+					else str(
+						contact.get(
+							"power_kind",
+							(
+								"strike"
+								if move.legacy.get("name", "") in ["special", "super", "uppercut"]
+								else ""
+							)
+						)
+					)
+				),
 				"x": int(contact.get("impact_x", defender.x)),
 				"y": int(contact.get("impact_y", defender.y - 190 * FighterModel.SCALE))
 			}
@@ -215,6 +248,13 @@ func step(inputs: Array[CombatInput]) -> void:
 		if winner < 2:
 			wins[winner] += 1
 		match_over = wins[0] >= 2 or wins[1] >= 2
+		projectiles.clear()
+		for f in fighters:
+			f.input = CombatInput.new()
+			f.buffer = CommandBuffer.new()
+			f.roll_phase = 0
+			f.push_remaining = 0
+			f.push_ticks = 0
 		events.append(
 			{
 				"id": "%d:round_end" % tick,

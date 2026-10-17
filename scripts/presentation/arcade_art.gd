@@ -21,6 +21,11 @@ static func load_data() -> void:
 			data[id] = {"sheets": {}}
 		data[id].sheets.merge(revision.sheets, true)
 
+	var roll: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string("res://data/characters/joao-powers-v10.json")
+	)
+	data.joao.sheets.merge(roll.sheets, true)
+
 
 static func pose(f: FighterModel) -> Dictionary:
 	load_data()

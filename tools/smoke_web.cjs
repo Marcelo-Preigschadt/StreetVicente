@@ -38,7 +38,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  // First menu entry directly starts the new-art pilot in native Godot training.
  await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight'&&window.svfQA.intro_ticks===0);
  assert.deepEqual((await state()).selected,['marcelo','rafael']);assert.equal((await state()).new_art,true);
- assert.equal((await state()).fx_revision,9,'Pacote novo de geometria e VFX');
+ assert.equal((await state()).fx_revision,10,'Pacote novo de geometria e VFX');
  assert.deepEqual((await state()).pilot_3d,{},'Protótipo 3D rejeitado não substitui a arte aprovada');
  assert.deepEqual((await state()).round_calls.slice(0,3).map(e=>e.cue),['round','1','fight'],'Abertura Round/One/Fight completa no WASM');
  await page.screenshot({path:'test-results/02-pilot-ready.png'});
@@ -119,7 +119,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await wait(()=>window.svfQA?.screen==='fight'&&window.svfQA.intro_ticks===0);await page.keyboard.press('F3');await delay(11000);await page.screenshot({path:'test-results/12-demo.png'});
  // Select and cast all new thematic VFX using only normal UI/keyboard controls.
  await page.keyboard.press('Escape');await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');
- for(const id of ['rafael','gustavo','khauany','dienes']){
+ for(const id of ['adriano','rafael','gustavo','gelton','marcelino','marcos','tais','luciana','khauany','dienes','ruan']){
   for(let i=0;i<4;i++)await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='selection');
   let q=await state();const target=q.roster_ids.indexOf(id);for(let i=0;i<(target-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
   await page.keyboard.press('Enter');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='fight'&&window.svfQA.intro_ticks===0);
@@ -129,7 +129,14 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
    assert((await state()).last_contacts.some(e=>e.character===id&&e.kind==='hit'),'Soco novo conecta: '+id);
    await pausedShot(`test-results/14-${id}-punch.png`);await page.keyboard.press('F8');await delay(100);
   }
-  await page.keyboard.press(id==='dienes'?'q':'h');await wait(()=>window.svfQA?.projectiles>0);await page.screenshot({path:`test-results/14-${id}-power.png`});
+  if(id==='marcos'){
+   // Sequestro de Sessão is a throw: approach and verify contact, not a projectile.
+   await page.keyboard.down('d');await wait(()=>window.svfQA.x[1]-window.svfQA.x[0]<180*256);await page.keyboard.up('d');
+   await page.keyboard.press('h');await wait(()=>window.svfQA.last_contacts.some(e=>e.character==='marcos'&&e.kind==='hit'));
+   await pausedShot(`test-results/14-${id}-power.png`);
+  }else{
+   await page.keyboard.press(id==='dienes'?'q':'h');await wait(()=>window.svfQA?.projectiles>0);await page.screenshot({path:`test-results/14-${id}-power.png`});
+  }
   await page.keyboard.press('Escape');await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');
   // menu_index was 4 (training); move it to 0 for the next iteration.
   for(let i=0;i<4;i++)await page.keyboard.press('ArrowUp');
@@ -175,6 +182,6 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');
  await page.setViewportSize({width:960,height:540});await delay(200);await page.screenshot({path:'test-results/13-resize.png'});
  assert.equal(responses['index.wasm'],200);assert.equal(responses['index.pck'],200);assert.deepEqual(errors,[],'Console Web sem erros');
- fs.writeFileSync('test-results/web-smoke.json',JSON.stringify({status:'passed',checks:['Loader Street Vicente sem logotipo Godot','Botão de tela cheia entra e sai','Painel USB abre e fecha','Seis teclas originais e força por botão','R volta a defender','WASM/PCK sob /StreetVicente/','13 personagens: seleção com prévias e grade','socos novos Rafael/Gustavo','nova arte por estados','voadora dedicada e aterrissagem','gancho: subida e queda sem pose de chão no ar','efeito código visível em pixels','drone estacionário e laser','efeitos no História','fumaça/garfos/livros','movimento','prejump/salto','soco com dano','chute','rasteira','código','cinco drones','comparação de arte','pausa','seleção','história','demonstração','Round/One/Fight com bloqueio de comandos','cenário cobre 21:9 e 4:3','resize','Adriano com 300px e colisão uniforme','reação e recuperação sem trava','custom','pontos CPU e recorde persistente','diálogo e checkpoint com reload','console sem erros'],responses,codePixels},null,2));
+ fs.writeFileSync('test-results/web-smoke.json',JSON.stringify({status:'passed',checks:['Loader Street Vicente sem logotipo Godot','Botão de tela cheia entra e sai','Painel USB abre e fecha','Seis teclas originais e força por botão','R volta a defender','WASM/PCK sob /StreetVicente/','13 personagens: seleção com prévias e grade','socos novos Rafael/Gustavo','nova arte por estados','voadora dedicada e aterrissagem','gancho: subida e queda sem pose de chão no ar','efeito código visível em pixels','drone estacionário e laser','efeitos no História','VFX próprios dos 13 lutadores: fumaça, garfos, livros, selos, código, tinta e eletricidade','movimento','prejump/salto','soco com dano','chute','rasteira','código','cinco drones','comparação de arte','pausa','seleção','história','demonstração','Round/One/Fight com bloqueio de comandos','cenário cobre 21:9 e 4:3','resize','Adriano com 300px e colisão uniforme','reação e recuperação sem trava','custom','pontos CPU e recorde persistente','diálogo e checkpoint com reload','console sem erros'],responses,codePixels},null,2));
  await page.close();console.log('WEB SMOKE PASSED: novo Marcelo + combate/poderes + roster + história');
 })().catch(async e=>{console.error(e);console.error('Browser errors:',JSON.stringify(errors));if(page&&!page.isClosed()){await page.screenshot({path:'test-results/failure.png'}).catch(()=>{});const status=await page.evaluate(()=>({url:location.href,qa:window.svfQA,status:document.getElementById('status')?.innerText})).catch(()=>({}));console.error('Browser state:',JSON.stringify(status));fs.writeFileSync('test-results/failure.json',JSON.stringify({error:String(e),errors,status},null,2));}process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();server.kill();});
