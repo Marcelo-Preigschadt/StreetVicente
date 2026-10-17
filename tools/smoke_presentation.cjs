@@ -11,7 +11,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  page=await browser.newPage({viewport:{width:1280,height:720}});
  page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(/SCRIPT ERROR|Parse Error|ERROR:/i.test(m.text()))errors.push(m.text());});
  const state=()=>page.evaluate(()=>window.svfQA);
- const wait=fn=>page.waitForFunction(fn,null,{timeout:30000});
+ const wait=(fn,arg=null)=>page.waitForFunction(fn,arg,{timeout:30000});
  await page.goto('http://127.0.0.1:8064/StreetVicente/?qa=1',{timeout:120000});
  await wait(()=>window.svfQA?.screen==='menu');await page.keyboard.press('F5');await wait(()=>window.svfQA.screen==='stage_selection');
  for(const id of ['patio','nit','cobertura','servidor']){
@@ -38,7 +38,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.keyboard.press('Enter');await wait(()=>window.svfQA.screen==='stage_selection');await page.keyboard.press('Enter');
  await wait(()=>window.svfQA.screen==='fight'&&window.svfQA.intro_ticks===0);
  assert.match((await state()).art_sheet,/gustavo\/arcade-v11/);const start=(await state()).x[0];
- await page.keyboard.down('d');await wait(()=>window.svfQA.x[0]>start+20*256);
+ await page.keyboard.down('d');await wait(start=>window.svfQA.x[0]>start+20*256,start);
  assert.match((await state()).art_sheet,/arcade-v11\/walk/);await page.keyboard.up('d');
  await page.keyboard.down('d');await wait(()=>window.svfQA.x[1]-window.svfQA.x[0]<180*256);await page.keyboard.up('d');
  await page.keyboard.press('f');await wait(()=>window.svfQA.contact_clips?.includes('light'));
