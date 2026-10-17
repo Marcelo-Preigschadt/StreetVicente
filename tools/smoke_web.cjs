@@ -49,6 +49,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
   await page.keyboard.press('F8');await delay(80);await page.keyboard.press(key);
   await page.waitForFunction(expected=>window.svfQA?.trace?.some(e=>e.move===expected),move,{timeout:25000});
  }
+ await page.keyboard.press('F8');await delay(150);
  let before=await state();await page.keyboard.down('d');await delay(350);await page.keyboard.up('d');
  let moved=await state();assert(moved.x[0]>before.x[0]+40*256,'Movimento real no WASM');
  await page.keyboard.press('w');await wait(()=>window.svfQA?.state==='JUMP');
