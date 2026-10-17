@@ -473,6 +473,12 @@ func _publish_qa() -> void:
 		}
 	data.controls_open = controls.visible
 	data.controller_devices = AppSettings.devices
+	if controls.visible:
+		data.controller_ui = {
+			"device_label": controls.device_list.get_item_text(controls.device_list.selected),
+			"device_id": controls.device_list.get_selected_id()
+		}
+
 	JavaScriptBridge.eval("window.svfQA = " + JSON.stringify(data), true)
 
 

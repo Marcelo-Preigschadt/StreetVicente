@@ -124,6 +124,10 @@ func run() -> void:
 		var released := button.duplicate() as InputEventJoypadButton
 		released.pressed = false
 		Input.parse_input_event(released)
+	var single_device: Array[int] = [6, -1]
+	settings.devices = single_device
+	settings.assign_device(0, -1)
+	check(settings.devices == [-1, -1], "Selecionar teclado não transfere USB para outro jogador")
 	var no_devices: Array[int] = [-1, -1]
 	settings.devices = no_devices
 	settings.profiles = saved_profiles

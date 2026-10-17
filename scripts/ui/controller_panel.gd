@@ -1,6 +1,7 @@
 class_name ControllerPanel
 extends PanelContainer
 ## Painel independente do combate: captura física, remapeamento e diagnóstico.
+const KEYBOARD_ID := 100000
 var game: Node
 var slot := 0
 var capture := ""
@@ -51,6 +52,7 @@ func _ready() -> void:
 	)
 	selectors.add_child(player_list)
 	device_list = OptionButton.new()
+	device_list.fit_to_longest_item = false
 	device_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	device_list.item_selected.connect(_assign)
 	selectors.add_child(device_list)
@@ -131,12 +133,12 @@ func refresh() -> void:
 	if not is_instance_valid(device_list):
 		return
 	device_list.clear()
-	device_list.add_item("Somente teclado", -1)
+	device_list.add_item("Somente teclado", KEYBOARD_ID)
 	var connected := Input.get_connected_joypads()
 	for device in connected:
-		device_list.add_item("USB %d · %s" % [device, Input.get_joy_name(device)], device)
+		device_list.add_item("USB %d · %s" % [device, AppSettings.device_label(device)], device)
 	var device: int = AppSettings.devices[slot]
-	device_list.select(maxi(0, device_list.get_item_index(device)))
+	device_list.select(maxi(0, device_list.get_item_index(KEYBOARD_ID if device < 0 else device)))
 	status.text = (
 		"Conecte o controle e pressione um botão para ativá-lo no navegador. "
 		+ "F10 abre este painel."
@@ -146,7 +148,7 @@ func refresh() -> void:
 			"J%d: %s · %s"
 			% [
 				slot + 1,
-				Input.get_joy_name(device),
+				AppSettings.device_label(device),
 				(
 					"layout reconhecido"
 					if Input.is_joy_known(device)
@@ -166,7 +168,7 @@ func refresh() -> void:
 			bind_buttons[action].text = (
 				AppSettings.PAD_LABELS[i]
 				+ " · "
-				+ {"uppercut": "LT + Y", "super": "LT + RB", "custom": "LT + Start"}[action]
+				+ {"uppercut": "LT + Poder", "super": "LT + Soco forte", "custom": "LT + Pausa"}[action]
 			)
 		bind_buttons[action].disabled = device < 0
 
@@ -180,7 +182,8 @@ static func binding_label(binding: Dictionary) -> String:
 
 
 func _assign(index: int) -> void:
-	AppSettings.assign_device(slot, device_list.get_item_id(index))
+	var device := device_list.get_item_id(index)
+	AppSettings.assign_device(slot, -1 if device == KEYBOARD_ID else device)
 	game.input_source.clear()
 	capture = ""
 	refresh()

@@ -21,6 +21,18 @@ const server=spawn('python3',['-m','http.server','8062','--directory','build','-
  await wait(()=>window.svfQA?.screen==='menu'&&window.svfQA.controller_devices?.filter(d=>d>=0).length===2);
  const button=async(index,down,pad=0)=>page.evaluate(({index,down,pad})=>{window.testPads[pad].buttons[index]={pressed:down,touched:down,value:down?1:0};},{index,down,pad});
  const tap=async(index,pad=0)=>{await button(index,true,pad);await delay(170);await button(index,false,pad);await delay(100);};
+ // The selector must show the actual USB, not its keyboard placeholder.
+ await page.keyboard.press('F10');await wait(()=>window.svfQA?.controls_open);
+ assert.match((await state()).controller_ui.device_label,/USB 0.*SVF synthetic USB 0/);
+ assert.equal((await state()).controller_ui.device_id,0);
+ // Select keyboard and then the first USB through the real OptionButton popup.
+ await page.mouse.click(500,170);await page.keyboard.press('Home');await page.keyboard.press('Enter');
+ await wait(()=>window.svfQA?.controller_devices[0]===-1);
+ assert.equal((await state()).controller_ui.device_label,'Somente teclado');
+ await page.mouse.click(500,170);await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');
+ await wait(()=>window.svfQA?.controller_devices[0]===0);
+ assert.match((await state()).controller_ui.device_label,/USB 0.*SVF synthetic USB 0/);
+ await page.keyboard.press('Escape');await wait(()=>!window.svfQA?.controls_open);
  // Confirm from the first USB, movement from a non-keyboard input source.
  await tap(0);await wait(()=>window.svfQA?.screen==='fight'&&window.svfQA.intro_ticks===0);
  const x=(await state()).x[0];
@@ -30,6 +42,7 @@ const server=spawn('python3',['-m','http.server','8062','--directory','build','-
  // Controller panel capture: Soco occupies row2 column3. Swap X with B.
  await page.keyboard.press('F10');await wait(()=>window.svfQA?.controls_open);
  await page.mouse.click(1000,260);await tap(1); // HTML standard B -> Godot B.
+ assert.match((await state()).controller_ui.device_label,/SVF synthetic USB 0/);
  await page.screenshot({path:'test-results/18-controller-remap.png'});
  await page.keyboard.press('Escape');await wait(()=>!window.svfQA?.controls_open);
  await page.keyboard.press('F8');await delay(120);await tap(1);
@@ -49,6 +62,6 @@ const server=spawn('python3',['-m','http.server','8062','--directory','build','-
  await wait(()=>window.svfQA?.paused&&window.svfQA.controller_devices[0]===-1);
  await page.screenshot({path:'test-results/18a-controller-disconnected.png'});
  assert.deepEqual(errors,[],'Gamepad export without script errors');
- fs.writeFileSync('test-results/controller-smoke.json',JSON.stringify({status:'passed',source:'synthetic browser Gamepad API; no physical USB attached',checks:['two USB devices assigned','USB menu confirmation','analog movement','physical-button capture and conflict swap','remapped attack','Start pause and resume','remap survives browser reload','disconnect clears and pauses']},null,2));
+ fs.writeFileSync('test-results/controller-smoke.json',JSON.stringify({status:'passed',source:'synthetic browser Gamepad API; no physical USB attached',checks:['two USB devices assigned','actual device name in selector','keyboard/USB switching through UI','USB menu confirmation','analog movement','physical-button capture and conflict swap','remapped attack','Start pause and resume','remap survives browser reload','disconnect clears and pauses']},null,2));
  console.log('CONTROLLER WEB SMOKE PASSED');
 })().catch(async error=>{console.error(error);console.error(errors);if(page){await page.screenshot({path:'test-results/controller-failure.png'}).catch(()=>{});console.error(await page.evaluate(()=>window.svfQA).catch(()=>null));}process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();server.kill();});

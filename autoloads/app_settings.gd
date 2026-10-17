@@ -46,6 +46,7 @@ const PAD_LABELS := [
 var navigation_previous: Dictionary = {}
 var navigation_repeat: Dictionary = {}
 var devices: Array[int] = [-1, -1]
+var device_names: Dictionary = {}
 var profiles: Dictionary = {}
 var ui_open := false
 var save_error := ""
@@ -111,7 +112,29 @@ func device_key(device: int) -> String:
 		return "keyboard"
 	if device not in Input.get_connected_joypads():
 		return "unrecognized:%d" % device
-	return Input.get_joy_guid(device) + ":" + Input.get_joy_name(device)
+	return Input.get_joy_guid(device) + ":" + device_label(device)
+
+
+func device_label(device: int) -> String:
+	if device < 0 or device not in Input.get_connected_joypads():
+		return "Somente teclado"
+	return str(device_names.get(device, Input.get_joy_name(device)))
+
+
+func _read_device_name(device: int) -> String:
+	# Godot's normalized Web layout name is identical for all standard gamepads.
+	# Read the actual Gamepad.id once on connection, never in the 120 Hz sampler.
+	if OS.has_feature("web"):
+		var raw = JavaScriptBridge.eval(
+			(
+				"(()=>{try{return navigator.getGamepads()[%d]?.id||'';}catch(e){return '';}})()"
+				% device
+			),
+			true
+		)
+		if raw is String and not raw.is_empty():
+			return raw
+	return Input.get_joy_name(device)
 
 
 func default_profile() -> Dictionary:
@@ -250,7 +273,7 @@ func reset_device(device: int) -> void:
 
 func assign_device(slot: int, device: int) -> void:
 	var other := 1 - slot
-	if devices[other] == device:
+	if device >= 0 and devices[other] == device:
 		devices[other] = devices[slot]
 	devices[slot] = device
 	rebuild()
@@ -259,6 +282,8 @@ func assign_device(slot: int, device: int) -> void:
 
 func refresh_devices() -> void:
 	var connected := Input.get_connected_joypads()
+	for device in connected:
+		device_names[device] = _read_device_name(device)
 	for i in 2:
 		if devices[i] not in connected:
 			devices[i] = -1
