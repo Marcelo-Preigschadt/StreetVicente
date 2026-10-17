@@ -60,10 +60,6 @@ static func select(f: FighterModel) -> Dictionary:
 				sheet = "air_punch"
 			elif name == "kick":
 				sheet = "combat"
-				if f.character.id == "gustavo":
-					start_keys = [0, 1]
-					active_keys = [2]
-					recovery_keys = [3, 4, 5, 6, 7]
 			elif name == "crouchPunch":
 				sheet = "low"
 				start_keys = [0, 1]

@@ -37,9 +37,9 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  q=await state();for(let i=0;i<(q.roster_ids.indexOf('rafael')-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
  await page.keyboard.press('Enter');await wait(()=>window.svfQA.screen==='stage_selection');await page.keyboard.press('Enter');
  await wait(()=>window.svfQA.screen==='fight'&&window.svfQA.intro_ticks===0);
- assert.match((await state()).art_sheet,/gustavo\/arcade-v11/);const start=(await state()).x[0];
+ assert.match((await state()).art_sheet,/gustavo\/arcade-v12/);const start=(await state()).x[0];
  await page.keyboard.down('d');await wait(start=>window.svfQA.x[0]>start+20*256,start);
- assert.match((await state()).art_sheet,/arcade-v11\/walk/);await page.keyboard.up('d');
+ assert.match((await state()).art_sheet,/arcade-v12\/walk/);await page.keyboard.up('d');
  await page.keyboard.down('d');await wait(()=>window.svfQA.x[1]-window.svfQA.x[0]<180*256);await page.keyboard.up('d');
  await page.keyboard.press('f');await wait(()=>window.svfQA.contact_clips?.includes('light'));
  await page.keyboard.press('Escape');await wait(()=>window.svfQA.paused);await page.screenshot({path:'test-results/19-gustavo-contact.png'});
@@ -50,7 +50,30 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.keyboard.down('d');await wait(()=>window.svfQA.x[1]-window.svfQA.x[0]<180*256);await page.keyboard.up('d');
  await page.keyboard.press('f');await wait(()=>window.svfQA.contact_clips?.includes('block'));
  await page.keyboard.press('Escape');await wait(()=>window.svfQA.paused);await page.screenshot({path:'test-results/19-gustavo-block.png'});
+ // Gustavo v12: actual low inputs, source resolution and all three preserved powers.
+ await page.keyboard.press('F8');await wait(()=>!window.svfQA.paused&&window.svfQA.state==='IDLE');
+ const standing=(await state()).art_height;
+ await page.keyboard.down('s');await wait(()=>window.svfQA.state==='CROUCH');
+ const crouch=(await state()).art_height;assert(crouch<standing*.76,'Crouch shrinks by bending, never enlarges');
+ await page.keyboard.press('f');await wait(()=>window.svfQA.moves[0]==='crouchPunch:1');
+ q=await state();assert.equal(q.pose,'low');assert.equal(q.art_source,'low');assert(q.art_scale<=1);assert(Math.abs(q.art_height-crouch)<10);
+ await page.keyboard.press('Escape');await wait(()=>window.svfQA.paused);await page.screenshot({path:'test-results/20-gustavo-low.png'});
+ await page.keyboard.up('s');await page.keyboard.press('Enter');await wait(()=>!window.svfQA.paused);
+ for(const [key,move] of [['h','special:1'],['u','uppercut:1'],['q','super:1']]){
+  await page.keyboard.press('F8');await wait(()=>window.svfQA.state==='IDLE');
+  await page.keyboard.press(key);await wait(move=>window.svfQA.moves[0]===move,move);
+  assert.match((await state()).art_sheet,/gustavo\/arcade-v12/);assert.equal((await state()).art_source,'powers');
+  if(key!=='u'){
+   await wait(()=>window.svfQA.projectiles>0);
+   await page.keyboard.press('Escape');await wait(()=>window.svfQA.paused);
+   await page.screenshot({path:`test-results/20-gustavo-${key}-smoke.png`});
+   await page.keyboard.press('Enter');await wait(()=>!window.svfQA.paused);
+   await wait(()=>window.svfQA.last_contacts.some(e=>e.kind==='hit'));
+  }else{await wait(()=>window.svfQA.y[0]<600*256);await page.screenshot({path:'test-results/20-gustavo-upper.png'});}
+  await wait(()=>window.svfQA.state==='IDLE');
+ }
+ console.log('GUSTAVO V12 WEB PASSED: crouch proportion, new cels, H/U/Q smoke');
  assert.deepEqual(errors,[],'Apresentação e áudio local sem erros Web');
- fs.writeFileSync('test-results/presentation-v11-smoke.json',JSON.stringify({status:'passed',checks:['Quatro arenas pela interface','Ambiente por arena','Volume e mute','Importação local MP3/OGG sem upload','Crossfade limitado a dois decks','Faixa local por arena e remoção','Gustavo com corpo novo ao andar e socar','Acerto leve e bloqueio com cels próprios','Troca de arena mantém HP','Console Web limpo']},null,2));
+ fs.writeFileSync('test-results/presentation-v11-smoke.json',JSON.stringify({status:'passed',checks:['Quatro arenas pela interface','Ambiente por arena','Volume e mute','Importação local MP3/OGG sem upload','Crossfade limitado a dois decks','Faixa local por arena e remoção','Gustavo com corpo novo ao andar e socar','Acerto leve e bloqueio com cels próprios','Troca de arena mantém HP','Gustavo v12: agachar/socar sem mudança de tamanho','H/U/Q preservados com nova fumaça','Console Web limpo']},null,2));
  console.log('PRESENTATION V11 WEB PASSED: stages, local audio, Gustavo, contact/block');
 })().catch(async e=>{console.error(e);if(page&&!page.isClosed()){await page.screenshot({path:'test-results/presentation-v11-failure.png'}).catch(()=>{});console.error(JSON.stringify(await page.evaluate(()=>window.svfQA).catch(()=>({}))));}process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();server.kill();});

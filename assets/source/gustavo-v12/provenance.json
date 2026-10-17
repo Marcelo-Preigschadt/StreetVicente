@@ -1,0 +1,46 @@
+{
+  "revision": 12,
+  "method": "built-in image_gen; full-body identity-preserving redraws; transparent RGBA; lossless crop/packing only",
+  "references": [
+    "assets/source/arcade-v11/references/gustavo-master.png",
+    "assets/legacy/runtime/gustavo-head-menu-v3.webp",
+    "assets/source/gustavo-v12/reference.png"
+  ],
+  "prompts": [
+    {
+      "name": "states-a",
+      "prompt": "Use case: identity-preserve. Production 2D fighting game full-body animation sprite sheet for Gustavo, redrawn from references, not a collage. Image1 full-body identity reference; image2 face reference. Preserve exact narrow face, nose, clean-shaven jaw, brown swept-back hair in low ponytail, white laboratory coat, olive T-shirt, blue jeans, brown low sneakers. Classic late-1990s hand-inked arcade cel animation, crisp dark contours, flat colors with two sharply defined shadow tones. No gradients, softness, paint texture, motion blur, 3D, face pasting. Transparent RGBA background, no labels, guides or floor shadows.\nLayout: exactly 8 separate full-body cels, 4 columns x 2 rows, wide 2048x1536 image. Every cell uses the SAME orthographic camera and anatomical drawing scale. Standing fighter about 570px high, head about 75px high in EVERY cell including crouch; leave empty space above crouches. Never enlarge bent poses to fill cells. Reference same leg length and head/body ratio all frames. Ground baseline near bottom of each cell. All face right, 3/4 side view, feet entirely visible. Enough spacing, no overlaps.\nRead order poses: 0 relaxed kickboxing guard, 1 subtle guard exhale (same head size and height within 6px), 2 standing block forearms shielding face, 3 block recoiling slightly torso back, 4 low crouching guard knees bent deeply (total height about 365px, same 75px head), 5 crouching block (same crouch height and anatomy), 6 jump rising with rear knee bent (airborne, boots lifted, same anatomy), 7 jump apex both knees tucked (total silhouette about 400px, same head size).\nPrimary quality: consistent adult proportions and identical face every cel; no giant crouching man. Keep source pixel resolution high; draw full new cels with bold clean edges."
+    },
+    {
+      "name": "smoke-fx",
+      "prompt": "Use case: illustration-story. Asset type: transparent RGBA sprite sheet of 16 hand-drawn smoke power VFX cels for a 2D arcade fighting game. No character, no face, no text. Classic late-90s crossover arcade cel effects with razor sharp dark teal ink contours, ivory white hot cores, cyan mint smoke bellows, deep indigo/violet under-shadows. Punchy high contrast. These are SMOKE effects, not fireballs, not lightning, not water. Sculpted billowing curls, sharp speed wedges, expressive hand-painted CEL ANIMATION with only 3 solid shadow tones, no blurry glow or airbrush.\nLayout 4 columns x 4 rows in a large 2048x2048 sheet, transparent gutters, no overlap. Every effect fully contained within its cell.\nRow1: 4 successive loop frames of a right-traveling compressed smoke wave, frontal round rolling cloud core on the RIGHT, long sharply tapered curling smoke ribbon trailing LEFT, dense volume at core; consistent core position at cell x=350,y=256. Core about 110px diameter, tail200px, whole effect about350x190px.\nRow2: 4 successive one-shot contact frames, from compressed white jagged impact spark with short mint smoke collar, to dramatic expanding radial smoke explosion, to curling breakup wisps, to fading separated curl fragments. Impact epicenter cell center.\nRow3: 4 successive uppercut rising SMOKE CRESCENT frames, curved white/mint sweep rising from bottom left to top right, core following a curved arc, huge bold dark teal outside and bright inside. A crescent roughly230px wide and400px tall. Clear silhouette, visible open inside, not a full opaque cloud.\nRow4: 4 successive gathering/releasing palm smoke frames, first tight curl spiral (90px), second compressed 140px coil, third sharp explosive outward fan pointing RIGHT (280px), fourth separated curling wisps (260px). Same center, size intentionally evolves.\nPreserve crisp linework and transparent alpha, no checkerboard printed, no floor, no rectangular backgrounds, no ground shadows."
+    },
+    {
+      "name": "states-b",
+      "prompt": "undefined\n8 poses matching prior sheet state slots, NOT an animation of one attack. 0 airborne descending, one leg lower preparing touchdown,1 low crouched landing compressing knees (same small head and anatomical scale, total silhouette about310px versus480px standing),2 hit in abdomen folded forward but feet planted,3 hit in face flinching upper torso backward,4 recovery from hit regaining guard,5 dizzy standing dazed leaning slightly,6 knocked down lying horizontally on side (full body fits width, same scale, not giant face),7 restrained victory fist raised with a small smile, standing anatomy unchanged. No drawn stars, breath puffs, impacts or effects, only complete character. Poses0-5 and7 head size72px at reference scale, pose6 same scale even if it needs to lie diagonally to fit; keep entire body visible."
+    },
+    {
+      "name": "kick",
+      "prompt": "undefined\n8 sequential unique cels of a kickboxing right-facing high roundhouse kick:0 reference guard,1 supporting foot pivots and knee chambers,2 hip turns and shin unfolds,3 full horizontal leg extension with shoe tip at opponent upper chest height,4 small followthrough still extended,5 knee retracts and hip unturns,6 kicking foot comes back down,7 reference guard. Full anatomy stays the SAME SIZE, same head72px relative to standing480px. Do not zoom in on kicks. No motion blur, no effects, all shoes and hands fully visible. Ground baseline consistent, head varies naturally only slightly. Full extension in frames3and4."
+    },
+    {
+      "name": "air",
+      "prompt": "undefined\n8 airborne full-body attack cels, same fixed adult anatomy and same72px head as reference standing480px adult. They are bent in air and therefore SHORTER silhouettes (around320px), never scaled up to fill cells. Top row4 AIR PUNCH:0 compact jumping guard knees tucked,1 elbow pulled back windup,2 fully extended punch toward right at torso height other fist guarding,3 retract fist halfway while opening knees for landing. Bottom row4 AIR KICK:0 tucked knees preparing,1 chambered front leg,2 strong full forward kick toward right with rear leg bent and one fist at cheek,3 retract knee into compact airborne guard. No foot touches ground, no crouching on invisible floor, no rotation of entire sprite, clear cloth followthrough."
+    },
+    {
+      "name": "powers",
+      "prompt": "undefined\n8 unique full-body power casting cels, SAME SIZE anatomy and head all frames. Top row4 RISING UPPERCUT:0 deep grounded compression with fist by hip,1 driving fist above head as rear heel lifts,2 fully airborne rising uppercut fist straight above forehead, one knee lifted and other leg bent backward,3 landing into grounded low guard. Top row0/3 silhouette shorter due crouch, no enlarged head. Bottom row4 SMOKE PALM CAST:0 rooted guard torso winds backward palms near waist,1 weight drives forward and palm moves halfway toward right,2 fully extended open palm pushing RIGHT at opponent chest level other hand near torso,3 open hand retracting halfway into reference guard. Draw ONLY character, no smoke, no glow or effects (effects separate in game). Same orthographic view and ink style, stable floor line for grounded poses."
+    }
+  ],
+  "generation_files": {
+    "states-a": "exec-45eca8e6-5512-473f-a043-cf8f0530f9d1.png",
+    "states-b": "exec-d27bedeb-bb28-447c-ad3a-cd7c0ba2a140.png",
+    "walk": "exec-220a33be-208d-47c7-828a-bab71afbdf8d.png",
+    "punch": "exec-b4919911-befa-47e4-bf05-a7cfcf6c5288.png",
+    "kick": "exec-64da12be-4613-4e9d-b93b-7edf2f4ffc2f.png",
+    "low": "exec-4f837cf1-b67f-4d8c-9597-55ec1c6e4db6.png",
+    "air": "exec-d0a3d19e-92aa-43fe-825d-ac74f4e0c18d.png",
+    "powers": "exec-82d5c4d8-b809-4743-a44b-0fcc6b129281.png",
+    "smoke-fx": "exec-bc77853c-b733-49ca-96ed-2cc0e50d1843.png"
+  }
+}

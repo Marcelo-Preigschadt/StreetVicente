@@ -542,6 +542,12 @@ func _publish_qa() -> void:
 	data.dizzy_indicators = FighterStatusV11.dizzy_actors(status_view.world).size()
 	if screen == "fight":
 		data.art_sheet = CharacterArt.frame(sim.fighters[0]).sheet.image
+		var frame: Dictionary = CharacterArt.frame(sim.fighters[0]).frame
+		var scale_factor := float(frame.get("scale", 1))
+		data.art_height = float(frame.rect[3]) * scale_factor
+		data.art_scale = scale_factor
+		data.art_source = str(frame.get("source", "legacy"))
+		data.gustavo_revision = 12
 	data.controller_devices = AppSettings.devices
 	if controls.visible:
 		data.controller_ui = {

@@ -64,6 +64,7 @@ func consume(events: Array, _simulation: FightSimulation) -> void:
 					"blocked": e.kind == "block",
 					"strong": strong,
 					"clip": clip,
+					"smoke": e.character == "gustavo" and e.get("power_kind", "") != "",
 					"seed": int(e.get("tick", 0)) % 13,
 					"facing": int(e.get("facing", 1 if int(e.get("attacker", 0)) == 0 else -1)),
 					"color": LegacyRoster.get_character(str(e.character)).color
@@ -103,7 +104,15 @@ func _draw() -> void:
 			self,
 			p.clip,
 			mini(3, int(phase * 4)),
-			.62 if p.clip == "power" else .48 if p.clip == "heavy" else .43 if p.blocked else .34,
+			(
+				.28
+				if p.smoke
+				else (
+					.62
+					if p.clip == "power"
+					else .48 if p.clip == "heavy" else .43 if p.blocked else .34
+				)
+			),
 			Color(1, 1, 1, minf(1, (1 - phase) * 2.4))
 		)
 		draw_set_transform(Vector2.ZERO)
@@ -122,7 +131,7 @@ func _draw() -> void:
 				draw_line(
 					start,
 					end,
-					Color("fff5c4") * Color(1, 1, 1, fade),
+					Color("caffef" if p.smoke else "fff5c4") * Color(1, 1, 1, fade),
 					3.5 * (1.0 - phase) + 0.5,
 					true
 				)

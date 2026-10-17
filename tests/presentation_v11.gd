@@ -40,7 +40,7 @@ static func run(s: SceneTree) -> void:
 			continue
 		f.state = state
 		s.check(
-			"arcade-v11" in CharacterArt.frame(f).sheet.image, "Gustavo não volta ao corpo antigo"
+			"arcade-v12" in CharacterArt.frame(f).sheet.image, "Gustavo não volta ao corpo antigo"
 		)
 	for name in [
 		"punch",
@@ -58,7 +58,7 @@ static func run(s: SceneTree) -> void:
 		for tick in f.current_move().total_ticks():
 			f.move_tick = tick
 			s.check(
-				"arcade-v11" in CharacterArt.frame(f).sheet.image,
+				"arcade-v12" in CharacterArt.frame(f).sheet.image,
 				"Sequência completa nova: Gustavo/" + name
 			)
 			if name not in ["special", "super"]:

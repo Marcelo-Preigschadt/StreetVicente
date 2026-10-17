@@ -87,6 +87,9 @@ static func seal(c: CanvasItem, age: int, color: Color) -> void:
 
 
 static func projectile(c: CanvasItem, p: Dictionary, camera: float) -> void:
+	if p.character == "gustavo":
+		GustavoFXV12.projectile(c, p, camera)
+		return
 	var origin := Vector2(float(p.x) / 256 - camera, float(p.y) / 256)
 	var facing := int(p.get("facing", 1))
 	var age := int(p.age)
@@ -127,29 +130,6 @@ static func projectile(c: CanvasItem, p: Dictionary, camera: float) -> void:
 					Vector2(x, -17 - i * 2),
 					Vector2(x, 17 + i * 2),
 					Color("fff0b9", 0.8 - i * 0.12),
-					2,
-					true
-				)
-		"gustavo":
-			for i in range(3, 0, -1):
-				c.draw_set_transform(
-					origin + Vector2(-i * 30 * facing, sin(age * 0.2 + i) * 10),
-					float(i) * 0.14,
-					Vector2(facing, 1)
-				)
-				PowerArt.draw(
-					c, "smoke", frame - i, 0.48 + i * 0.06, Color(0.45, 0.9, 0.85, 0.55 - i * 0.09)
-				)
-			c.draw_set_transform(origin, 0, Vector2(facing, 1))
-			PowerArt.draw(c, "smoke", frame, 0.67)
-			for i in 5:
-				c.draw_arc(
-					Vector2(-i * 15, sin(age * 0.12 + i) * 18),
-					17 + i * 4,
-					-2.4,
-					0.8,
-					16,
-					Color(color, 0.5 - i * 0.06),
 					2,
 					true
 				)
@@ -318,11 +298,6 @@ static func upper(c: CanvasItem, f: FighterModel, camera: float) -> void:
 					c.draw_line(
 						Vector2(115, -100 - i * 36), Vector2(133, -108 - i * 36), WHITE, 2, true
 					)
-			"gustavo":
-				c.draw_set_transform(
-					root + Vector2(center.x * f.facing, center.y), 0, Vector2(f.facing, 1)
-				)
-				PowerArt.draw(c, "smoke", f.move_tick / 4, 0.43, Color(1, 1, 1, 0.55))
 			"gelton":
 				for i in 4:
 					c.draw_arc(
@@ -420,6 +395,9 @@ static func charge(c: CanvasItem, f: FighterModel, camera: float, actors: Array)
 	var move := f.current_move()
 	var name := str(move.legacy.name)
 	if name not in ["special", "super", "uppercut", "drone"]:
+		return
+	if f.character.id == "gustavo":
+		GustavoFXV12.charge(c, f, camera)
 		return
 	if RollMotion.active(f):
 		roll(c, f, camera, actors)
@@ -538,6 +516,9 @@ static func super_punch(c: CanvasItem, f: FighterModel, camera: float) -> void:
 
 
 static func impact(c: CanvasItem, b: Dictionary, actors: Array, camera: float) -> void:
+	if b.character == "gustavo":
+		GustavoFXV12.impact(c, b, camera)
+		return
 	var phase := 1.0 - float(b.life) / float(b.max)
 	var alpha := pow(1 - phase, 0.9)
 	var origin := Vector2(float(b.x) - camera, float(b.y))
