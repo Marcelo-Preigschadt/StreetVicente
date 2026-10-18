@@ -52,3 +52,13 @@ A geometria ofensiva normal foi registrada sobre as palmas/pés desenhados. Os c
 `tools/smoke_gelton.cjs` usa teclado real no WASM exportado sob `/StreetVicente/`: seleção Gelton × Gustavo, caminhada, S+F, H, U, Q e bloqueio de projétil. Observa o estado de QA sem injetar posição, vida ou relógios. A publicação exige também a aprovação das suítes Web anteriores.
 
 Gustavo e os demais personagens permanecem com sua arte anterior. Todas as alterações ficam no StreetVicente; o repositório original não foi modificado.
+
+## Correção do Aú (v14)
+
+O atlas do Aú estava registrado em 0,63, enquanto a anatomia dos desenhos
+exigia 0,85. A sequência inteira agora usa 0,85, sem reamostrar ou ampliar
+pixels da fonte. A cabeça, o tronco e os membros voltam ao porte do modelo.
+Raízes, colisões e pontos de emissão são recalculados com a mesma escala.
+O teste verifica a preparação, a descida e a aterrissagem: a pose de descida
+antes tinha apenas 73% da altura da guarda. Poses invertidas não são
+normalizadas pela altura total, pois pernas abertas alteram essa medida.

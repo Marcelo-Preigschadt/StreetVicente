@@ -36,6 +36,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
   if(key==='u'){
    await wait(()=>window.svfQA.y[0]<600*256&&window.svfQA.pose==='rise'&&window.svfQA.pose_index>=3&&window.svfQA.pose_index<=5);
    await shot('21-gelton-au.png');
+   await wait(height=>window.svfQA.pose==='rise'&&window.svfQA.pose_index===6&&window.svfQA.art_height>=height*.92,height);
   }else{
    await wait(()=>window.svfQA.projectiles>0);
    q=await state();assert.equal(q.pose,key==='q'?'wheel':'cast');
@@ -49,6 +50,6 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.keyboard.press('F8');await wait(()=>window.svfQA.state==='IDLE');await page.keyboard.press('F2');await page.keyboard.press('h');
  await wait(()=>window.svfQA.last_contacts.some(e=>e.character==='gelton'&&e.kind==='block'));
  await shot('21-gelton-paint-block.png');assert.deepEqual(errors,[]);
- fs.writeFileSync('test-results/gelton-v13-smoke.json',JSON.stringify({status:'passed',checks:['Seleção Gelton x Gustavo','Ginga e caminhada novas','Negativa e palmada baixa sem zoom','H: Pincelada Cromática com artPaint','U: aú aéreo por cels próprios','Q: bananeira e ondas de tinta','Defesa real do projétil','Console Web limpo']},null,2));
+ fs.writeFileSync('test-results/gelton-v13-smoke.json',JSON.stringify({status:'passed',checks:['Seleção Gelton x Gustavo','Ginga e caminhada novas','Negativa e palmada baixa sem zoom','H: Pincelada Cromática com artPaint','U: aú aéreo e descida sem encolher','Q: bananeira e ondas de tinta','Defesa real do projétil','Console Web limpo']},null,2));
  console.log('GELTON V13 WEB PASSED: capoeira, low scale, palm paint, cartwheel, handstand, block');
 })().catch(async e=>{console.error(e);if(page&&!page.isClosed()){await page.screenshot({path:'test-results/gelton-v13-failure.png'}).catch(()=>{});console.error(JSON.stringify(await page.evaluate(()=>window.svfQA).catch(()=>({}))));}process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();server.kill();});

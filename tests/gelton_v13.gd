@@ -98,6 +98,16 @@ static func run(s: SceneTree) -> void:
 					"Tinta nasce na palma ou pé registrado em cada cel, nos dois lados"
 				)
 				s.check(p.effect == "artPaint", "Poder continua tinta, sem substituição por fumaça")
+	# Regression: the upright falling cel used to be only 73% of the idle body.
+	# Check the visible anatomy, not the overall inverted/split-leg bounding box.
+	ArcadeArt.load_data()
+	var rise: Array = ArcadeArt.data.gelton.sheets.rise.frames
+	for i in [0, 6, 7]:
+		var rendered_height: float = rise[i].rect[3] * rise[i].scale
+		s.check(
+			rendered_height >= height * (.85 if i == 7 else .92),
+			"Aú mantém porte adulto na preparação, descida e aterrissagem"
+		)
 	s.check(c.legacy.powers.special == "Pincelada Cromática", "H preservado")
 	s.check(c.legacy.powers.uppercut == "Aú das Cores", "U preservado")
 	s.check(c.legacy.powers.super == "Roda das Artes", "Q preservado")

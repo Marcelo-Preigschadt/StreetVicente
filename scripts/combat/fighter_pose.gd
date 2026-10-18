@@ -76,7 +76,10 @@ static func select(f: FighterModel) -> Dictionary:
 				recovery_keys = [7, 4]
 			elif (
 				name == "uppercut"
-				and f.character.id in ["marcelo", "rafael", "adriano", "joao", "gustavo"]
+				and (
+					f.character.id
+					in ["marcelo", "rafael", "adriano", "joao", "gustavo", "marcelino"]
+				)
 			):
 				return uppercut(f)
 			elif name == "uppercut":
@@ -96,7 +99,7 @@ static func select(f: FighterModel) -> Dictionary:
 
 
 static func uppercut(f: FighterModel) -> Dictionary:
-	# Expose grounded compression, driving fist, rise, apex, fall, then landing.
+	# Grounded compression, driving strike, rise, apex, fall, then landing.
 	# Never show planted boots during the physical ascent or crouching midair.
 	var phase := f.current_move().phase(f.move_tick)
 	if phase == "STARTUP":
