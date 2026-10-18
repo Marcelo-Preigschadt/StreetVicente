@@ -15,7 +15,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.goto('http://127.0.0.1:8064/StreetVicente/?qa=1',{timeout:120000});
  await wait(()=>window.svfQA?.screen==='menu');await page.keyboard.press('F5');await wait(()=>window.svfQA.screen==='stage_selection');
  for(const id of ['patio','nit','cobertura','servidor']){
-  await wait(()=>window.svfQA.arena===window.svfQA.arena_ids[window.svfQA.stage_cursor]&&window.svfQA.audio.stage===window.svfQA.arena);
+  await wait(id=>window.svfQA.arena===id&&window.svfQA.arena_ids[window.svfQA.stage_cursor]===id&&window.svfQA.audio.stage===id,id);
   assert.equal((await state()).arena,id);assert((await state()).audio.ambience_playing);
   assert.equal((await state()).audio.playing,false,'Nenhuma trilha gerada ou baixada sem licença no pacote');
   await page.screenshot({path:`test-results/19-arena-${id}.png`});await page.keyboard.press('ArrowRight');
