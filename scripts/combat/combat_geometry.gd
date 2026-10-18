@@ -53,7 +53,7 @@ static func attack(f: FighterModel):
 		return boxes
 	if (
 		f.character.id not in ["marcelo", "rafael", "adriano", "joao"]
-		and not (f.character.id == "gustavo" and CharacterArt.has_frame(f))
+		and not (f.character.id in ["gustavo", "gelton"] and CharacterArt.has_frame(f))
 	):
 		return null
 	var move := f.current_move()

@@ -2,7 +2,7 @@
   "name": "streetvicente-godot-qa",
   "private": true,
   "scripts": {
-    "test:web": "node tools/smoke_controller.cjs && node tools/smoke_presentation.cjs && node tools/smoke_powers.cjs && node tools/smoke_web.cjs"
+    "test:web": "node tools/smoke_controller.cjs && node tools/smoke_presentation.cjs && node tools/smoke_gelton.cjs && node tools/smoke_powers.cjs && node tools/smoke_web.cjs"
   },
   "devDependencies": {
     "playwright": "1.62.1",

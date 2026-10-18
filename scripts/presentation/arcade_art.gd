@@ -29,6 +29,9 @@ static func load_data() -> void:
 	data.gustavo = JSON.parse_string(
 		FileAccess.get_file_as_string("res://data/characters/gustavo-arcade-v12.json")
 	)
+	data.gelton = JSON.parse_string(
+		FileAccess.get_file_as_string("res://data/characters/gelton-arcade-v13.json")
+	)
 
 
 static func pose(f: FighterModel) -> Dictionary:

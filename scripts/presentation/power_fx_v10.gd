@@ -87,6 +87,9 @@ static func seal(c: CanvasItem, age: int, color: Color) -> void:
 
 
 static func projectile(c: CanvasItem, p: Dictionary, camera: float) -> void:
+	if p.character == "gelton":
+		GeltonFXV13.projectile(c, p, camera)
+		return
 	if p.character == "gustavo":
 		GustavoFXV12.projectile(c, p, camera)
 		return
@@ -157,18 +160,6 @@ static func projectile(c: CanvasItem, p: Dictionary, camera: float) -> void:
 						PackedVector2Array([at, at + Vector2(15, -6), at + Vector2(9, 7)]),
 						Color(WHITE, 0.8 - i * 0.15)
 					)
-		"gelton":
-			for i in 5:
-				var paint := Color.from_hsv(fposmod(i * 0.17 + 0.01 * age, 1), 0.75, 1)
-				var points := PackedVector2Array()
-				for j in 14:
-					var t := float(j) / 13
-					points.append(Vector2(-150 * t, sin(t * PI) * (i - 2) * 18))
-				line(c, points, paint, 8 - i, 0.9)
-			for i in 7:
-				var a := age * 0.1 + i * 2.4
-				var at := Vector2(cos(a) * 21, sin(a) * 27)
-				c.draw_circle(at, 4 + i % 3, Color.from_hsv(i / 7.0, 0.7, 1))
 		"ruan":
 			for i in 3:
 				bolt(
@@ -246,7 +237,7 @@ static func projectile(c: CanvasItem, p: Dictionary, camera: float) -> void:
 
 
 static func hand(f: FighterModel, camera: float) -> Vector2:
-	if f.character.id in ["marcelo", "rafael", "adriano", "joao", "gustavo"]:
+	if f.character.id in ["marcelo", "rafael", "adriano", "joao", "gustavo", "gelton"]:
 		return Vector2(CombatGeometry.hand(f)) / 256 - Vector2(camera, 0)
 	var source: Dictionary = f.character.legacy.get("projectile", {})
 	return Vector2(
@@ -297,18 +288,6 @@ static func upper(c: CanvasItem, f: FighterModel, camera: float) -> void:
 				for i in 5:
 					c.draw_line(
 						Vector2(115, -100 - i * 36), Vector2(133, -108 - i * 36), WHITE, 2, true
-					)
-			"gelton":
-				for i in 4:
-					c.draw_arc(
-						center,
-						53 + i * 11,
-						-1.6,
-						1.1,
-						24,
-						Color.from_hsv(i * 0.22, 0.7, 1),
-						4,
-						true
 					)
 			"khauany":
 				for i in 3:
@@ -395,6 +374,9 @@ static func charge(c: CanvasItem, f: FighterModel, camera: float, actors: Array)
 	var move := f.current_move()
 	var name := str(move.legacy.name)
 	if name not in ["special", "super", "uppercut", "drone"]:
+		return
+	if f.character.id == "gelton":
+		GeltonFXV13.charge(c, f, camera)
 		return
 	if f.character.id == "gustavo":
 		GustavoFXV12.charge(c, f, camera)
@@ -516,6 +498,9 @@ static func super_punch(c: CanvasItem, f: FighterModel, camera: float) -> void:
 
 
 static func impact(c: CanvasItem, b: Dictionary, actors: Array, camera: float) -> void:
+	if b.character == "gelton":
+		GeltonFXV13.impact(c, b, camera)
+		return
 	if b.character == "gustavo":
 		GustavoFXV12.impact(c, b, camera)
 		return
