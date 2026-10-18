@@ -496,6 +496,7 @@ func _publish_qa() -> void:
 				)
 		)
 		data.projectiles = sim.projectiles.size()
+		data.emitted_waves = sim.fighters[0].emitted_waves
 		data.power_kinds = sim.projectiles.map(func(p: Dictionary) -> String: return str(p.kind))
 		data.power_sprites = power_view.visible
 		data.power_positions = sim.projectiles.map(

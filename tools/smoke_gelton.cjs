@@ -37,10 +37,11 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
    await wait(()=>window.svfQA.y[0]<600*256&&window.svfQA.pose==='rise'&&window.svfQA.pose_index>=3&&window.svfQA.pose_index<=5);
    await shot('21-gelton-au.png');
   }else{
-   await wait(count=>window.svfQA.projectiles>=count,key==='q'?4:1);
+   await wait(()=>window.svfQA.projectiles>0);
    q=await state();assert.equal(q.pose,key==='q'?'wheel':'cast');
    assert(q.power_positions.every(p=>p.effect==='artPaint'));
    await shot(key==='q'?'21-gelton-roda.png':'21-gelton-pincelada.png');
+   if(key==='q')await wait(()=>window.svfQA.emitted_waves===5);
    await wait(()=>window.svfQA.last_contacts.some(e=>e.character==='gelton'&&e.kind==='hit'));
   }
   await wait(()=>window.svfQA.state==='IDLE');
