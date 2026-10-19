@@ -17,6 +17,10 @@ func setup(value) -> void:
 	LegacyRoster.texture(PowerArt.data.image)
 	MarceloPowerFX.load_art()
 	LegacyRoster.texture(MarceloPowerFX.art.image)
+	for actor in world.power_actors():
+		if actor.character.id == "marcos":
+			MarcosFXV16.load_data()
+			LegacyRoster.texture(MarcosFXV16.art.image)
 
 
 func consume(events: Array) -> void:

@@ -532,6 +532,11 @@ func _publish_qa() -> void:
 		data.state = FighterState.NAMES[sim.fighters[0].state]
 	if screen == "story" and story != null:
 		data.story = {
+			"character": story.hero.character.id,
+			"pose": CharacterArt.frame(story.hero).key,
+			"art_sheet": CharacterArt.frame(story.hero).sheet.image,
+			"art_face_revision": CharacterArt.frame(story.hero).frame.get("face_revision", 0),
+			"ground_y": story.hero.ground_y,
 			"act": story.act_index,
 			"wave": story.wave_index,
 			"enemies": story.enemies.size(),

@@ -1,6 +1,6 @@
 # Street Vicente Fighter · Godot 4
 
-Marcelino foi revisado a partir da fotografia grande original: conjunto completo de animações com o rosto de referência, Q com cinco impulsos e recuos do corpo, e efeitos de pressão/velocidade para energia cinética. [Detalhes e validação da revisão](docs/MARCELINO_V15.md).
+Marcos recebeu animações completas de judô baseadas no rosto da versão original: quimono azul, faixa preta, porte robusto e sequências próprias de pegadas, rasteiras e projeções. H/U/Q têm efeitos digitais de sessão, pilha e circuitos. [Detalhes e validação](docs/MARCOS_V16.md). [Ordem das próximas revisões](docs/ROSTER_ART_ORDER.md).
 
 
 **Jogar:** https://marcelo-preigschadt.github.io/StreetVicente/
@@ -13,7 +13,11 @@ A primeira opção, **TREINO LIVRE**, abre Marcelo × Rafael com animação 2D. 
 
 O protótipo procedural 3D foi rejeitado e retirado dos fluxos publicados. Seu código permanece isolado para referência técnica; a direção atual é 2D quadro a quadro. [Registro do protótipo arquivado](docs/PILOT_3D.md).
 
-## Revisão atual · Marcelino v15
+## Revisão atual · Marcos v16
+
+São 88 desenhos completos de fonte, 87 distintos usados, e 16 desenhos de efeitos. **H = Sequestro de Sessão; U = Pilha Reversa; Q = Kernel Panic**. U mantém o Marcos apoiado no chão; H/Q continuam projeções. Rosto, vozes, retrato, figurino e regras dos poderes foram preservados. A caminhada responde também à profundidade no História. [Fontes, registro e validação](docs/MARCOS_V16.md).
+
+## Marcelino v15
 
 A revisão do rosto substitui o conjunto v14 com a referência da fotografia grande original. São 72 desenhos completos de fonte, 70 distintos consumidos, incluindo uma sequência própria para o Q com cinco impulsos e recuos. Guarda, caminhada, agachar, golpes baixos/aéreos, defesa, reações e poderes usam as folhas revisadas. Os 16 cels de efeitos enfatizam compressão, pressão, velocidade e expansão no impacto. **H = Impulso Linear; U = Joelhada Cinética; Q = Lei da Ação e Reação**. [Fontes, registro e validação](docs/MARCELINO_V15.md).
 
@@ -52,7 +56,7 @@ A revisão v10 corrigiu a vibração após K.O. e introduziu o rolinho físico, 
 | Arcade / CPU | Circuito de 12 rivais, rota, bônus, Continue e recorde persistente |
 | Rounds | Melhor de três; Round/número/Fight com bloqueio de comandos; K.O./Time Over/vitória/Perfect; barra super preservada |
 | Poderes | Rolinho elétrico físico do João; ganchos com avanço e arco ativo; projéteis e efeitos por personagem; código e drones/enxame do Marcelo; VFX animados e lasers independentes; compartilhados com o História |
-| Arte nova | Marcelo com 72 cels; Rafael com 64 novos + 8 socos v5; Adriano com 64 novos (caminhada v9); João com 64 novos + 8 cels de rolinho; Gustavo com 64 quadros refeitos v12; Gelton com 80 posições v13 (76 desenhos distintos + guardas compartilhadas); Marcelino com 72 cels de fonte v15 (70 desenhos consumidos); demais preservados |
+| Arte nova | Marcelo com 72 cels; Rafael com 64 novos + 8 socos v5; Adriano com 64 novos (caminhada v9); João com 64 novos + 8 cels de rolinho; Gustavo com 64 quadros refeitos v12; Gelton com 80 posições v13 (76 desenhos distintos + guardas compartilhadas); Marcelino com 72 cels de fonte v15 (70 desenhos consumidos); Marcos com 88 cels de fonte v16 (87 desenhos consumidos); demais preservados |
 | História | Quatro atos, ondas/chefes e exoesqueleto, diálogos de entrada, turno de 15 minutos, pontos por derrotas, objetos/perigos, retry de ato e save/retomada; coop ainda pendente |
 | Rollback | Snapshot/replay local verificado; online permanece indisponível até implementação e testes reais de sessão/rede |
 | Web | GitHub Actions importa/testa/exporta e só publica após QA do WASM |

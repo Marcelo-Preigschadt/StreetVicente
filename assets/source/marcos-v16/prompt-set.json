@@ -1,0 +1,22 @@
+{
+  "use_case": "identity-preserve",
+  "reference_face": "references/identity.webp",
+  "canonical": "references/canonical.png",
+  "sequences": [
+    "states-a",
+    "states-b",
+    "walk",
+    "punch",
+    "kick",
+    "low",
+    "air",
+    "special",
+    "upper",
+    "super",
+    "grab"
+  ],
+  "deferred_characters": [
+    "khauany",
+    "dienes"
+  ]
+}

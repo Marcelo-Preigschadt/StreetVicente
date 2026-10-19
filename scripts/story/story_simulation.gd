@@ -100,6 +100,7 @@ func step(value: CombatInput) -> void:
 		return
 	value = objects.input(value)
 	var lane_input := int(value.has(CombatInput.DOWN)) - int(value.has(CombatInput.UP))
+	var old_lane := hero.ground_y
 	var vertical := hero.ground_y - hero.y
 	hero.ground_y = clampi(hero.ground_y + lane_input * 2 * UNIT, 535 * UNIT, 655 * UNIT)
 	hero.y = hero.ground_y - vertical
@@ -122,8 +123,17 @@ func step(value: CombatInput) -> void:
 	hero.begin_tick(nearest_x)
 	var gate := mini(3560, 880 + wave_index * 820) * UNIT
 	hero.x = clampi(hero.x, 70 * UNIT, gate)
+	var traveled := absi(hero.x - old_x)
+	if (
+		hero.character.id == "marcos"
+		and hero.grounded()
+		and hero.state in [FighterState.Id.IDLE, FighterState.Id.WALK]
+	):
+		traveled += absi(hero.ground_y - old_lane)
+		if traveled > 0 and hero.state == FighterState.Id.IDLE:
+			hero.transition(FighterState.Id.WALK)
 	if hero.state == FighterState.Id.WALK:
-		hero.walk_distance += absi(hero.x - old_x)
+		hero.walk_distance += traveled
 	var boxes: Array[Rect2i] = []
 	if not objects.pending_throw:
 		boxes.assign(hero.attack_boxes())

@@ -1,0 +1,138 @@
+{
+  "revision": 16,
+  "method": "Built-in ImageGen; complete-body drawings referenced to the original approved Marcos portrait and full-body canonical model. Lossless conversion and deterministic atlas packing only. No face compositing, repainting, part deformation or source-pixel enlargement.",
+  "face_reference": {
+    "path": "assets/legacy/runtime/marcos-head-menu-v3.webp",
+    "sha256": "5bbacf34bb2078601ccdc26186f3d2ddcc2c3e8d48c44f398477a358f6685d2a"
+  },
+  "canonical": "references/canonical.png",
+  "sources": {
+    "states-a": {
+      "generated_filename": "exec-04b82342-375f-4905-947d-3c9196423096.png",
+      "original_sha256": "f2b8c83115bb78460376fa92dcda369905c2dcbe21d6e84f7d9b055cf3c62cd4",
+      "packed_source_sha256": "0d95ad916ea84be0f7bcabc8930cfac2a1bfddbae112499408b6154e69d22a13",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "states-a.prompt.txt"
+    },
+    "walk": {
+      "generated_filename": "exec-bd1d1106-4a23-46bf-8665-a5b33e0cd155.png",
+      "original_sha256": "7246d5e22c93ecd6fe8856905c591844750f4b3b5d50c005802e01cf0f171a3c",
+      "packed_source_sha256": "3e612f30ac1cee8cc5afa09da866eb8e9eb42b241a79009af9b95f67d3778366",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "walk.prompt.txt"
+    },
+    "punch": {
+      "generated_filename": "exec-04a7db67-92f2-4cf3-8bd3-804b103e4158.png",
+      "original_sha256": "c939a59cde4b7282120f9e75158426c4036116babb41df44741b97b1a78119eb",
+      "packed_source_sha256": "c58d0a39a08c56a6b2226193d5a6be31229f119bacbecbce4176b9a95efe32e0",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "punch.prompt.txt"
+    },
+    "states-b": {
+      "generated_filename": "exec-63198de2-556f-4476-9c89-3a87a897ac4a.png",
+      "original_sha256": "3c05ff5fc822f521c9b306e70aaa0e249f3985d22baefdbc1749192e9df68f7f",
+      "packed_source_sha256": "e0b473f5e6481a153ae0be98cddf470158ec3c3ca0341daede809aa62c6058ed",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "states-b.prompt.txt"
+    },
+    "kick": {
+      "generated_filename": "exec-1bd266aa-94a6-4cf0-979c-17687dcefdf8.png",
+      "original_sha256": "8871d14169861c64c77a0e4f179e69c29d8dbab12bfaddafc5f689db7be53bef",
+      "packed_source_sha256": "5785d7d47eab5f00a9e2469932cd8c5fd3b23d8f1552b910084bdda03ad99a51",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "kick.prompt.txt"
+    },
+    "low": {
+      "generated_filename": "exec-420a6a26-08e6-421d-9539-4fa65a517fcd.png",
+      "original_sha256": "66b4e42274a2f619bed3cfa02c6dad50de82e80dc9e1b9b9c475301e6653b5d8",
+      "packed_source_sha256": "3896a70dfcce2e3e7e9b03d99d5bb783e3afe6da8434581a468e1ff4160e2078",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "low.prompt.txt"
+    },
+    "air": {
+      "generated_filename": "exec-62cdf6b4-4c65-4487-bebe-03e74f2b690e.png",
+      "original_sha256": "f9ef29a1b8a005e2bc9cf39baa6d43fbf31c84083deac1ac096b6a6d47612585",
+      "packed_source_sha256": "fedeb5e5b02a1541ef7c3bfbdc98aba63e009b50d1608ae7a65a26fd6785a60d",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "air.prompt.txt"
+    },
+    "special": {
+      "generated_filename": "exec-983d74dc-5139-47b8-ac5e-d9fc7e826c64.png",
+      "original_sha256": "ea554a3c724ca0dea13fce3e5fe800c7b5d6376d5fa2912def909eac9f448b66",
+      "packed_source_sha256": "7969f9713113aad0f1a904703423db6fdfc446226b131e32e76901317b68d895",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "prompt": "special.layout-v2.prompt.txt",
+      "layout_revision": 2,
+      "replaced_source_sha256": "1613b0f42efd5883cb358361b8f8effaa5ec0e990b772a9942f078173c012456",
+      "replacement_reason": "Two silhouettes touched in the four-column source; redraw with two columns preserves complete independent bodies."
+    },
+    "upper": {
+      "generated_filename": "exec-7f2e94f4-23dd-479a-ad29-ad570c09b756.png",
+      "original_sha256": "f96e3b0d114c39f26e85b22f36a46141aaa4eb7f351fdd365cdf54b9caf8a612",
+      "packed_source_sha256": "eda67cd1b7f385beb89e037c5c58446eb321cc4067e6ab2eccfd8988ad22b28c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "upper.prompt.txt"
+    },
+    "super": {
+      "generated_filename": "exec-87b43b58-26d1-4ba7-b0de-ca598754fb34.png",
+      "original_sha256": "2cc7b5b66901219474dec8100f3ebc0683f9f620e5abf907f475ac10e8f58741",
+      "packed_source_sha256": "67bf229bdb39149a71e028ba27e8bd0484c281d2e9a9207d6b9b3bd8574e7205",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "prompt": "super.layout-v2.prompt.txt",
+      "layout_revision": 2,
+      "replaced_source_sha256": "c6eaeca0e1b532f4a4530cdbb0ed12acffb437875a2debb4799d28930258d0eb",
+      "replacement_reason": "Two silhouettes touched in the four-column source; redraw with two columns preserves complete independent bodies."
+    },
+    "grab": {
+      "generated_filename": "exec-82102e0c-64be-4594-8e1c-c058d6cb8d4e.png",
+      "original_sha256": "07dc434f34600068f961e9d4a620401edfaf265fa4d252ca2fc859b4f5721069",
+      "packed_source_sha256": "ffb3d501cf1a94cbcdfbacc18c4b86fc1dcbe357c049f743b066b383afb349ea",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "grab.prompt.txt"
+    },
+    "digital-fx": {
+      "generated_filename": "exec-1b97fb31-99e5-4b83-ac54-46661e404ac7.png",
+      "original_sha256": "2dd000855ef941f60d67f9fd6e06a0054f015cc5a15a2567ad666a9b4f5af553",
+      "packed_source_sha256": "e3b13cb70872ea3c35459cf2758a9b7db01ef4c481dc6fae3c02038947f8f5ad",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "digital-fx.prompt.txt"
+    }
+  },
+  "canonical_sha256": "c4398183a2d60b1b805ca5db44a8ea25cd3dfaf3d107707346417eb799bb1ceb"
+}

@@ -24,7 +24,7 @@ func emit(f: FighterModel, tick: int, lane_aware: bool = false) -> bool:
 	if not m.get("projectile", false) and not m.get("summon", false):
 		if f.move_tick == move.startup * 2 and m.name in ["uppercut", "special", "super"]:
 			var source := Vector2i(f.x + f.facing * 110 * UNIT, f.y - 180 * UNIT)
-			if f.character.id in ["gustavo", "gelton", "marcelino"]:
+			if f.character.id in ["gustavo", "gelton", "marcelino", "marcos"]:
 				source = CombatGeometry.hand(f)
 			events.append(_event("cast", f, tick, m.name, source.x, source.y))
 		return super_started

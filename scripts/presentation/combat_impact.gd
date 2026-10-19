@@ -67,6 +67,7 @@ func consume(events: Array, _simulation: FightSimulation) -> void:
 					"smoke": e.character == "gustavo" and e.get("power_kind", "") != "",
 					"paint": e.character == "gelton" and e.get("power_kind", "") != "",
 					"kinetic": e.character == "marcelino" and e.get("power_kind", "") != "",
+					"digital": e.character == "marcos" and e.get("power_kind", "") != "",
 					"seed": int(e.get("tick", 0)) % 13,
 					"facing": int(e.get("facing", 1 if int(e.get("attacker", 0)) == 0 else -1)),
 					"color": LegacyRoster.get_character(str(e.character)).color
@@ -108,7 +109,7 @@ func _draw() -> void:
 			mini(3, int(phase * 4)),
 			(
 				.28
-				if p.smoke or p.paint or p.kinetic
+				if p.smoke or p.paint or p.kinetic or p.get("digital", false)
 				else (
 					.62
 					if p.clip == "power"
@@ -134,7 +135,7 @@ func _draw() -> void:
 					start,
 					end,
 					(
-						Color("fface6" if p.paint else "caffef" if p.smoke else "fff5c4")
+						Color("8edaff" if p.get("digital", false) else "fface6" if p.paint else "caffef" if p.smoke else "fff5c4")
 						* Color(1, 1, 1, fade)
 					),
 					3.5 * (1.0 - phase) + 0.5,

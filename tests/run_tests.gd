@@ -55,6 +55,7 @@ func _run() -> void:
 	GustavoV12Tests.run(self)
 	GeltonV13Tests.run(self)
 	MarcelinoV14Tests.run(self)
+	MarcosV16Tests.run(self)
 	print("COMBAT TESTS: %d checks, %d failures" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 
