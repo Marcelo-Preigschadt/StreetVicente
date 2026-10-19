@@ -23,6 +23,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.keyboard.press('Enter');await wait(()=>window.svfQA.screen==='fight'&&window.svfQA.intro_ticks===0);
  assert.deepEqual((await state()).selected,['marcelino','gustavo']);
  assert.match((await state()).art_sheet,/marcelino\/arcade-v14\/states/);
+ assert.equal((await state()).art_face_revision,15);
  const height=(await state()).art_height;await shot('22-marcelino-guard.png');
  const x=(await state()).x[0];await page.keyboard.down('d');await wait(x=>window.svfQA.x[0]>x+20*256,x);
  assert.match((await state()).art_sheet,/marcelino\/arcade-v14\/walk/);await page.keyboard.up('d');
@@ -33,12 +34,13 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  for(const [key,move] of [['h','special:1'],['u','uppercut:1'],['q','super:1']]){
   await page.keyboard.press('F8');await wait(()=>window.svfQA.state==='IDLE');await page.keyboard.press(key);
   await wait(move=>window.svfQA.moves[0]===move,move);assert.match((await state()).art_sheet,/marcelino\/arcade-v14/);
+  assert.equal((await state()).art_face_revision,15);
   if(key==='u'){
    await wait(()=>window.svfQA.y[0]<600*256&&window.svfQA.pose==='combat'&&window.svfQA.pose_index===10);
    await shot('22-marcelino-knee.png');
   }else{
    await wait(()=>window.svfQA.projectiles>0);
-   q=await state();assert.equal(q.pose,'combat');
+   q=await state();assert.equal(q.pose,key==='q'?'super':'combat');
    assert(q.power_positions.every(p=>p.effect==='physicsImpulse'));
    await shot(key==='q'?'22-marcelino-reaction.png':'22-marcelino-impulse.png');
    if(key==='q')await wait(()=>window.svfQA.emitted_waves===5);
@@ -49,6 +51,6 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.keyboard.press('F8');await wait(()=>window.svfQA.state==='IDLE');await page.keyboard.press('F2');await page.keyboard.press('h');
  await wait(()=>window.svfQA.last_contacts.some(e=>e.character==='marcelino'&&e.kind==='block'));
  await shot('22-marcelino-impulse-block.png');assert.deepEqual(errors,[]);
- fs.writeFileSync('test-results/marcelino-v14-smoke.json',JSON.stringify({status:'passed',checks:['Seleção Marcelino x Gustavo','Guarda e shuffle de Muay Thai','Agachar e soco baixo sem zoom','H: Impulso Linear com physicsImpulse','U: Joelhada Cinética aérea','Q: cinco ondas de ação e reação','Bloqueio real com chip','Console Web limpo']},null,2));
+ fs.writeFileSync('test-results/marcelino-v14-smoke.json',JSON.stringify({status:'passed',checks:['Seleção Marcelino x Gustavo','Guarda e shuffle de Muay Thai','Agachar e soco baixo sem zoom','H: Impulso Linear com physicsImpulse','U: Joelhada Cinética aérea','Q: cinco ondas e recuo corporal sincronizado','Bloqueio real com chip','Console Web limpo']},null,2));
  console.log('MARCELINO V14 WEB PASSED: Muay Thai, low scale, kinetic impulse, flying knee, five waves, block');
 })().catch(async e=>{console.error(e);if(page&&!page.isClosed()){await page.screenshot({path:'test-results/marcelino-v14-failure.png'}).catch(()=>{});console.error(JSON.stringify(await page.evaluate(()=>window.svfQA).catch(()=>({}))));}process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();server.kill();});

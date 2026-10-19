@@ -38,6 +38,10 @@ static func run(s: SceneTree) -> void:
 			continue
 		f.state = state
 		s.check(
+			CharacterArt.frame(f).frame.get("face_revision", 0) == 15,
+			"Todos os estados usam o rosto revisado"
+		)
+		s.check(
 			"arcade-v14" in CharacterArt.frame(f).sheet.image, "Marcelino sem fallback em estado"
 		)
 	for name in [
@@ -57,6 +61,9 @@ static func run(s: SceneTree) -> void:
 			f.move_tick = tick
 			var art := CharacterArt.frame(f)
 			s.check(
+				art.frame.get("face_revision", 0) == 15, "Nenhum golpe volta ao rosto rejeitado"
+			)
+			s.check(
 				"arcade-v14" in art.sheet.image and art.frame.scale <= 1,
 				"Sequência inteira nova, sem ampliar pixels: Marcelino/" + name
 			)
@@ -65,6 +72,15 @@ static func run(s: SceneTree) -> void:
 					f.attack_boxes().is_empty() == (f.current_move().phase(tick) != "ACTIVE"),
 					"Colisão apenas no active: Marcelino/" + name
 				)
+	f.state = FighterState.Id.ATTACK
+	f.move_id = "super:1"
+	for wave in 5:
+		f.move_tick = f.current_move().startup * 2 + wave * 10
+		s.check(
+			FighterPose.select(f) == {"key": "super", "index": 3}, "Q sincroniza corpo e emissão"
+		)
+		f.move_tick += 6
+		s.check(FighterPose.select(f).index == 4, "Q mostra recuo entre as cinco ondas")
 	for entry in [["punch", 170], ["crouchPunch", 170], ["kick", 220], ["sweep", 220]]:
 		for facing in [-1, 1]:
 			var sim := FightSimulation.new(c, LegacyRoster.get_character("rafael"))

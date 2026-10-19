@@ -1,0 +1,66 @@
+{
+  "revision": 15,
+  "method": "Built-in ImageGen. Complete-body drawings referenced to original photograph and corrected canonical model; lossless source conversion and offline crop/packing only. No face compositing, repainting or source pixel enlargement.",
+  "identity_reference": {
+    "filename": "39163121034.jpeg",
+    "dimensions": [
+      1600,
+      1600
+    ],
+    "sha256": "7df2b16e2ece2da41c864fca519b6bed27cb27a2ee6231196dc19d620464e713",
+    "published": false
+  },
+  "canonical": "references/canonical.png",
+  "sources": {
+    "states-a": {
+      "source_filename": "Marcelino em oito poses de Muay Thai(1).png",
+      "source_sha256": "e32e9c7d67b3b8f6cec85c6fc5420bbf35ca9e1ba49d67e697965d21ee47bcfc",
+      "packed_source_sha256": "709a00861cffe8c73b35b205cbd8e29c90d6c5e115f1c65d1a0dc0553c689d8d"
+    },
+    "states-b": {
+      "source_filename": "Oito poses de luta do Professor Marcelino.png",
+      "source_sha256": "366614b570fecd5c16f44068ac1fdee3733c1cc04f4f642730e75b2855859217",
+      "packed_source_sha256": "8f60c73b713d60b2561b6084545f2a64dfa58f9f237776a83a8a421b5d2895db"
+    },
+    "walk": {
+      "source_filename": "Oito poses de Marcelino no muay thai.png",
+      "source_sha256": "d023536dffab7a2d3397ff46e491d65bfd32b08a8a8b3241c2a39ac33718daa3",
+      "packed_source_sha256": "7dd817479b3c198981564954e692d634d67cf0941984649db835473ebcf1d468"
+    },
+    "punch": {
+      "source_filename": "Sequência de jab-cruzado do Professor Marcelino.png",
+      "source_sha256": "3e0b00b94f47c03ee387b5cae20aa0b3cb8874164133db8d91e5fccd98f4bb89",
+      "packed_source_sha256": "46b954a08e4b115efdcd2a4d08c8cbe448838755ed2dd3294ce817b7fb3e19bc"
+    },
+    "kick": {
+      "source_filename": "Oito poses de roundhouse no Muay Thai.png",
+      "source_sha256": "107c1bec710f97474f32a96eebaffe7f88c9ec28a085bd7bfe3869141df4194f",
+      "packed_source_sha256": "bced054b19f63742f08e6a54ea9313b7c62b6b8d967836a2329fefb764f7bf9d"
+    },
+    "low": {
+      "source_filename": "Marcelino: oito poses de combate(1).png",
+      "source_sha256": "8df045ef2929567fb1cd4d379b0cb4f3498dd54742e7bd10d3f3ec345df35812",
+      "packed_source_sha256": "2656c48d5c536456a57c5abb1e9d55ac994af8666cb30507921b9991a0c07ba5"
+    },
+    "air": {
+      "source_filename": "Oito golpes aéreos de Prof. Marcelino.png",
+      "source_sha256": "2bc01c29ca5912d198f90528e6c5d1c6d1f44f42eb229894e80dea1ccbf9dc38",
+      "packed_source_sha256": "13af6fe79036a55403e57133884f123b9de30b8406b069164466132af38ec255"
+    },
+    "powers": {
+      "source_filename": "Marcelino em sequência de luta Muay Thai.png",
+      "source_sha256": "f4d817e5fdb6db7d2277077ebe2c82c98a3f931b7117c152a392e809c435244b",
+      "packed_source_sha256": "522118bf515bbaeef3ebf873a2b78586570f96ee67680742a7c2ef16ef56a4c6"
+    },
+    "super": {
+      "source_filename": "Oito poses de combate do Prof. Marcelino.png",
+      "source_sha256": "d21cf0f8c579c4eee7811b5b66b5f49eb7ec802300a94fddd240d4d951d427e3",
+      "packed_source_sha256": "0ce55a27a06015fae0cf9136dadb2d389a5ea84adfc42d7a5c66ec74c68d276a"
+    },
+    "kinetic-fx": {
+      "source_filename": "Atlas de pressão e impulso cinético.png",
+      "source_sha256": "f694fa77497ea8d8ca9a168b9547168caaf27c6493e3ca43592c059b98a102b9",
+      "packed_source_sha256": "a015a9b8fed5074681ff54641a48f016ff4df72bbc6302a4baeb3736081f3d64"
+    }
+  }
+}

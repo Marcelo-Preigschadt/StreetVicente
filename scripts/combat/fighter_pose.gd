@@ -10,6 +10,10 @@ static func select(f: FighterModel) -> Dictionary:
 		var capoeira := GeltonPoseV13.select(f)
 		if not capoeira.is_empty():
 			return capoeira
+	if f.character.id == "marcelino":
+		var kinetic := MarcelinoPoseV15.select(f)
+		if not kinetic.is_empty():
+			return kinetic
 	var sheet := "states"
 	var index := 0
 	match f.state:

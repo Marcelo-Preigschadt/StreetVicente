@@ -548,6 +548,7 @@ func _publish_qa() -> void:
 		data.art_height = float(frame.rect[3]) * scale_factor
 		data.art_scale = scale_factor
 		data.art_source = str(frame.get("source", "legacy"))
+		data.art_face_revision = int(frame.get("face_revision", 0))
 		data.gustavo_revision = 12
 	data.controller_devices = AppSettings.devices
 	if controls.visible:

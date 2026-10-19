@@ -1,3 +1,5 @@
+> Histórico: o conjunto de rostos desta revisão foi substituído. Use [Marcelino V15](MARCELINO_V15.md) e o novo empacotador.
+
 # Marcelino v14 e correção do Aú do Gelton
 
 ## Personagem revisado nesta etapa

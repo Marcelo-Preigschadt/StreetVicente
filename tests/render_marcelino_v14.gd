@@ -1,7 +1,7 @@
 extends SceneTree
 ## Real Compatibility captures: authored cels, contact events, environments/status.
 var game: Node
-var folder := "res://test-results/marcelino-v14"
+var folder := "res://test-results/marcelino-v15"
 
 
 func _initialize() -> void:
@@ -26,6 +26,11 @@ func run() -> void:
 	start("marcelino")
 	game.stage_id = "nit"
 	await shot("00-guard")
+	game.views[0].use_new_art = false
+	game.views[0].queue_redraw()
+	await shot("00-original-game-reference")
+	game.views[0].use_new_art = true
+	game.views[0].queue_redraw()
 	for tick in 30:
 		advance(CombatInput.DOWN)
 	await shot("01-crouch")
