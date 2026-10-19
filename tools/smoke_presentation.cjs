@@ -61,8 +61,12 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await page.keyboard.up('s');await page.keyboard.press('Enter');await wait(()=>!window.svfQA.paused);
  for(const [key,move] of [['h','special:1'],['u','uppercut:1'],['q','super:1']]){
   await page.keyboard.press('F8');await wait(()=>window.svfQA.state==='IDLE');
-  await page.keyboard.press(key);await wait(move=>window.svfQA.moves[0]===move,move);
-  assert.match((await state()).art_sheet,/gustavo\/arcade-v12/);assert.equal((await state()).art_source,'powers');
+  await page.keyboard.press(key);
+  // Retain the matching render observation: another protocol round trip can
+  // otherwise read the airborne recovery or idle pose after the cast ends.
+  const castHandle=await wait(move=>{const q=window.svfQA;return q.moves[0]===move&&q.art_source==='powers'?q:null;},move);
+  const cast=await castHandle.jsonValue();await castHandle.dispose();
+  assert.match(cast.art_sheet,/gustavo\/arcade-v12/);assert.equal(cast.art_source,'powers');
   if(key!=='u'){
    await wait(()=>window.svfQA.projectiles>0);
    await page.keyboard.press('Escape');await wait(()=>window.svfQA.paused);
