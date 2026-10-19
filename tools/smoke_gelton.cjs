@@ -12,6 +12,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(/SCRIPT ERROR|Parse Error|ERROR:/i.test(m.text()))errors.push(m.text());});
  const state=()=>page.evaluate(()=>window.svfQA);
  const wait=(fn,arg=null)=>page.waitForFunction(fn,arg,{timeout:30000});
+ const observe=async(fn,arg=null)=>{const h=await wait(fn,arg);try{return await h.jsonValue();}finally{await h.dispose();}};
  const shot=async name=>{await page.keyboard.press('Escape');await wait(()=>window.svfQA.paused);await page.screenshot({path:'test-results/'+name});await page.keyboard.press('Enter');await wait(()=>!window.svfQA.paused);};
  await page.goto('http://127.0.0.1:8065/StreetVicente/?qa=1',{timeout:120000});
  await wait(()=>window.svfQA?.screen==='menu');
@@ -32,14 +33,17 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  await shot('21-gelton-low.png');await page.keyboard.up('s');await wait(()=>window.svfQA.state==='IDLE');
  for(const [key,move] of [['h','special:1'],['u','uppercut:1'],['q','super:1']]){
   await page.keyboard.press('F8');await wait(()=>window.svfQA.state==='IDLE');await page.keyboard.press(key);
-  await wait(move=>window.svfQA.moves[0]===move,move);assert.match((await state()).art_sheet,/gelton\/arcade-v13/);
   if(key==='u'){
-   await wait(()=>window.svfQA.y[0]<600*256&&window.svfQA.pose==='rise'&&window.svfQA.pose_index>=3&&window.svfQA.pose_index<=5);
+   // Read physics-rate observations: rendering/protocol latency must not lose
+   // the brief airborne cels or the descent while a screenshot is being saved.
+   const rise=await observe(()=>window.svfQA.trace.find(q=>q.move==='uppercut:1'&&q.y<600*256&&q.pose==='rise'&&q.pose_index>=3&&q.pose_index<=5));
+   assert.match(rise.art_sheet,/gelton\/arcade-v13/);
    await shot('21-gelton-au.png');
-   await wait(height=>window.svfQA.pose==='rise'&&window.svfQA.pose_index===6&&window.svfQA.art_height>=height*.92,height);
+   const descent=await observe(()=>window.svfQA.trace.find(q=>q.move==='uppercut:1'&&q.pose==='rise'&&q.pose_index===6));
+   assert(descent.art_height>=height*.92,'Aú mantém o porte adulto na descida');
   }else{
-   await wait(()=>window.svfQA.projectiles>0);
-   q=await state();assert.equal(q.pose,key==='q'?'wheel':'cast');
+   q=await observe(move=>{const q=window.svfQA;return q.moves[0]===move&&q.projectiles>0?q:null;},move);
+   assert.match(q.art_sheet,/gelton\/arcade-v13/);assert.equal(q.pose,key==='q'?'wheel':'cast');
    assert(q.power_positions.every(p=>p.effect==='artPaint'));
    await shot(key==='q'?'21-gelton-roda.png':'21-gelton-pincelada.png');
    if(key==='q')await wait(()=>window.svfQA.emitted_waves===5);

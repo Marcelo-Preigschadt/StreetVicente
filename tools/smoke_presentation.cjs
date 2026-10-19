@@ -73,7 +73,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
    await page.screenshot({path:`test-results/20-gustavo-${key}-smoke.png`});
    await page.keyboard.press('Enter');await wait(()=>!window.svfQA.paused);
    await wait(()=>window.svfQA.last_contacts.some(e=>e.kind==='hit'));
-  }else{await wait(()=>window.svfQA.y[0]<600*256);await page.screenshot({path:'test-results/20-gustavo-upper.png'});}
+  }else{await wait(()=>window.svfQA.trace.some(q=>q.move==='uppercut:1'&&q.y<600*256));await page.screenshot({path:'test-results/20-gustavo-upper.png'});}
   await wait(()=>window.svfQA.state==='IDLE');
  }
  console.log('GUSTAVO V12 WEB PASSED: crouch proportion, new cels, H/U/Q smoke');
