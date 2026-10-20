@@ -18,6 +18,10 @@ func setup(value) -> void:
 	MarceloPowerFX.load_art()
 	LegacyRoster.texture(MarceloPowerFX.art.image)
 	for actor in world.power_actors():
+		if actor.character.id == "tais":
+			TaisFXV17.load_data()
+			for image in TaisFXV17.art.images.values():
+				LegacyRoster.texture(image)
 		if actor.character.id == "marcos":
 			MarcosFXV16.load_data()
 			LegacyRoster.texture(MarcosFXV16.art.image)
@@ -34,6 +38,10 @@ func consume(events: Array) -> void:
 			e.kind in ["cast", "laser", "beam"]
 			or (e.kind in ["hit", "block"] and e.get("power_kind", "") != "")
 		):
+			var lifetime := .14 if e.kind in ["beam", "cast"] else .32
+			if e.character == "tais":
+				lifetime = (.25 if e.kind == "cast" else .85
+					if str(e.get("move", "")).begins_with("super") else .6)
 			bursts.append(
 				{
 					"x": float(e.x) / FighterModel.SCALE,
@@ -46,8 +54,8 @@ func consume(events: Array) -> void:
 					"facing": int(e.get("facing", 1)),
 					"origin_x": float(e.get("origin_x", e.x)) / FighterModel.SCALE,
 					"origin_y": float(e.get("origin_y", e.y)) / FighterModel.SCALE,
-					"life": 0.14 if e.kind in ["beam", "cast"] else 0.32,
-					"max": 0.14 if e.kind in ["beam", "cast"] else 0.32
+					"life": lifetime,
+					"max": lifetime
 				}
 			)
 

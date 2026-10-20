@@ -125,7 +125,7 @@ func step(value: CombatInput) -> void:
 	hero.x = clampi(hero.x, 70 * UNIT, gate)
 	var traveled := absi(hero.x - old_x)
 	if (
-		hero.character.id == "marcos"
+		hero.character.id in ["marcos", "tais"]
 		and hero.grounded()
 		and hero.state in [FighterState.Id.IDLE, FighterState.Id.WALK]
 	):

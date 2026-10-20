@@ -68,12 +68,15 @@ func consume(events: Array, _simulation: FightSimulation) -> void:
 					"paint": e.character == "gelton" and e.get("power_kind", "") != "",
 					"kinetic": e.character == "marcelino" and e.get("power_kind", "") != "",
 					"digital": e.character == "marcos" and e.get("power_kind", "") != "",
+					"athletic": e.character == "tais" and e.get("power_kind", "") != "",
 					"seed": int(e.get("tick", 0)) % 13,
 					"facing": int(e.get("facing", 1 if int(e.get("attacker", 0)) == 0 else -1)),
 					"color": LegacyRoster.get_character(str(e.character)).color
 				}
 			)
 			shake = 6.0 if strong else 2.5
+			if e.character == "tais" and e.get("power_kind", "") != "":
+				shake = 10.0 if move.begins_with("super") else 7.0
 			if strong:
 				flash = 0.045
 
@@ -109,7 +112,7 @@ func _draw() -> void:
 			mini(3, int(phase * 4)),
 			(
 				.28
-				if p.smoke or p.paint or p.kinetic or p.get("digital", false)
+				if p.smoke or p.paint or p.kinetic or p.get("digital", false) or p.get("athletic", false)
 				else (
 					.62
 					if p.clip == "power"

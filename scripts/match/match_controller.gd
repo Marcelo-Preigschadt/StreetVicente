@@ -77,6 +77,7 @@ func _ready() -> void:
 		add_child(view)
 		views.append(view)
 	power_view = PowerView.new()
+	backdrop.powers = power_view
 	add_child(power_view)
 	add_child(impact)
 	status_view = FighterStatusV11.new()
@@ -509,6 +510,9 @@ func _publish_qa() -> void:
 					"y": float(p.y) / 256.0,
 					"kind": p.kind,
 					"age": p.age,
+					"radius": p.radius,
+					"spawn_x": float(p.spawn_x) / 256.0,
+					"spawn_y": float(p.spawn_y) / 256.0,
 					"effect": p.effect
 				}
 		)

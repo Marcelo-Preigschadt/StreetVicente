@@ -6,6 +6,10 @@ extends RefCounted
 static func select(f: FighterModel) -> Dictionary:
 	if RollMotion.active(f):
 		return RollMotion.pose(f)
+	if f.character.id == "tais":
+		var savate := TaisPoseV17.select(f)
+		if not savate.is_empty():
+			return savate
 	if f.character.id == "marcos":
 		var judo := MarcosPoseV16.select(f)
 		if not judo.is_empty():

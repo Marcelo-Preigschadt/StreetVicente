@@ -1,6 +1,6 @@
 # Street Vicente Fighter · Godot 4
 
-Marcos recebeu animações completas de judô baseadas no rosto da versão original: quimono azul, faixa preta, porte robusto e sequências próprias de pegadas, rasteiras e projeções. H/U/Q têm efeitos digitais de sessão, pilha e circuitos. [Detalhes e validação](docs/MARCOS_V16.md). [Ordem das próximas revisões](docs/ROSTER_ART_ORDER.md).
+Tais recebeu animações completas de Savate baseadas no rosto grande e no retrato original aprovado. O Circuito Campeão ganhou quatro frentes de 460 × 440 px, rastro largo e explosão de 620 × 500 px, com alcance físico ampliado. [Detalhes e validação](docs/TAIS_V17.md). [Ordem das próximas revisões](docs/ROSTER_ART_ORDER.md).
 
 
 **Jogar:** https://marcelo-preigschadt.github.io/StreetVicente/
@@ -13,7 +13,11 @@ A primeira opção, **TREINO LIVRE**, abre Marcelo × Rafael com animação 2D. 
 
 O protótipo procedural 3D foi rejeitado e retirado dos fluxos publicados. Seu código permanece isolado para referência técnica; a direção atual é 2D quadro a quadro. [Registro do protótipo arquivado](docs/PILOT_3D.md).
 
-## Revisão atual · Marcos v16
+## Revisão atual · Tais v17
+
+São 88 desenhos de fonte, 87 distintos consumidos, e 24 desenhos de efeitos. **H = Pulso Atlético; U = Salto Olímpico; Q = Circuito Campeão**. Emissão pelo tênis do chassé, salto real e grandes frentes de energia atlética com expansão, rastros atrás das lutadoras e explosão prolongada. Rosto, roupa, retrato, vozes, dano, custo e quatro ondas originais foram preservados. [Fontes, registro e validação](docs/TAIS_V17.md).
+
+## Marcos v16
 
 São 88 desenhos completos de fonte, 87 distintos usados, e 16 desenhos de efeitos. **H = Sequestro de Sessão; U = Pilha Reversa; Q = Kernel Panic**. U mantém o Marcos apoiado no chão; H/Q continuam projeções. Rosto, vozes, retrato, figurino e regras dos poderes foram preservados. A caminhada responde também à profundidade no História. [Fontes, registro e validação](docs/MARCOS_V16.md).
 
@@ -56,7 +60,7 @@ A revisão v10 corrigiu a vibração após K.O. e introduziu o rolinho físico, 
 | Arcade / CPU | Circuito de 12 rivais, rota, bônus, Continue e recorde persistente |
 | Rounds | Melhor de três; Round/número/Fight com bloqueio de comandos; K.O./Time Over/vitória/Perfect; barra super preservada |
 | Poderes | Rolinho elétrico físico do João; ganchos com avanço e arco ativo; projéteis e efeitos por personagem; código e drones/enxame do Marcelo; VFX animados e lasers independentes; compartilhados com o História |
-| Arte nova | Marcelo com 72 cels; Rafael com 64 novos + 8 socos v5; Adriano com 64 novos (caminhada v9); João com 64 novos + 8 cels de rolinho; Gustavo com 64 quadros refeitos v12; Gelton com 80 posições v13 (76 desenhos distintos + guardas compartilhadas); Marcelino com 72 cels de fonte v15 (70 desenhos consumidos); Marcos com 88 cels de fonte v16 (87 desenhos consumidos); demais preservados |
+| Arte nova | Marcelo com 72 cels; Rafael com 64 novos + 8 socos v5; Adriano com 64 novos (caminhada v9); João com 64 novos + 8 cels de rolinho; Gustavo com 64 quadros refeitos v12; Gelton com 80 posições v13 (76 desenhos distintos + guardas compartilhadas); Marcelino com 72 cels de fonte v15 (70 desenhos consumidos); Marcos com 88 cels de fonte v16 (87 desenhos consumidos); Tais com 88 cels de fonte v17 (87 desenhos consumidos) e 24 efeitos; demais preservados |
 | História | Quatro atos, ondas/chefes e exoesqueleto, diálogos de entrada, turno de 15 minutos, pontos por derrotas, objetos/perigos, retry de ato e save/retomada; coop ainda pendente |
 | Rollback | Snapshot/replay local verificado; online permanece indisponível até implementação e testes reais de sessão/rede |
 | Web | GitHub Actions importa/testa/exporta e só publica após QA do WASM |

@@ -39,6 +39,9 @@ static func load_data() -> void:
 	data.marcos = JSON.parse_string(
 		FileAccess.get_file_as_string("res://data/characters/marcos-arcade-v16.json")
 	)
+	data.tais = JSON.parse_string(
+		FileAccess.get_file_as_string("res://data/characters/tais-arcade-v17.json")
+	)
 
 
 static func pose(f: FighterModel) -> Dictionary:

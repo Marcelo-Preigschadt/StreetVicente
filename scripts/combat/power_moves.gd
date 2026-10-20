@@ -19,6 +19,15 @@ const UPPER := {
 
 
 static func configure(c: CharacterData) -> void:
+	if c.id == "tais":
+		# Visible pressure nuclei have matching swept collision radii. Costs,
+		# damage, speed, four-wave cadence and voices retain the original rules.
+		for strength in 3:
+			for key in ["special", "super"]:
+				var pulse: MoveData = c.moves["%s:%d" % [key, strength]]
+				pulse.legacy = pulse.legacy.duplicate(true)
+				pulse.legacy.radius = 146 if key == "super" else 58
+		return
 	if c.id != "joao":
 		return
 	c.legacy = c.legacy.duplicate()

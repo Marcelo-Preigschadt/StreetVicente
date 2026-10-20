@@ -1,0 +1,166 @@
+{
+  "revision": 17,
+  "method": "Built-in ImageGen; complete-body drawings referenced to original large identity and approved portrait. Lossless conversion and deterministic packing only. No face compositing, resampling, body-part deformation or source-pixel enlargement.",
+  "references": [
+    {
+      "path": "references/canonical.png",
+      "sha256": "c9be4c1bb9fbaee4a8fcaec736eb1c5c71c4bead61bb0a41fe93b7db47fe36a5"
+    },
+    {
+      "path": "references/tais-base-v2.webp",
+      "sha256": "2a1919dd731b99d050b1336cea94b78f0a1b9afe76f6a2c722ed55a9b65d06ea"
+    },
+    {
+      "path": "references/tais-combat-v2.webp",
+      "sha256": "a85824dc1ea95760625e52dc135a9d2d1f82390fa0a401b8d5e3fc373aa52c2a"
+    },
+    {
+      "path": "references/tais-head-menu-v3.webp",
+      "sha256": "0a1e2ab6f5e8f0db7b9aed1289b64c34ac4d447e61909f7dd4bc36cd1ff1878c"
+    },
+    {
+      "path": "references/tais-head-menu-v4.webp",
+      "sha256": "4140329999f8d1d3702172b5d6382387512ce7f7334a81e6a22f4b491d7a6987"
+    },
+    {
+      "path": "references/tais-identity-head-v1.webp",
+      "sha256": "cce7bbd2f9e167443b9fd27ace043c4f8a0d6a97f33a5e2042d8d034d8fef8b9"
+    },
+    {
+      "path": "references/tais-walk-frames-v2.webp",
+      "sha256": "b582c0c1cb959372a5b0a9b110f18d68d8e3e5c1b71d57199aacc7b272594ad5"
+    }
+  ],
+  "sources": {
+    "states-a": {
+      "generated_filename": "exec-00f43b8b-6561-4e8e-a97b-e29efd59693a.png",
+      "original_sha256": "204d941b1ba5dc8680de3c90ca98c648e700203613ec4704400063a81da65622",
+      "source_sha256": "f8a79137d348458e1a86530b2711137cef05249036683377ac6f04d905de016d",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "states-a.prompt.txt"
+    },
+    "states-b": {
+      "generated_filename": "exec-42c110df-1813-4141-aedc-1bf157927f4c.png",
+      "original_sha256": "ad30f3ca8622e4eba1bee757572fa0be48223db575d5a401d5716717d25958b1",
+      "source_sha256": "c540be4ced28793729446e87b26c6965d1d887cb30207cde75c364307d923be0",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "states-b.prompt.txt"
+    },
+    "walk": {
+      "generated_filename": "exec-827e9828-2ce5-4bf2-b67a-95b2fc0f40c0.png",
+      "original_sha256": "88167f2a309593cb85e6d389c38321e93d102d5e259f8ab50731a7bf138efc64",
+      "source_sha256": "3512706b5b1c4ecb5a4455aa989dc7d8b8fe373b5404a6c5af1886540dc4428e",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "walk.prompt.txt"
+    },
+    "punch": {
+      "generated_filename": "exec-43508555-ecbe-4d2c-b404-555eded99482.png",
+      "original_sha256": "17f1632130de8313d6482c27ad1322ac3e60fcaf559fc767e05b9aac6f821cdd",
+      "source_sha256": "c7c44dd7c070e2c053a6004c93995523a50594ccaa58de425d00f47acb5fe04f",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "punch.prompt.txt"
+    },
+    "kick": {
+      "generated_filename": "exec-dd7149a1-2ee8-4117-a891-eefa5e70e844.png",
+      "original_sha256": "b7d8756dd4b43cac8e443285ed66e7fccadfd93fadcc5460f5c9c1d670538cfa",
+      "source_sha256": "946c00fc0a416b1b5b1aac14d6a0aeea36ac2eefc5ef6cc8d6f438fd49db03f5",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "kick.prompt.txt"
+    },
+    "low": {
+      "generated_filename": "exec-f4ecc0ee-a7aa-4cf6-a0bd-5081385a7743.png",
+      "original_sha256": "f42fa505f89546931a81fe6dc82aafe0c8147b1997966633675f00cb63f927bb",
+      "source_sha256": "979c161c70e925c0d7b21cd5ab4b941334bdebca9d78033cac0d0eedf0783e67",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "low.prompt.txt"
+    },
+    "air": {
+      "generated_filename": "exec-217c4fea-21ca-413a-90bf-04276e646fab.png",
+      "original_sha256": "f39c31bde2a5021a4561bba5c4cc10046c7a9f7df2454fef41f6f6e4ff84b568",
+      "source_sha256": "3fbf44d6cfa1d802ca32fcfd3006228e1a50b79535d5d345a5cc972fe2f4b891",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "air.prompt.txt"
+    },
+    "pulse": {
+      "generated_filename": "exec-db24e0dc-0d5d-4a1b-9efe-11ecdc35d9b7.png",
+      "original_sha256": "db6224c41929bfe350166e723149024e2c7a00b9e2d6c5eb8d1bfc5be557570e",
+      "source_sha256": "96ed6bf60e2b9fc03c80adf17972938a4edc8f7230575e839a35484cf27fc287",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "pulse.prompt.txt"
+    },
+    "rise": {
+      "generated_filename": "exec-06ae9c93-3a22-4fa5-b36d-e0affef6d73d.png",
+      "original_sha256": "543182a88b8785ff0eb01f83b2a1881ac517b3b087f685506a3387c19ed3abcd",
+      "source_sha256": "2eabc37f5e5da36608f7dbd1f16444ef0c1264ec3c0ce1ac55b66c44c2ba7d1d",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "rise.prompt.txt"
+    },
+    "champion": {
+      "generated_filename": "exec-f019df86-763e-4dcd-9eff-2acbd8a24b22.png",
+      "original_sha256": "5026254eb60c6fe3ecfc58088d2f67aeb3fd728512d13508bc868989e40d2a30",
+      "source_sha256": "5d1bc0556332c574485b1b318873ccd649e9ef1faf2a2a892aee8312275a58ac",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "champion.prompt.txt"
+    },
+    "throw": {
+      "generated_filename": "exec-eb24278a-0255-4242-8dcf-6e38f86af7b6.png",
+      "original_sha256": "5dfdab35779529b8274c5a5a5da95349d0596d6539fd1b4506d26d951e97ee89",
+      "source_sha256": "452b730aaca1a7550d52afd2df38f4ce938dd3cabc6a9d2f979d54aafb30feca",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "throw.prompt.txt"
+    },
+    "athletic-fx": {
+      "generated_filename": "exec-2ff50009-ccc0-42ac-9eeb-7e53aa0cdb92.png",
+      "original_sha256": "f778bed7c5a8fa607eed8e27f2d3f68b1a5f02d8a74793fd22e78bd4e315addc",
+      "source_sha256": "5022d7b81369f630fffe187418c2f571dc4517de28b95251a35caefca4f282e1",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt": "athletic-fx.prompt.txt"
+    },
+    "champion-fx": {
+      "generated_filename": "exec-5ff98d58-84dc-4c9d-9079-16eb8b2a4a7d.png",
+      "original_sha256": "1b99107932d5f9a4e964c7a5c1865c1424827b644c590ab4842f3b4d834a5ff9",
+      "source_sha256": "d12c4154b6e841a3ee3b2b76128581cd8be3cdc75f5db16497175349f7a0ab51",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "prompt": "champion-fx.prompt.txt"
+    }
+  }
+}
