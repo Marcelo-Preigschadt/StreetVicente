@@ -2,12 +2,11 @@
 
 Preferência registrada em 19 de outubro de 2026: manter o rosto da versão original e deixar **Khauãny e Dienes por último**.
 
-Tais é a revisão atual, após Marcos. A ordem dos personagens restantes é:
+Luciana é a revisão atual, após Tais v17, cujos poderes e movimentos foram aprovados em 20 de outubro de 2026. A ordem dos personagens restantes é:
 
-1. Luciana
-2. Ruan
-3. Khauãny (`khauany` no catálogo)
-4. Dienes
+1. Ruan
+2. Khauãny (`khauany` no catálogo)
+3. Dienes
 
 Cada personagem deve manter sua identidade, modalidade, figurino, poderes, falas e comandos aprovados. A comparação visual com as referências originais precede a integração. Revisar um personagem por vez.
 

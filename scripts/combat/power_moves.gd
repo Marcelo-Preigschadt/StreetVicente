@@ -19,6 +19,15 @@ const UPPER := {
 
 
 static func configure(c: CharacterData) -> void:
+	if c.id == "luciana":
+		# Broad visible language nuclei use matching swept physical contacts.
+		# Original damage, speed, three waves, cost and voices are preserved.
+		for strength in 3:
+			for key in ["special", "super"]:
+				var word: MoveData = c.moves["%s:%d" % [key, strength]]
+				word.legacy = word.legacy.duplicate(true)
+				word.legacy.radius = 150 if key == "super" else 64
+		return
 	if c.id == "tais":
 		# Visible pressure nuclei have matching swept collision radii. Costs,
 		# damage, speed, four-wave cadence and voices retain the original rules.

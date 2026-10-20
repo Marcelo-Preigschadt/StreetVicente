@@ -87,6 +87,9 @@ static func seal(c: CanvasItem, age: int, color: Color) -> void:
 
 
 static func projectile(c: CanvasItem, p: Dictionary, camera: float) -> void:
+	if p.character == "luciana":
+		LucianaFXV18.projectile(c, p, camera)
+		return
 	if p.character == "tais":
 		TaisFXV17.projectile(c, p, camera)
 		return
@@ -232,7 +235,7 @@ static func projectile(c: CanvasItem, p: Dictionary, camera: float) -> void:
 
 
 static func hand(f: FighterModel, camera: float) -> Vector2:
-	if f.character.id in ["marcelo", "rafael", "adriano", "joao", "gustavo", "gelton", "marcelino", "marcos", "tais"]:
+	if f.character.id in ["marcelo", "rafael", "adriano", "joao", "gustavo", "gelton", "marcelino", "marcos", "tais", "luciana"]:
 		return Vector2(CombatGeometry.hand(f)) / 256 - Vector2(camera, 0)
 	var source: Dictionary = f.character.legacy.get("projectile", {})
 	return Vector2(
@@ -370,6 +373,9 @@ static func charge(c: CanvasItem, f: FighterModel, camera: float, actors: Array)
 	var name := str(move.legacy.name)
 	if name not in ["special", "super", "uppercut", "drone"]:
 		return
+	if f.character.id == "luciana" and name != "drone":
+		LucianaFXV18.charge(c, f, camera)
+		return
 	if f.character.id == "tais" and name != "drone":
 		TaisFXV17.charge(c, f, camera)
 		return
@@ -502,6 +508,9 @@ static func super_punch(c: CanvasItem, f: FighterModel, camera: float) -> void:
 
 
 static func impact(c: CanvasItem, b: Dictionary, actors: Array, camera: float) -> void:
+	if b.character == "luciana":
+		LucianaFXV18.impact(c, b, camera)
+		return
 	if b.character == "tais":
 		TaisFXV17.impact(c, b, camera)
 		return

@@ -75,7 +75,7 @@ func consume(events: Array, _simulation: FightSimulation) -> void:
 				}
 			)
 			shake = 6.0 if strong else 2.5
-			if e.character == "tais" and e.get("power_kind", "") != "":
+			if e.character in ["tais", "luciana"] and e.get("power_kind", "") != "":
 				shake = 10.0 if move.begins_with("super") else 7.0
 			if strong:
 				flash = 0.045

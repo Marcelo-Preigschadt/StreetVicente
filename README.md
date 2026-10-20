@@ -1,6 +1,6 @@
 # Street Vicente Fighter · Godot 4
 
-Tais recebeu animações completas de Savate baseadas no rosto grande e no retrato original aprovado. O Circuito Campeão ganhou quatro frentes de 460 × 440 px, rastro largo e explosão de 620 × 500 px, com alcance físico ampliado. [Detalhes e validação](docs/TAIS_V17.md). [Ordem das próximas revisões](docs/ROSTER_ART_ORDER.md).
+Luciana recebeu movimentos completos de MMA com o rosto original preservado. Os poderes de palavras, acentos e pontuação têm emissão pelo punho, frentes de até 480 × 450 px, rastro largo de papel/tinta e explosão de 640 × 520 px. [Detalhes e validação](docs/LUCIANA_V18.md). [Ordem das próximas revisões](docs/ROSTER_ART_ORDER.md).
 
 
 **Jogar:** https://marcelo-preigschadt.github.io/StreetVicente/
@@ -13,7 +13,11 @@ A primeira opção, **TREINO LIVRE**, abre Marcelo × Rafael com animação 2D. 
 
 O protótipo procedural 3D foi rejeitado e retirado dos fluxos publicados. Seu código permanece isolado para referência técnica; a direção atual é 2D quadro a quadro. [Registro do protótipo arquivado](docs/PILOT_3D.md).
 
-## Revisão atual · Tais v17
+## Revisão atual · Luciana v18
+
+São 88 desenhos de fonte, 87 distintos consumidos, e 24 desenhos de efeitos. **H = Direto da Palavra; U = Acento Ascendente; Q = Sem Direito a Réplica**. Diretos, joelhadas, guarda, saltos e agarrão usam o corpo inteiro. H/Q emitem papel, tinta e pontuação pelo punho; U tem subida física com arco ascendente. O super mantém as três ondas e o custo original, agora com frentes grandes e explosão prolongada. Rosto, cabelo liso, roupa, retrato e vozes originais foram preservados. [Fontes, registro e validação](docs/LUCIANA_V18.md).
+
+## Tais v17 aprovada
 
 São 88 desenhos de fonte, 87 distintos consumidos, e 24 desenhos de efeitos. **H = Pulso Atlético; U = Salto Olímpico; Q = Circuito Campeão**. Emissão pelo tênis do chassé, salto real e grandes frentes de energia atlética com expansão, rastros atrás das lutadoras e explosão prolongada. Rosto, roupa, retrato, vozes, dano, custo e quatro ondas originais foram preservados. [Fontes, registro e validação](docs/TAIS_V17.md).
 
@@ -60,7 +64,7 @@ A revisão v10 corrigiu a vibração após K.O. e introduziu o rolinho físico, 
 | Arcade / CPU | Circuito de 12 rivais, rota, bônus, Continue e recorde persistente |
 | Rounds | Melhor de três; Round/número/Fight com bloqueio de comandos; K.O./Time Over/vitória/Perfect; barra super preservada |
 | Poderes | Rolinho elétrico físico do João; ganchos com avanço e arco ativo; projéteis e efeitos por personagem; código e drones/enxame do Marcelo; VFX animados e lasers independentes; compartilhados com o História |
-| Arte nova | Marcelo com 72 cels; Rafael com 64 novos + 8 socos v5; Adriano com 64 novos (caminhada v9); João com 64 novos + 8 cels de rolinho; Gustavo com 64 quadros refeitos v12; Gelton com 80 posições v13 (76 desenhos distintos + guardas compartilhadas); Marcelino com 72 cels de fonte v15 (70 desenhos consumidos); Marcos com 88 cels de fonte v16 (87 desenhos consumidos); Tais com 88 cels de fonte v17 (87 desenhos consumidos) e 24 efeitos; demais preservados |
+| Arte nova | Marcelo com 72 cels; Rafael com 64 novos + 8 socos v5; Adriano com 64 novos (caminhada v9); João com 64 novos + 8 cels de rolinho; Gustavo com 64 quadros refeitos v12; Gelton com 80 posições v13 (76 desenhos distintos + guardas compartilhadas); Marcelino com 72 cels de fonte v15 (70 desenhos consumidos); Marcos com 88 cels de fonte v16 (87 desenhos consumidos); Tais com 88 cels de fonte v17 (87 desenhos consumidos) e 24 efeitos; Luciana com 88 cels de fonte v18 (87 desenhos consumidos) e 24 efeitos; demais preservados |
 | História | Quatro atos, ondas/chefes e exoesqueleto, diálogos de entrada, turno de 15 minutos, pontos por derrotas, objetos/perigos, retry de ato e save/retomada; coop ainda pendente |
 | Rollback | Snapshot/replay local verificado; online permanece indisponível até implementação e testes reais de sessão/rede |
 | Web | GitHub Actions importa/testa/exporta e só publica após QA do WASM |

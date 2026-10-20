@@ -12,6 +12,7 @@ func _process(_delta: float) -> void:
 func _draw() -> void:
 	if powers != null and powers.world != null:
 		TaisFXV17.backdrop(self, powers.world, powers.camera_x)
+		LucianaFXV18.backdrop(self, powers.world, powers.camera_x)
 	if impact.super_time > 0:
 		draw_rect(
 			Rect2(0, 112, 1280, 552), Color(0.0, 0.025, 0.055, minf(0.65, impact.super_time * 2.0))

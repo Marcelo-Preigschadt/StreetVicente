@@ -1,0 +1,41 @@
+{
+  "revision": 18,
+  "character": "luciana",
+  "generator": "built-in ImageGen",
+  "identity": "Original large painted portrait, approved menu portrait and original fullbody sheets, compared visually. face_revision records source provenance; it is not an automated likeness score.",
+  "sources": {
+    "luciana-head-menu-v3.webp": {
+      "sha256": "ec0f559ba9a5371c372ac508577157cf38017a5fc0b2e5292b24223c49d1b8d1",
+      "url": "https://raw.githubusercontent.com/Marcelo-Preigschadt/Street-Vicente-Fighter-/main/assets/runtime/luciana-head-menu-v3.webp"
+    },
+    "luciana-combat-v1.webp": {
+      "sha256": "79939f0ed7d67c073575498440d418a129c7cfbd538e7035fbdf053f1f101343",
+      "url": "https://raw.githubusercontent.com/Marcelo-Preigschadt/Street-Vicente-Fighter-/main/assets/luciana-combat-v1.webp"
+    },
+    "luciana-portrait-v1.webp": {
+      "sha256": "7ca09a9eb180f6119fda8a5b6ec8a8cc0d8de8fd1dbd70c8b824607915d43548",
+      "url": "https://raw.githubusercontent.com/Marcelo-Preigschadt/Street-Vicente-Fighter-/main/assets/luciana-portrait-v1.webp"
+    },
+    "luciana-base-v1.webp": {
+      "sha256": "c94bf8ef3356a98dbf7ed8af411f267f46f546d334f75f366364c5246d4bc41e",
+      "url": "https://raw.githubusercontent.com/Marcelo-Preigschadt/Street-Vicente-Fighter-/main/assets/luciana-base-v1.webp"
+    }
+  },
+  "selected": {
+    "low.webp": "f949b8d7eb4170debd4aa36af57da86d22a19479a959044d8d16517118edde3b",
+    "pulse.webp": "d12c354d0019d12e2f99c7df6050cda792f21281b4e8ab495f5ef86046123f4e",
+    "walk.webp": "1bf182770c87397fbc22658a73e08f96f04f0755f663073ea3ee8afe6450adb1",
+    "states-a.webp": "96f5dd0af2d250bccbe3514878fccff26d3a7a68c78ad93c573be9d864dad832",
+    "air.webp": "89dfc8a704b1575b1ba53b365935a5c84e8c5b3b8ee4ef49ac25021464818930",
+    "kick.webp": "f98535aedfcb25ff73ca682963d356bbd8662035bde8e4d71069fb757bbbc0d1",
+    "language-fx.webp": "40036a8053cc66e4b02025f59a758fd9e101bfc4461c0af114482887a7075f6d",
+    "canonical.webp": "cc83a17340fc66138cad723f05fdd1571dc7637f25b4649ee91c7c73d3a4df02",
+    "states-b.webp": "fe932613b6da105d4bfd96d5da6cf6387e4ede15264ee8709c127d18dbdb780e",
+    "punch.webp": "7932a52cb852ad68aac0548fc57659d105dfa8a6452c5f29b12002ffe9a99292",
+    "finale-fx.webp": "3d87000133e19c2abb5192d60affff1f5e2155d0b37eef7611c00e5c9fa781d5",
+    "champion.webp": "6c0965428576d3ed9d2614a945517ab1e610ab77ae92e778002b4dceb5eed522",
+    "throw.webp": "d946e0cd115743bce7952e0f1e97942de8997f487972bc829bbb8f68646bb8e3",
+    "rise.webp": "736374c119e284d686e06a9f71b5b4eaaf8f3c29f44bff919169550696389ece"
+  },
+  "packing": "Native pixel crops and atlas packing only, lossless WebP with original alpha. No enlarged sources, face compositing, deformation or synthetic inbetweens."
+}
