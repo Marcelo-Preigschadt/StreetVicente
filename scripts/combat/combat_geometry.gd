@@ -54,7 +54,7 @@ static func attack(f: FighterModel):
 	if (
 		f.character.id not in ["marcelo", "rafael", "adriano", "joao"]
 		and not (
-			f.character.id in ["gustavo", "gelton", "marcelino", "marcos", "tais", "luciana"]
+			f.character.id in ["gustavo", "gelton", "marcelino", "marcos", "tais", "luciana", "ruan"]
 			and CharacterArt.has_frame(f)
 		)
 	):

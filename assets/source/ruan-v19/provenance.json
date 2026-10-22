@@ -1,0 +1,42 @@
+{
+  "revision": 19,
+  "character": "ruan",
+  "generator": "built-in ImageGen",
+  "identity": "Original selfie IMG-20261006-WA0009.jpg is the facial reference; approved original menu portrait and fullbody sheets retain character continuity and wardrobe. Faces compared visually. face_revision identifies source provenance, not an automatic likeness score.",
+  "original_selfie_sha256": "518bdf22c811ab9958cb48646cf619ecaff7a48f7bfded4c8a72103787ab7106",
+  "sources": {
+    "ruan-base-v1.webp": {
+      "sha256": "7b6d1a455d595441a38c9b93b0dc116109f5eaadbcfd90b45f125cdc87642190",
+      "url": "https://raw.githubusercontent.com/Marcelo-Preigschadt/Street-Vicente-Fighter-/main/assets/ruan-base-v1.webp"
+    },
+    "ruan-sweep-v2.webp": {
+      "sha256": "8de8e01c16c7f526c878fd906d3b0e3a651cb8d235d20e871806998efc5736dd",
+      "url": "https://raw.githubusercontent.com/Marcelo-Preigschadt/Street-Vicente-Fighter-/main/assets/ruan-sweep-v2.webp"
+    },
+    "ruan-head-menu-v3.webp": {
+      "sha256": "2aaeb9c9350df9739c6f6453207abaa6572384b7acbd24a045897c0b67b880a7",
+      "url": "https://raw.githubusercontent.com/Marcelo-Preigschadt/Street-Vicente-Fighter-/main/assets/runtime/ruan-head-menu-v3.webp"
+    },
+    "ruan-combat-v1.webp": {
+      "sha256": "8d165c142d308baae785d08889a05c023b67dcabc60aafc3020015c7972712d5",
+      "url": "https://raw.githubusercontent.com/Marcelo-Preigschadt/Street-Vicente-Fighter-/main/assets/ruan-combat-v1.webp"
+    }
+  },
+  "selected": {
+    "lightning-fx.webp": "70d33be8aac5d5f7632eb7a8c2d9244a4d10c39d09ae4eed9d43bad5868543c6",
+    "throw.webp": "3e4b38efaef51a0b54faae595e28af740e42a5f13001852973cf811b7afc5638",
+    "low.webp": "e2bd2a935eea2a74fffd529119e3e6e966c2ffe9c550a7aa812f1585622f4d32",
+    "walk.webp": "168ef2079cc058ebe87a38cd9c7ea9c7fce94ed4147a1312e8b136f2acdd8e84",
+    "tempest-fx.webp": "d0d281d259a39fca99cc25c0816b316a55b192c846928f4d51e32bcada12afa0",
+    "rise.webp": "f725e481123018b9cf32ce2b82badf0cb4750803b0b8812ac73dd331693d3923",
+    "states-b.webp": "82f1755303be244d125b9e01da637598fd463c97905b08e6b2d217f17442b536",
+    "champion.webp": "4edbd5177c9aac9beb7219cbd6b98adfb66ea72a30a6875f39e78e3e02cc2ba3",
+    "punch.webp": "7e2fb206438aaa25059cf52ff233f6209e435d20dc7564a4b683ab4a98fe3db3",
+    "pulse.webp": "5b8b89c53cbeebe63649c4afb35d42ab7f25d95520f9161fabae619e174cf722",
+    "states-a.webp": "0f7e4b20153f29e5344a543533d8963e42c64d2cedabe2d12ab285a211a8befb",
+    "canonical.webp": "ac17e5c9dd8f328eb53e88690c41c9f90cb52b3f01e040ede4250b4ff23d56b2",
+    "air.webp": "72500310fd727962b19e1c3446606acb20de1051c8407383cf80114c2ba70e8a",
+    "kick.webp": "0c79376320b032d0929e15f91edc1b2b8091d48fa2abd407dcd2f55da0c67843"
+  },
+  "packing": "Native pixel crops and lossless atlas packing with original alpha only. No source enlargement, body-part deformation, face compositing or synthetic inbetweens."
+}

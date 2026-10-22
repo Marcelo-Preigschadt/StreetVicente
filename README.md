@@ -1,6 +1,6 @@
 # Street Vicente Fighter · Godot 4
 
-Luciana recebeu movimentos completos de MMA com o rosto original preservado. Os poderes de palavras, acentos e pontuação têm emissão pelo punho, frentes de até 480 × 450 px, rastro largo de papel/tinta e explosão de 640 × 520 px. [Detalhes e validação](docs/LUCIANA_V18.md). [Ordem das próximas revisões](docs/ROSTER_ART_ORDER.md).
+Ruan recebeu movimentos completos de Karatê com identidade preservada pela selfie original e pelo retrato aprovado. Os poderes elétricos azul/violeta têm emissão pelo punho, frentes de até 480 × 460 px, raios ramificados e explosão de 640 × 540 px. [Detalhes e validação](docs/RUAN_V19.md). [Ordem das próximas revisões](docs/ROSTER_ART_ORDER.md).
 
 
 **Jogar:** https://marcelo-preigschadt.github.io/StreetVicente/
@@ -13,7 +13,11 @@ A primeira opção, **TREINO LIVRE**, abre Marcelo × Rafael com animação 2D. 
 
 O protótipo procedural 3D foi rejeitado e retirado dos fluxos publicados. Seu código permanece isolado para referência técnica; a direção atual é 2D quadro a quadro. [Registro do protótipo arquivado](docs/PILOT_3D.md).
 
-## Revisão atual · Luciana v18
+## Revisão atual · Ruan v19
+
+São 88 desenhos completos de fonte, 87 distintos consumidos, e 24 desenhos de efeitos. **H = Pulso de Choque; U = Punho de Trovão; Q = Kata da Tempestade**. Gyaku-zuki, mae-geri, ashi-barai, golpes aéreos, guarda, caminhada e agarrão usam o corpo inteiro. A rasteira conserva o tamanho do corpo e ambos os braços; o chute mantém as mãos em guarda. H/Q têm grandes frentes elétricas e U uma subida física com arco de raios. Mantidos três disparos do Q, custo, dano, figurino, retrato e vozes. [Fontes, registro e validação](docs/RUAN_V19.md).
+
+## Luciana v18
 
 São 88 desenhos de fonte, 87 distintos consumidos, e 24 desenhos de efeitos. **H = Direto da Palavra; U = Acento Ascendente; Q = Sem Direito a Réplica**. Diretos, joelhadas, guarda, saltos e agarrão usam o corpo inteiro. H/Q emitem papel, tinta e pontuação pelo punho; U tem subida física com arco ascendente. O super mantém as três ondas e o custo original, agora com frentes grandes e explosão prolongada. Rosto, cabelo liso, roupa, retrato e vozes originais foram preservados. [Fontes, registro e validação](docs/LUCIANA_V18.md).
 
@@ -64,7 +68,7 @@ A revisão v10 corrigiu a vibração após K.O. e introduziu o rolinho físico, 
 | Arcade / CPU | Circuito de 12 rivais, rota, bônus, Continue e recorde persistente |
 | Rounds | Melhor de três; Round/número/Fight com bloqueio de comandos; K.O./Time Over/vitória/Perfect; barra super preservada |
 | Poderes | Rolinho elétrico físico do João; ganchos com avanço e arco ativo; projéteis e efeitos por personagem; código e drones/enxame do Marcelo; VFX animados e lasers independentes; compartilhados com o História |
-| Arte nova | Marcelo com 72 cels; Rafael com 64 novos + 8 socos v5; Adriano com 64 novos (caminhada v9); João com 64 novos + 8 cels de rolinho; Gustavo com 64 quadros refeitos v12; Gelton com 80 posições v13 (76 desenhos distintos + guardas compartilhadas); Marcelino com 72 cels de fonte v15 (70 desenhos consumidos); Marcos com 88 cels de fonte v16 (87 desenhos consumidos); Tais com 88 cels de fonte v17 (87 desenhos consumidos) e 24 efeitos; Luciana com 88 cels de fonte v18 (87 desenhos consumidos) e 24 efeitos; demais preservados |
+| Arte nova | Marcelo com 72 cels; Rafael com 64 novos + 8 socos v5; Adriano com 64 novos (caminhada v9); João com 64 novos + 8 cels de rolinho; Gustavo com 64 quadros refeitos v12; Gelton com 80 posições v13 (76 desenhos distintos + guardas compartilhadas); Marcelino com 72 cels de fonte v15 (70 desenhos consumidos); Marcos com 88 cels de fonte v16 (87 desenhos consumidos); Tais com 88 cels de fonte v17 (87 desenhos consumidos) e 24 efeitos; Luciana com 88 cels de fonte v18 (87 desenhos consumidos) e 24 efeitos; Ruan com 88 cels de fonte v19 (87 desenhos consumidos) e 24 efeitos; demais preservados |
 | História | Quatro atos, ondas/chefes e exoesqueleto, diálogos de entrada, turno de 15 minutos, pontos por derrotas, objetos/perigos, retry de ato e save/retomada; coop ainda pendente |
 | Rollback | Snapshot/replay local verificado; online permanece indisponível até implementação e testes reais de sessão/rede |
 | Web | GitHub Actions importa/testa/exporta e só publica após QA do WASM |

@@ -19,6 +19,15 @@ const UPPER := {
 
 
 static func configure(c: CharacterData) -> void:
+	if c.id == "ruan":
+		# Blue-violet plasma nuclei use matching swept physical contacts.
+		# Original damage, speed, three waves, cost and voices are preserved.
+		for strength in 3:
+			for key in ["special", "super"]:
+				var storm: MoveData = c.moves["%s:%d" % [key, strength]]
+				storm.legacy = storm.legacy.duplicate(true)
+				storm.legacy.radius = 152 if key == "super" else 68
+		return
 	if c.id == "luciana":
 		# Broad visible language nuclei use matching swept physical contacts.
 		# Original damage, speed, three waves, cost and voices are preserved.
