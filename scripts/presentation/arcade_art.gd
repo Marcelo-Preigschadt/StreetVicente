@@ -51,6 +51,10 @@ static func load_data() -> void:
 		FileAccess.get_file_as_string("res://data/characters/ruan-arcade-v19.json")
 	)
 
+	data.khauany = JSON.parse_string(
+		FileAccess.get_file_as_string("res://data/characters/khauany-arcade-v21.json")
+	)
+
 
 static func pose(f: FighterModel) -> Dictionary:
 	load_data()

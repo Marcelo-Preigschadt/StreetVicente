@@ -1,0 +1,35 @@
+{
+  "revision": 21,
+  "character": "khauany",
+  "generator": "built-in image_gen",
+  "identity_reference_sha256": "59cb836d00bda912300a69c34e87827d75788484d580f428a6abc98cff88f47d",
+  "private_reference_published": false,
+  "outfit_reference": "assets/legacy/runtime/khauany-v2.webp",
+  "face_authority": "New user-provided photo; previous game face is replaced",
+  "constraints": [
+    "Complete hand-drawn 2D cels",
+    "No body-part warps or face compositing",
+    "Original photo is identity authority in every body generation"
+  ],
+  "source_sha256": {
+    "air.webp": "667fccf5c1e68cd4f961e1564ca38e25da44c951821b584a8e78244c4ea9aed6",
+    "walk.webp": "dc65157803af63fc23ae1c91849c196cf025a32c748cd84086989a2feddf97c4",
+    "throw.webp": "7325000c590a4e30b9f617e866511532a245863812a6505c5c2562edd4237c3d",
+    "canonical.webp": "a047c01adf9614ad8b90c5d23c78f75ca09fa5833a7e1d60b1b93954cabd9e53",
+    "portrait.webp": "3a19521b3f04877db1d931274eddfaea7be335b7fd058054ad97dbbde5cd6bb2",
+    "banquet-fx.webp": "cc9950a1cf5cfd150efe453c5893b78b861f082d9fd0a217192dac8892cab80f",
+    "low.webp": "07ccf885cdf8406faa9280db6b566d3bb286f65f295e3b701cd41f24798a6aea",
+    "punch.webp": "b74604c035386ab2000e9eb353de3596cbac33d2599aa85d8d41e84f8fbcf168",
+    "pulse.webp": "db59ca04054e59b294e6063760dd2cde86a6a378b01d1bbbc6d6de1ffefb0e1c",
+    "fork-fx.webp": "425ebcc7d9c3c8865a5bd0ea6f81dfe45e30f4ed8639ba0f8a5503d20992155d",
+    "kick.webp": "eba54a7202ea4a4b4aef18f194dfffb1ec809d7796f65c139fea3142d11bb815",
+    "champion.webp": "d4f59afd80aabc056b368827688aa4746fabed47ba545bcd784c2ed2054d2ba8",
+    "rise.webp": "4a459da1ab98a56288f14565b13df5ad85bf3b425d943f274f562551524f0b2a",
+    "states-b.webp": "178142a33fe1a0e78ff3edf532cdd4cc38e9c4ba76e691727f69fdac9f9188da",
+    "states-a.webp": "c6127277fd6611fd2804da17dc852d1774b176bcdd7c9e330aa10e1ee99b05ba"
+  },
+  "selected_cels": 87,
+  "body_drawings_generated": 88,
+  "effect_cels": 24,
+  "runtime_packer": "tools/pack_khauany_v21.py"
+}

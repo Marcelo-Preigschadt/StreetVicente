@@ -60,6 +60,7 @@ func _run() -> void:
 	LucianaV18Tests.run(self)
 	RuanV19Tests.run(self)
 	RosterPowersV20Tests.run(self)
+	KhauanyV21Tests.run(self)
 	print("COMBAT TESTS: %d checks, %d failures" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 
@@ -467,10 +468,16 @@ func _test_shared_powers() -> void:
 		neutral(sim, 40)
 		check(not sim.projectiles.is_empty(), "Especial é entidade real: " + id)
 		check(sim.projectiles[0].kind == "projectile", "Projétil normal separado de drones/lasers")
-		check(
-			int(sim.projectiles[0].origin_x) > 410 * 256 + 90 * 256,
-			"Emissão sai na posição da mão: " + id
-		)
+		if id == "khauany":
+			var cast := FighterModel.new(LegacyRoster.get_character(id), 0, 410)
+			cast.state = FighterState.Id.ATTACK
+			cast.move_id = "special:1"
+			cast.move_tick = cast.current_move().startup * 2
+			check(int(sim.projectiles[0].origin_x) == CombatGeometry.hand(cast).x,
+				"Emissão acompanha a palma desenhada: " + id)
+		else:
+			check(int(sim.projectiles[0].origin_x) > 410 * 256 + 90 * 256,
+				"Emissão sai na posição da mão: " + id)
 	var sim := FightSimulation.new(
 		LegacyRoster.get_character("marcelo"), LegacyRoster.get_character("rafael")
 	)

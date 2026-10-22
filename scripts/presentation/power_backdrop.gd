@@ -14,6 +14,7 @@ func _draw() -> void:
 		PowerFXV20.backdrop(self, powers.world, powers.camera_x)
 		TaisFXV17.backdrop(self, powers.world, powers.camera_x)
 		LucianaFXV18.backdrop(self, powers.world, powers.camera_x)
+		KhauanyFXV21.backdrop(self, powers.world, powers.camera_x)
 		RuanFXV19.backdrop(self, powers.world, powers.camera_x)
 	if impact.super_time > 0:
 		draw_rect(

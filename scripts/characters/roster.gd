@@ -16,6 +16,9 @@ static func load_catalog() -> void:
 		c.display_name = raw.name
 		c.color = Color(raw.color)
 		c.legacy = raw
+		if c.id == "khauany":
+			c.legacy = raw.duplicate()
+			c.legacy.portrait = "res://assets/characters/khauany/portrait-v21.webp"
 		for frame in raw.animations.walk:
 			if frame.pose[0] == "motion":
 				c.walk_by_pose[int(frame.pose[1])] = frame

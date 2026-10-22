@@ -39,6 +39,9 @@ static func run(s: SceneTree) -> void:
 		view.free()
 	for id in ["khauany", "dienes"]:
 		s.check(id not in PowerFXV20.IDS, id + " permanece fora da revisão")
+		# Khauãny receives her own explicitly requested v21 revision afterwards.
+		if id == "khauany":
+			continue
 		var c := LegacyRoster.get_character(id)
 		for key in ["special", "super"]:
 			var original: Dictionary = c.legacy.moves[key + ":1"]

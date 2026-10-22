@@ -90,6 +90,9 @@ static func projectile(c: CanvasItem, p: Dictionary, camera: float) -> void:
 	if p.character in PowerFXV20.IDS:
 		# Broad v20 tails and fronts render below actors to keep faces readable.
 		return
+	if p.character == "khauany":
+		KhauanyFXV21.projectile(c, p, camera)
+		return
 	if p.character == "ruan":
 		RuanFXV19.projectile(c, p, camera)
 		return
@@ -241,7 +244,7 @@ static func projectile(c: CanvasItem, p: Dictionary, camera: float) -> void:
 
 
 static func hand(f: FighterModel, camera: float) -> Vector2:
-	if f.character.id in ["marcelo", "rafael", "adriano", "joao", "gustavo", "gelton", "marcelino", "marcos", "tais", "luciana", "ruan"]:
+	if f.character.id in ["marcelo", "rafael", "adriano", "joao", "gustavo", "gelton", "marcelino", "marcos", "tais", "luciana", "ruan", "khauany"]:
 		return Vector2(CombatGeometry.hand(f)) / 256 - Vector2(camera, 0)
 	var source: Dictionary = f.character.legacy.get("projectile", {})
 	return Vector2(
@@ -381,6 +384,9 @@ static func charge(c: CanvasItem, f: FighterModel, camera: float, actors: Array)
 		return
 	if f.character.id in PowerFXV20.IDS:
 		PowerFXV20.charge(c, f, camera, actors)
+		return
+	if f.character.id == "khauany" and name != "drone":
+		KhauanyFXV21.charge(c, f, camera)
 		return
 	if f.character.id == "ruan" and name != "drone":
 		RuanFXV19.charge(c, f, camera)
@@ -522,6 +528,9 @@ static func super_punch(c: CanvasItem, f: FighterModel, camera: float) -> void:
 static func impact(c: CanvasItem, b: Dictionary, actors: Array, camera: float) -> void:
 	if b.character in PowerFXV20.IDS:
 		PowerFXV20.impact(c, b, camera)
+		return
+	if b.character == "khauany":
+		KhauanyFXV21.impact(c, b, camera)
 		return
 	if b.character == "ruan":
 		RuanFXV19.impact(c, b, camera)

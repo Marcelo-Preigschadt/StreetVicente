@@ -22,6 +22,10 @@ func setup(value) -> void:
 			var revised := PowerFXV20.load_data(actor.character.id)
 			for frame in revised.frames:
 				LegacyRoster.texture(frame.get("image", revised.get("image", "")))
+		if actor.character.id == "khauany":
+			KhauanyFXV21.load_data()
+			for image in KhauanyFXV21.art.images.values():
+				LegacyRoster.texture(image)
 		if actor.character.id == "ruan":
 			RuanFXV19.load_data()
 			for image in RuanFXV19.art.images.values():
@@ -51,7 +55,7 @@ func consume(events: Array) -> void:
 			or (e.kind in ["hit", "block"] and e.get("power_kind", "") != "")
 		):
 			var lifetime := .14 if e.kind in ["beam", "cast"] else .32
-			if e.character in PowerFXV20.IDS or e.character in ["tais", "luciana", "ruan"]:
+			if e.character in PowerFXV20.IDS or e.character in ["tais", "luciana", "ruan", "khauany"]:
 				lifetime = (.25 if e.kind == "cast" else .85
 					if str(e.get("move", "")).begins_with("super") else .6)
 				if e.kind == "beam":

@@ -30,6 +30,15 @@ static func configure(c: CharacterData) -> void:
 				revised.legacy = revised.legacy.duplicate(true)
 				revised.legacy.radius = (128 if key == "super" else 56) if c.id == "adriano" else (146 if key == "super" else 64)
 		return
+	if c.id == "khauany":
+		# The silver fork nucleus owns contact; the violet wake is decorative.
+		# Keep original damage, speed, five waves, meter cost and voices.
+		for strength in 3:
+			for key in ["special", "super"]:
+				var forks: MoveData = c.moves["%s:%d" % [key, strength]]
+				forks.legacy = forks.legacy.duplicate(true)
+				forks.legacy.radius = 150 if key == "super" else 64
+		return
 	if c.id == "ruan":
 		# Blue-violet plasma nuclei use matching swept physical contacts.
 		# Original damage, speed, three waves, cost and voices are preserved.
