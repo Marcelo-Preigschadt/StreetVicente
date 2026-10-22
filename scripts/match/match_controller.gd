@@ -386,6 +386,7 @@ func _capture_qa_trace() -> void:
 			"tick": sim.tick,
 			"state": FighterState.NAMES[f.state],
 			"move": f.move_id,
+			"meter": f.meter,
 			"pose": pose.key,
 			"pose_index": pose.index,
 			"art_sheet": str(pose.sheet.image),

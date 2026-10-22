@@ -57,6 +57,13 @@ function energy(buffer,baseline,exclude=[]){
   for(const [key,move] of [['h','special:1'],['u','uppercut:1'],['q','super:1']]){
    const melee=['marcos','joao'].includes(id),close=key==='u'||(melee&&key==='h')||(id==='marcos'&&key==='q');
    await reset(close);const baseState=await state(),baseline=await shot(id+'-'+key+'-baseline');await page.keyboard.press(key);
+   if(key==='q'){
+    // The roll legitimately earns meter on each contact. Read its immutable
+    // startup observation to verify expenditure independently of later gains.
+    assert.equal(baseState.meter[0],100,id+' starts the super with full meter');
+    const h=await wait(()=>window.svfQA.trace.find(q=>q.move==='super:1'&&typeof q.meter==='number'));
+    const cast=await h.jsonValue();await h.dispose();assert.equal(cast.meter,0,id+' spends 100 at super startup');
+   }
    if(key==='u'){
     await wait(()=>window.svfQA.trace.some(q=>q.move==='uppercut:1'&&q.hit_count>0));
    }else if(id==='joao'&&key==='q'){
@@ -92,9 +99,9 @@ function energy(buffer,baseline,exclude=[]){
      await resume();
     }
     assert(buffer,id+' froze an actual live aftermath without camera shake');
-    assert.equal(current.meter[0],0,id+' original super cost');assert(current.hp[1]<1000,id+' super contacts actual opponent');
+    assert(current.hp[1]<1000,id+' super contacts actual opponent');
     const actual=energy(buffer,baseline,[...bounds(baseState),...bounds(current)]);
-    entry.powers.q={...actual,cutin:current.super_cutin,shake:current.shake,excludes_actor_bounds:true};
+    entry.powers.q={...actual,cutin:current.super_cutin,shake:current.shake,meter_after_contact:current.meter[0],excludes_actor_bounds:true};
     assert(actual.count>6000,id+' super has substantial luminous area outside actors and banner');
     assert(actual.height>250,id+' super spans fighter height without the SUPER banner');
    }

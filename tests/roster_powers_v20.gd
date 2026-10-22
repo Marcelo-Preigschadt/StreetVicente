@@ -20,6 +20,8 @@ static func run(s: SceneTree) -> void:
 				f.meter = 100
 				sim.fighters[1].x = f.x + facing * 180 * 256
 				f._start_move(c.get_move(name, 1))
+				if name == "super":
+					s.check(f.meter == 0, id + " gasta 100 de barra no início do super")
 				for tick in 440:
 					sim.step([CombatInput.new(), CombatInput.new()])
 				s.check(sim.fighters[1].health < 1000, id + "/" + name + " acerta nos dois lados")

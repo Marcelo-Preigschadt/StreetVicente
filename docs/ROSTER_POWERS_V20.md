@@ -71,3 +71,8 @@ confere dano/custo e mede pixels das capturas; cada super precisa ocupar mais de
 com a faixa SUPER já encerrada e a câmera sem vibração. As capturas de
 guarda, emissão e impacto ficam no artefato de QA do workflow. O mesmo script
 aceita `SVF_AUDIT_URL` para verificar o pacote publicado sem modificar o jogo.
+
+O custo do super é conferido na observação imutável de início do golpe. A barra
+posterior ao contato pode subir: o rolamento do João recupera três pontos em
+cada um dos três acertos, conforme a regra original. O teste não exige barra
+zerada depois do combo e não altera a regra de recuperação.
