@@ -11,6 +11,7 @@ func _process(_delta: float) -> void:
 
 func _draw() -> void:
 	if powers != null and powers.world != null:
+		PowerFXV20.backdrop(self, powers.world, powers.camera_x)
 		TaisFXV17.backdrop(self, powers.world, powers.camera_x)
 		LucianaFXV18.backdrop(self, powers.world, powers.camera_x)
 		RuanFXV19.backdrop(self, powers.world, powers.camera_x)

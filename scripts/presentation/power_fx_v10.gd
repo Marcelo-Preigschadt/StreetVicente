@@ -87,6 +87,9 @@ static func seal(c: CanvasItem, age: int, color: Color) -> void:
 
 
 static func projectile(c: CanvasItem, p: Dictionary, camera: float) -> void:
+	if p.character in PowerFXV20.IDS:
+		# Broad v20 tails and fronts render below actors to keep faces readable.
+		return
 	if p.character == "ruan":
 		RuanFXV19.projectile(c, p, camera)
 		return
@@ -376,6 +379,9 @@ static func charge(c: CanvasItem, f: FighterModel, camera: float, actors: Array)
 	var name := str(move.legacy.name)
 	if name not in ["special", "super", "uppercut", "drone"]:
 		return
+	if f.character.id in PowerFXV20.IDS:
+		PowerFXV20.charge(c, f, camera, actors)
+		return
 	if f.character.id == "ruan" and name != "drone":
 		RuanFXV19.charge(c, f, camera)
 		return
@@ -514,6 +520,9 @@ static func super_punch(c: CanvasItem, f: FighterModel, camera: float) -> void:
 
 
 static func impact(c: CanvasItem, b: Dictionary, actors: Array, camera: float) -> void:
+	if b.character in PowerFXV20.IDS:
+		PowerFXV20.impact(c, b, camera)
+		return
 	if b.character == "ruan":
 		RuanFXV19.impact(c, b, camera)
 		return

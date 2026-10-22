@@ -19,6 +19,17 @@ const UPPER := {
 
 
 static func configure(c: CharacterData) -> void:
+	if c.id in ["marcelo", "adriano", "rafael", "gustavo", "gelton", "marcelino"]:
+		# Broad dense projectile fronts match their swept contacts; decorative
+		# trails and impact coronas do not create invisible hitboxes.
+		for strength in 3:
+			for key in ["special", "super"]:
+				var revised: MoveData = c.moves["%s:%d" % [key, strength]]
+				if not revised.legacy.get("projectile", false) or (c.id == "marcelo" and key == "super"):
+					continue
+				revised.legacy = revised.legacy.duplicate(true)
+				revised.legacy.radius = (128 if key == "super" else 56) if c.id == "adriano" else (146 if key == "super" else 64)
+		return
 	if c.id == "ruan":
 		# Blue-violet plasma nuclei use matching swept physical contacts.
 		# Original damage, speed, three waves, cost and voices are preserved.

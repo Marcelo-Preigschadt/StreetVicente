@@ -464,6 +464,12 @@ func _publish_qa() -> void:
 		data.vy = sim.fighters[0].vy
 		data.meter = [sim.fighters[0].meter, sim.fighters[1].meter]
 		data.fx_revision = 11
+		data.roster_fx_revision = 20
+		data.super_cutin = impact.super_time
+		data.power_bursts = power_view.bursts.map(func(b: Dictionary) -> Dictionary:
+			return {"character": b.character, "move": b.move, "kind": b.kind,
+				"life": b.life, "x": b.x, "y": b.y})
+		data.revised_power_ids = PowerFXV20.IDS + ["tais", "luciana", "ruan"]
 		data.contact_clips = impact.particles.map(func(p: Dictionary) -> String: return p.clip)
 		data.roll = {
 			"phase": sim.fighters[0].roll_phase,

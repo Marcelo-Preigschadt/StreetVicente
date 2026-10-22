@@ -1,0 +1,79 @@
+{
+  "tool": "builtin image_gen.imagegen",
+  "mode": "generate",
+  "scope": "VFX only; no character/face assets modified",
+  "files": {
+    "marcelo-code.webp": {
+      "sha256": "424f4d82f5b9a59ab21bed0850e9c6863ed52c61f1fa088b3bbaa5d73253da09",
+      "size": [
+        1254,
+        1254
+      ],
+      "cells": 16
+    },
+    "marcelo-fleet.webp": {
+      "sha256": "66cc800a1d49cf4bf40c7212b2fee1e4472215f3c62f0fe0b6d53ddc7c965eb0",
+      "size": [
+        1774,
+        887
+      ],
+      "cells": 8
+    },
+    "adriano-imperial.webp": {
+      "sha256": "b0052e4c68bcda6312c8f1dde7c935809f4b61f8b73974f41ff3296b82f64b72",
+      "size": [
+        1254,
+        1254
+      ],
+      "cells": 16
+    },
+    "rafael-chronicles.webp": {
+      "sha256": "23af83db98c4178a32775329e4a105ea696eef92b0f24151a2a57bf16904d8f8",
+      "size": [
+        1254,
+        1254
+      ],
+      "cells": 16
+    },
+    "joao-electric.webp": {
+      "sha256": "3b2f0109964f6ba15e24abba1be258ca0ec253c9f9c147b1a8d6be58d47dc60c",
+      "size": [
+        1254,
+        1254
+      ],
+      "cells": 16
+    },
+    "gustavo-ultimate.webp": {
+      "sha256": "efcf1fcf9a623a55411bffad1339eb7e56a72b09de64c2079d51a6a10848ea15",
+      "size": [
+        1774,
+        887
+      ],
+      "cells": 8
+    },
+    "gelton-ultimate.webp": {
+      "sha256": "75b1cdfdc156035a1ae3d23e16d547b6806039e98bf7a3b743e3355866a32755",
+      "size": [
+        1774,
+        887
+      ],
+      "cells": 8
+    },
+    "marcelino-ultimate.webp": {
+      "sha256": "01a65b19c08bb1623ea156e2485f4c9e0afb2fe9efa2dd843bfb4c57f6a8cadc",
+      "size": [
+        1774,
+        887
+      ],
+      "cells": 8
+    },
+    "marcos-ultimate.webp": {
+      "sha256": "566dc96b937fcd75e869c73e00840d32fe36d0e1d0981927c6549cea7e5864a7",
+      "size": [
+        1774,
+        887
+      ],
+      "cells": 8
+    }
+  }
+}

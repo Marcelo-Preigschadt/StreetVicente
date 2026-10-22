@@ -1,0 +1,85 @@
+{
+  "base_commit": "1afe7a5388d63a41f6cdbf169bc838886c08b7bd",
+  "method": "Existing character atlases, body metadata, portraits, voices and imported catalog remain byte-for-byte intact. This revision adds VFX only.",
+  "catalog_blob": "39a626590aa369d0e66a5b45b3571cbd63ce3a9f",
+  "characters": {
+    "adriano": {
+      "excluded": false,
+      "body_tree": "601ef308dfbbe24971ddc89adaf47da98caa3ef0",
+      "portrait": "res://assets/legacy/runtime/adriano-head-menu-v1.webp",
+      "portrait_blob": "0829ee0fc14100248f5a5c880e0d71ba19a8d260"
+    },
+    "marcelo": {
+      "excluded": false,
+      "body_tree": "b447a20e911c8fa944d0c64eb632d8212072cc88",
+      "portrait": "res://assets/legacy/runtime/marcelo-head-menu-v3.webp",
+      "portrait_blob": "1f42519570a26eb7df9e8f75abd060cc7a3e3efd"
+    },
+    "rafael": {
+      "excluded": false,
+      "body_tree": "c49dfafede4118b69aff485f1ad5ee965ebdc2c9",
+      "portrait": "res://assets/legacy/runtime/rafael-head-menu-v3.webp",
+      "portrait_blob": "d4eb26c645846abb4c093560d04426d6f8705c77"
+    },
+    "gustavo": {
+      "excluded": false,
+      "body_tree": "51d616c00c34c7742ce2d52fbbedeb7d8e071c91",
+      "portrait": "res://assets/legacy/runtime/gustavo-head-menu-v3.webp",
+      "portrait_blob": "774ece4ba66d5ae2088905e9e2b3faf1d7c416f3"
+    },
+    "gelton": {
+      "excluded": false,
+      "body_tree": "e1c0fb09822011a710681fb3907f1e1ccdb34d50",
+      "portrait": "res://assets/legacy/runtime/gelton-head-menu-v4.webp",
+      "portrait_blob": "85822731fc28067f25fb972df9444aab594d1748"
+    },
+    "marcelino": {
+      "excluded": false,
+      "body_tree": "fc11b38e7cd174b5a4aa7c692acab0dd2e99b179",
+      "portrait": "res://assets/legacy/runtime/marcelino-head-menu-v3.webp",
+      "portrait_blob": "5918734f8b4d4cd64194b09b07c9dc1c49db713d"
+    },
+    "marcos": {
+      "excluded": false,
+      "body_tree": "8e48d0f071555a5fd8ca13bd6ae78f1ba3f82a4f",
+      "portrait": "res://assets/legacy/runtime/marcos-head-menu-v3.webp",
+      "portrait_blob": "abbedeb1b2fdbcf52c23a1b1741900d02648707e"
+    },
+    "joao": {
+      "excluded": false,
+      "body_tree": "760c97d24ee176a2e6d72d3434700b1396b36cb2",
+      "portrait": "res://assets/legacy/runtime/joao-head-menu-v4.webp",
+      "portrait_blob": "c8341e9e49fd0bdcac17166d1e1b1d0dd20f7ad6"
+    },
+    "tais": {
+      "excluded": false,
+      "body_tree": "e703887a4646dd6df90b8f556f3595b837161466",
+      "portrait": "res://assets/legacy/runtime/tais-head-menu-v4.webp",
+      "portrait_blob": "000d3a12dea342202f8d4227c173e1d54f1bd05f"
+    },
+    "luciana": {
+      "excluded": false,
+      "body_tree": "15bd4ae42c6c6da129f220b6988f471389bf3d11",
+      "portrait": "res://assets/legacy/runtime/luciana-head-menu-v3.webp",
+      "portrait_blob": "050c4af5dca95b26ab2ad96737c81df257427473"
+    },
+    "khauany": {
+      "excluded": true,
+      "body_tree": null,
+      "portrait": "res://assets/legacy/runtime/khauany-head-menu-v1.webp",
+      "portrait_blob": "43633d659a08f0af613675f5b0d27bb00f74bbdc"
+    },
+    "dienes": {
+      "excluded": true,
+      "body_tree": null,
+      "portrait": "res://assets/legacy/runtime/dienes-head-menu-v1.webp",
+      "portrait_blob": "f22dbb75dcb120092f539e3f9ed12fffe5639dea"
+    },
+    "ruan": {
+      "excluded": false,
+      "body_tree": "4ccbbca56279b6117a0e94aae54586646108c497",
+      "portrait": "res://assets/legacy/runtime/ruan-head-menu-v3.webp",
+      "portrait_blob": "7a0d9b9f1db41e2d06fac79f1222711d5a1bd4ec"
+    }
+  }
+}

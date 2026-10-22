@@ -18,6 +18,10 @@ func setup(value) -> void:
 	MarceloPowerFX.load_art()
 	LegacyRoster.texture(MarceloPowerFX.art.image)
 	for actor in world.power_actors():
+		if actor.character.id in PowerFXV20.IDS:
+			var revised := PowerFXV20.load_data(actor.character.id)
+			for frame in revised.frames:
+				LegacyRoster.texture(frame.get("image", revised.get("image", "")))
 		if actor.character.id == "ruan":
 			RuanFXV19.load_data()
 			for image in RuanFXV19.art.images.values():
@@ -47,9 +51,11 @@ func consume(events: Array) -> void:
 			or (e.kind in ["hit", "block"] and e.get("power_kind", "") != "")
 		):
 			var lifetime := .14 if e.kind in ["beam", "cast"] else .32
-			if e.character in ["tais", "luciana", "ruan"]:
+			if e.character in PowerFXV20.IDS or e.character in ["tais", "luciana", "ruan"]:
 				lifetime = (.25 if e.kind == "cast" else .85
 					if str(e.get("move", "")).begins_with("super") else .6)
+				if e.kind == "beam":
+					lifetime = .18
 			bursts.append(
 				{
 					"x": float(e.x) / FighterModel.SCALE,
@@ -96,10 +102,10 @@ func _draw() -> void:
 				float(p.origin_x) / FighterModel.SCALE - camera_x,
 				float(p.origin_y) / FighterModel.SCALE
 			)
-			MarceloPowerFX.beam(self, start, origin, 1.0)
+			PowerFXV20.beam(self, start, origin, 1.0)
 			continue
 		if p.drone:
-			MarceloPowerFX.drone(self, p, camera_x, clock, world.power_actors())
+			PowerFXV20.drone(self, p, camera_x, clock, world.power_actors())
 			continue
 		PowerFXV10.projectile(self, p, camera_x)
 	draw_set_transform(Vector2.ZERO)
@@ -113,7 +119,7 @@ func _draw() -> void:
 
 func _draw_burst(b: Dictionary) -> void:
 	if b.character == "marcelo":
-		MarceloPowerFX.burst(self, b, camera_x)
+		PowerFXV20.impact(self, b, camera_x)
 		return
 	var phase := 1.0 - float(b.life) / float(b.max)
 	var alpha := 1.0 - phase

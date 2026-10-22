@@ -2,7 +2,7 @@
 
 Preferência registrada em 19 de outubro de 2026: manter o rosto da versão original e deixar **Khauãny e Dienes por último**.
 
-Ruan é a revisão atual, após Luciana v18. O padrão de movimentos completos e grandes poderes segue a Tais v17 aprovada em 20 de outubro de 2026. A ordem dos personagens restantes é:
+A revisão coletiva de poderes v20 sucede Ruan v19, por pedido de 22 de outubro de 2026. Ela revisa os outros 11 lutadores e exclui Khauãny e Dienes. O padrão de movimentos completos e grandes poderes segue a Tais v17 aprovada em 20 de outubro de 2026. A ordem dos personagens restantes é:
 
 1. Khauãny (`khauany` no catálogo)
 2. Dienes
