@@ -1030,7 +1030,7 @@ func _online_key(key: int) -> bool:
 		return true
 	if screen in ["fight", "story"]:
 		if key == KEY_ESCAPE:
-			if net_session.phase == "paused":
+			if net_session.phase != "playing":
 				close_online()
 			else:
 				net_session.pause_game(true)

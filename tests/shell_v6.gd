@@ -97,6 +97,12 @@ func run() -> void:
 	assert(app.views[0].pilot_3d == null)
 	assert(app.progress.valid_checkpoint())
 	print("SHELL V6: route, next opponent, defeat, continue, story dialog/save passed")
+	for phase in ["paused", "reconnecting", "syncing", "preparing"]:
+		app.screen = "fight"
+		app.net_session.phase = phase
+		app._handle_key(KEY_ESCAPE)
+		assert(app.screen == "menu" and app.net_session.phase == "closed")
+	print("ONLINE V22 SHELL: Escape exits without waiting for a disconnected peer")
 	DirAccess.remove_absolute("user://test-shell-v6.json")
 	# Direct stepping runs several seconds of announcer cues in one rendered
 	# frame. Stop voices before disposing the fixture/audio server at shutdown.
