@@ -69,6 +69,7 @@ jobs:
       - name: Install browser test dependencies
         timeout-minutes: 4
         run: |
+          printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
           npm ci --no-audit --no-fund
           npx playwright install --with-deps chromium
       - name: Test exported WASM
