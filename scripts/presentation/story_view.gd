@@ -138,7 +138,10 @@ func _draw_objects(camera: float) -> void:
 						10,
 						Color(color, 0.75)
 					)
-	for p in world.objects.thrown:
+	var all_thrown: Array = []
+	for gear in world.object_sets():
+		all_thrown.append_array(gear.thrown)
+	for p in all_thrown:
 		var art: Dictionary = LegacyRoster.catalog.story.props[p.kind]
 		var size := (
 			Vector2(float(art.width), float(art.height))
@@ -157,12 +160,14 @@ func _draw_objects(camera: float) -> void:
 		draw_line(at - tail, at, Color(color, 0.3), 23, true)
 		draw_line(at - tail, at, color, 10, true)
 		draw_circle(at, 4, Color.WHITE)
-	if not world.objects.carry.is_empty():
-		var art: Dictionary = LegacyRoster.catalog.story.props[world.objects.carry.kind]
-		var f := world.hero
-		var size := Vector2(float(art.width), float(art.height))
-		var at := Vector2(
-			float(f.x) / FighterModel.SCALE - camera + f.facing * 90,
-			float(f.y) / FighterModel.SCALE - 180
-		)
-		draw_texture_rect(LegacyRoster.texture(art.file), Rect2(at - size / 2, size), false)
+	for i in world.object_sets().size():
+		var gear: StoryObjects = world.object_sets()[i]
+		if not gear.carry.is_empty():
+			var art: Dictionary = LegacyRoster.catalog.story.props[gear.carry.kind]
+			var f: FighterModel = world.players()[i]
+			var size := Vector2(float(art.width), float(art.height))
+			var at := Vector2(
+				float(f.x) / FighterModel.SCALE - camera + f.facing * 90,
+				float(f.y) / FighterModel.SCALE - 180
+			)
+			draw_texture_rect(LegacyRoster.texture(art.file), Rect2(at - size / 2, size), false)

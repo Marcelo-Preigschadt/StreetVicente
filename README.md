@@ -1,6 +1,6 @@
 # Street Vicente Fighter · Godot 4
 
-Ruan recebeu movimentos completos de Karatê com identidade preservada pela selfie original e pelo retrato aprovado. Os poderes elétricos azul/violeta têm emissão pelo punho, frentes de até 480 × 460 px, raios ramificados e explosão de 640 × 540 px. [Detalhes e validação](docs/RUAN_V19.md). [Ordem das próximas revisões](docs/ROSTER_ART_ORDER.md).
+**Online v22:** Versus e História cooperativa para duas pessoas, salas por código, busca de partida, escolha individual entre os 13 personagens, pausa sincronizada e retomada após queda de conexão ou reload. [Como jogar e funcionamento](docs/ONLINE_V22.md). As artes dos personagens permanecem preservadas.
 
 
 **Jogar:** https://marcelo-preigschadt.github.io/StreetVicente/
@@ -69,11 +69,13 @@ A revisão v10 corrigiu a vibração após K.O. e introduziu o rolinho físico, 
 | Rounds | Melhor de três; Round/número/Fight com bloqueio de comandos; K.O./Time Over/vitória/Perfect; barra super preservada |
 | Poderes | Rolinho elétrico físico do João; ganchos com avanço e arco ativo; projéteis e efeitos por personagem; código e drones/enxame do Marcelo; VFX animados e lasers independentes; compartilhados com o História |
 | Arte nova | Marcelo com 72 cels; Rafael com 64 novos + 8 socos v5; Adriano com 64 novos (caminhada v9); João com 64 novos + 8 cels de rolinho; Gustavo com 64 quadros refeitos v12; Gelton com 80 posições v13 (76 desenhos distintos + guardas compartilhadas); Marcelino com 72 cels de fonte v15 (70 desenhos consumidos); Marcos com 88 cels de fonte v16 (87 desenhos consumidos); Tais com 88 cels de fonte v17 (87 desenhos consumidos) e 24 efeitos; Luciana com 88 cels de fonte v18 (87 desenhos consumidos) e 24 efeitos; Ruan com 88 cels de fonte v19 (87 desenhos consumidos) e 24 efeitos; demais preservados |
-| História | Quatro atos, ondas/chefes e exoesqueleto, diálogos de entrada, turno de 15 minutos, pontos por derrotas, objetos/perigos, retry de ato e save/retomada; coop ainda pendente |
-| Rollback | Snapshot/replay local verificado; online permanece indisponível até implementação e testes reais de sessão/rede |
+| História | Quatro atos, ondas/chefes e exoesqueleto, diálogos de entrada, turno de 15 minutos, pontos por derrotas, objetos/perigos, retry de ato e save/retomada individual; cooperativo online para dois heróis |
+| Online / rollback | Supabase Broadcast, salas Versus/coop, inputs com atraso de 6 ticks, previsão limitada, replay, hashes confirmados, pausa e reconexão |
 | Web | GitHub Actions importa/testa/exporta e só publica após QA do WASM |
 
 ## Controles
+
+No online, cada pessoa usa o mapa **P1** em seu computador. Esc pausa os dois; Enter retoma; outro Esc sai. No cooperativo, E ajuda o parceiro caído. [Salas e recuperação](docs/ONLINE_V22.md).
 
 | Ação | P1 | P2 |
 |---|---|---|

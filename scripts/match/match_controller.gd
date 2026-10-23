@@ -6,7 +6,7 @@ const MENU := [
 	"VERSUS / 2 JOGADORES",
 	"HISTÓRIA / RESGATE DO NIT",
 	"TREINAMENTO",
-	"ONLINE / EM MIGRAÇÃO"
+	"ONLINE / VERSUS E COOP"
 ]
 var screen: String = "menu"
 var mode: String = "cpu"
@@ -36,7 +36,9 @@ var debug_boxes: bool = false
 var rooms: Array = []
 var room_code: String = ""
 var net_status: String = "Conectando ao serviço de salas..."
-var net_session: Node
+var net_session: OnlineSession
+var directory: RoomDirectory
+var online_panel: OnlinePanel
 var qa: bool = false
 var demo: bool = false
 var impact: CombatImpact
@@ -85,6 +87,19 @@ func _ready() -> void:
 	ui = GameScreen.new()
 	ui.game = self
 	add_child(ui)
+	directory = RoomDirectory.new()
+	add_child(directory)
+	net_session = OnlineSession.new()
+	add_child(net_session)
+	net_session.setup(directory)
+	net_session.changed.connect(_online_changed)
+	net_session.prepare_game.connect(_online_prepare)
+	net_session.committed.connect(_online_events)
+	net_session.reset_presentation.connect(_online_reset)
+	online_panel = OnlinePanel.new()
+	add_child(online_panel)
+	online_panel.setup(self)
+	directory.active = false
 	controls = ControllerPanel.new()
 	controls.game = self
 	add_child(controls)
@@ -117,6 +132,8 @@ func _hide_world() -> void:
 
 
 func choose_menu(index: int) -> void:
+	if net_session != null and net_session.active():
+		close_online()
 	progress.save()
 	arcade = null
 	if index == 3 and progress.valid_checkpoint():
@@ -130,6 +147,8 @@ func choose_menu(index: int) -> void:
 		_start_fight()
 		return
 	if index == 5:
+		directory.start(online_panel.mode)
+		net_session.status = ""
 		screen = "online"
 		_hide_world()
 		return
@@ -142,6 +161,10 @@ func choose_menu(index: int) -> void:
 
 func confirm_selection() -> void:
 	var id: String = LegacyRoster.ids()[cursor]
+	if online_active():
+		net_session.choose(id, not net_session.confirmed[net_session.slot])
+		audio.select_character(id)
+		return
 	if selection_slot == 1 and selected[0] == id:
 		return
 	selected[selection_slot] = id
@@ -273,6 +296,13 @@ func _bind_story() -> void:
 
 
 func _physics_process(_delta: float) -> void:
+	if online_active() and screen in ["fight", "story"]:
+		if not controls.visible:
+			net_session.advance(input_source.sample(0))
+		_online_views()
+		if qa and screen == "fight":
+			_capture_qa_trace()
+		return
 	if paused:
 		return
 	if screen == "arcade_route":
@@ -421,6 +451,9 @@ func _publish_qa() -> void:
 		"stage_cursor": stage_cursor,
 		"audio": stage_audio.observation()
 	}
+	if net_session != null:
+		data.online = net_session.observation()
+		data.rooms = directory.rooms
 	if progress.valid_checkpoint():
 		data.checkpoint_meta = {
 			"character": progress.checkpoint.character,
@@ -480,6 +513,8 @@ func _publish_qa() -> void:
 		data.freeze_ticks = sim.freeze_ticks
 		data.round_wait = sim.round_wait
 		data.winner = sim.winner
+		data.match_over = sim.match_over
+		data.wins = sim.wins.duplicate()
 		data.shake = impact.shake
 		data.last_contacts = last_contacts
 		data.hurtboxes = sim.fighters.map(
@@ -577,6 +612,11 @@ func _publish_qa() -> void:
 			"popup_open": controls.device_list.get_popup().visible
 		}
 
+	if screen == "story" and story is CoopStorySimulation:
+		data.story.players = story.players().map(func(f: FighterModel) -> Dictionary:
+			return {"character": f.character.id, "x": f.x, "y": f.y, "lane": f.ground_y,
+				"hp": f.health, "meter": f.meter, "pose": CharacterArt.frame(f).key})
+		data.story.hash = story.state_hash()
 	JavaScriptBridge.eval("window.svfQA = " + JSON.stringify(data), true)
 
 
@@ -592,6 +632,8 @@ func toggle_fullscreen() -> void:
 
 func _controller_changed() -> void:
 	input_source.clear()
+	if online_active():
+		net_session.pause_game(true)
 	if screen in ["fight", "story"]:
 		paused = true
 		if controls.visible:
@@ -608,7 +650,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			stage_audio.toggle()
 			get_viewport().set_input_as_handled()
 			return
-		if ui.stage_rect().has_point(local) and screen in ["menu", "fight"]:
+		if ui.stage_rect().has_point(local) and screen in ["menu", "fight"] and not online_active():
 			open_stage_selection(screen)
 			get_viewport().set_input_as_handled()
 			return
@@ -670,6 +712,8 @@ func _pad_navigation(key: int) -> void:
 
 
 func _handle_key(key: int) -> void:
+	if online_active() and _online_key(key):
+		return
 	if key == KEY_F9:
 		stage_audio.toggle()
 		return
@@ -710,7 +754,7 @@ func _handle_key(key: int) -> void:
 			choose_menu(menu_index)
 	elif screen == "online":
 		if key == KEY_ESCAPE:
-			screen = "menu"
+			close_online()
 	elif screen in ["arcade_route", "arcade_result"]:
 		if key == KEY_ENTER:
 			if screen == "arcade_route":
@@ -798,6 +842,9 @@ func _handle_key(key: int) -> void:
 
 
 func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and online_active():
+		input_source.clear()
+		return
 	if (
 		what == NOTIFICATION_APPLICATION_FOCUS_OUT
 		and is_instance_valid(input_source)
@@ -875,3 +922,125 @@ func _show_arcade_outcome() -> void:
 	screen = "arcade_route" if arcade.state == "route" else "arcade_result"
 	progress.save()
 	_hide_world()
+
+
+func online_active() -> bool:
+	return net_session != null and net_session.active()
+
+
+func close_online() -> void:
+	net_session.leave()
+	directory.active = false
+	screen = "menu"
+	paused = false
+	input_source.clear()
+	_hide_world()
+
+
+func _online_changed() -> void:
+	room_code = net_session.room
+	net_status = net_session.status
+	if net_session.phase == "lobby":
+		selected = net_session.pair.duplicate()
+		selection_slot = net_session.slot
+		cursor = LegacyRoster.ids().find(net_session.selection_character())
+		mode = "story_online" if net_session.game_mode == "story" else "online"
+		screen = "selection"
+		paused = false
+		_hide_world()
+	elif net_session.phase == "error":
+		screen = "online"
+		paused = false
+		_hide_world()
+	elif net_session.world != null:
+		paused = net_session.phase != "playing"
+
+
+func _online_prepare() -> void:
+	selected = net_session.pair.duplicate()
+	stage_id = net_session.stage
+	mode = "story_online" if net_session.game_mode == "story" else "online"
+	if mode == "online":
+		_start_fight()
+		net_session.attach_world(sim)
+	else:
+		story = CoopStorySimulation.new(LegacyRoster.get_character(selected[0]),
+			LegacyRoster.get_character(selected[1]))
+		_bind_story()
+		views[1].setup(story.heroes[1], story.heroes[1].character.color)
+		views[1].show()
+		net_session.attach_world(story)
+	paused = true
+
+
+func _online_events(events: Array) -> void:
+	var contacts := events.filter(func(e: Dictionary) -> bool: return e.kind in ["hit", "block"])
+	if not contacts.is_empty():
+		last_contacts = contacts.duplicate(true)
+	impact.consume(events, sim if mode == "online" else null)
+	power_view.consume(events)
+	audio.consume(events)
+
+
+func _online_reset() -> void:
+	impact.clear()
+	power_view.bursts.clear()
+	power_view.seen.clear()
+	last_contacts.clear()
+	input_source.clear()
+	_snap_views()
+
+
+func _online_views() -> void:
+	if net_session.world == null:
+		return
+	paused = net_session.phase != "playing" or (net_session.timeline != null and not net_session.timeline.can_advance())
+	var actors: Array = sim.fighters if mode == "online" else story.players()
+	for i in 2:
+		if views[i].model != actors[i]:
+			views[i].setup(actors[i], actors[i].character.color)
+		views[i].camera_x = 0 if mode == "online" else story.camera_x
+		views[i].sync()
+		views[i].show()
+
+
+func _online_key(key: int) -> bool:
+	if screen == "selection":
+		if key == KEY_ESCAPE:
+			close_online()
+		elif key == KEY_ENTER:
+			confirm_selection()
+		elif key == KEY_F5 and net_session.slot == 0:
+			var index := (ArenaCatalog.IDS.find(net_session.stage) + 1) % ArenaCatalog.IDS.size()
+			net_session.set_stage(ArenaCatalog.IDS[index])
+		elif key in [KEY_A, KEY_LEFT, KEY_D, KEY_RIGHT, KEY_W, KEY_UP, KEY_S, KEY_DOWN]:
+			if net_session.confirmed[net_session.slot]:
+				return true
+			if key in [KEY_A, KEY_LEFT, KEY_D, KEY_RIGHT]:
+				cursor = posmod(cursor + (-1 if key in [KEY_A, KEY_LEFT] else 1), LegacyRoster.ids().size())
+				if LegacyRoster.ids()[cursor] == net_session.pair[1 - net_session.slot]:
+					cursor = posmod(cursor + (-1 if key in [KEY_A, KEY_LEFT] else 1), LegacyRoster.ids().size())
+			else:
+				cursor = ui.vertical_neighbor(cursor, -1 if key in [KEY_W, KEY_UP] else 1)
+				if LegacyRoster.ids()[cursor] == net_session.pair[1 - net_session.slot]:
+					cursor = posmod(cursor + 1, LegacyRoster.ids().size())
+			net_session.choose(LegacyRoster.ids()[cursor])
+		else:
+			return false
+		return true
+	if screen in ["fight", "story"]:
+		if key == KEY_ESCAPE:
+			if net_session.phase == "paused":
+				close_online()
+			else:
+				net_session.pause_game(true)
+			return true
+		if key == KEY_ENTER:
+			if net_session.phase == "paused":
+				net_session.pause_game(false)
+			else:
+				net_session.finish()
+			return true
+		if key in [KEY_F2, KEY_F3, KEY_F5, KEY_F8]:
+			return true
+	return false

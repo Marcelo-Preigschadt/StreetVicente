@@ -247,6 +247,7 @@ func step(value: CombatInput) -> void:
 								"y": hero.y - 145 * UNIT
 							}
 						)
+						break  # One contact per victim, not one per overlapping hurtbox row.
 		f.end_tick()
 	for contact in powers.advance(power_actors(), 3600, tick):
 		var target := _enemy(int(contact.defender))
@@ -335,6 +336,14 @@ func power_actors() -> Array[FighterModel]:
 	for enemy in enemies:
 		result.append(enemy.fighter)
 	return result
+
+
+func players() -> Array[FighterModel]:
+	return [hero]
+
+
+func object_sets() -> Array:
+	return [objects]
 
 
 func _enemy(slot: int) -> FighterModel:

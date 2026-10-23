@@ -12,7 +12,7 @@ const DESCRIPTIONS := [
 	"Dois jogadores, um computador. Escolham seus lutadores.",
 	"Atravesse a escola e liberte o servidor central.",
 	"Escolha a dupla e configure o adversário de treino.",
-	"Partidas em rede ainda estão em migração."
+	"Versus e História cooperativa. Crie uma sala e convide outra pessoa."
 ]
 var game: Node
 var font: Font
@@ -205,7 +205,7 @@ func _selection() -> void:
 		var c := LegacyRoster.get_character(ids[i])
 		var box := card_rect(i)
 		var active: bool = i == game.cursor
-		var locked: bool = game.selection_slot == 1 and ids[i] == game.selected[0]
+		var locked: bool = ids[i] == game.selected[1 - game.selection_slot] if game.online_active() else game.selection_slot == 1 and ids[i] == game.selected[0]
 		panel(box.grow(3), INK)
 		_portrait(c, Rect2(box.position + Vector2(2, 2), Vector2(box.size.x - 4, 78)))
 		panel(Rect2(box.position + Vector2(0, 80), Vector2(box.size.x, 26)), Color("17233e"))
@@ -223,7 +223,14 @@ func _selection() -> void:
 			)
 			text_at(box.position + Vector2(3, -2), "%dP" % (game.selection_slot + 1), 15, INK)
 	centered(Vector2(640, 647), "13 LUTADORES • CADA UM COM SEU ESTILO", 14, Color("a8bad9"))
-	_footer("A/D ESCOLHER     W/S LINHA     ENTER CONFIRMAR     ESC VOLTAR")
+	if game.online_active():
+		var net: OnlineSession = game.net_session
+		var label := "SALA %s · 1P %s / 2P %s" % [net.room,
+			"PRONTO" if net.confirmed[0] else "ESCOLHENDO", "PRONTO" if net.confirmed[1] else "ESCOLHENDO"]
+		centered(Vector2(640, 668), label, 15, GOLD)
+		_footer("A/D · W/S ESCOLHER     ENTER PRONTO / CANCELAR     F5 CENÁRIO: " + net.stage.to_upper() + "     ESC SAIR")
+	else:
+		_footer("A/D ESCOLHER     W/S LINHA     ENTER CONFIRMAR     ESC VOLTAR")
 
 
 func _short_name(c: CharacterData) -> String:
@@ -293,10 +300,11 @@ func _hud() -> void:
 	if not story_mode and not game.paused:
 		_round_call()
 	var a: FighterModel = game.story.hero if story_mode else game.sim.fighters[0]
-	var b: FighterModel = null if story_mode else game.sim.fighters[1]
+	var b: FighterModel = game.story.players()[1] if story_mode and game.story.players().size() == 2 else null if story_mode else game.sim.fighters[1]
 	_draw_player(a, false, BLUE)
 	if b != null:
 		_draw_player(b, true, RED)
+	if b != null and not story_mode:
 		ArcadeTheme.plate(self, Rect2(579, 8, 122, 86), INK, 12)
 		centered(Vector2(640, 57), "%02d" % ceili(game.sim.remaining_ticks / 120.0), 40, PAPER)
 		centered(Vector2(640, 79), "ROUND %d" % game.sim.round_number, 12, GOLD)
@@ -307,7 +315,7 @@ func _hud() -> void:
 					4,
 					GOLD if game.sim.wins[side] > win else Color("3c4256")
 				)
-	else:
+	elif b == null:
 		var act: Dictionary = LegacyRoster.catalog.story.acts[mini(game.story.act_index, 3)]
 		ArcadeTheme.plate(self, Rect2(720, 15, 560, 65), INK, 15)
 		text_at(Vector2(760, 40), str(act.place), 22, GOLD)
@@ -342,7 +350,7 @@ func _hud() -> void:
 		text_at(Vector2(36, 128), "PONTOS  %08d" % game.arcade.score, 17, GOLD)
 		centered(Vector2(640, 128), "CIRCUITO  %02d / 12" % (game.arcade.index + 1), 15, PAPER)
 		text_at(Vector2(970, 128), "RECORDE  %08d" % game.progress.record, 15, BLUE)
-	if story_mode:
+	if story_mode and not game.online_active():
 		text_at(
 			Vector2(28, 125),
 			(
@@ -366,13 +374,25 @@ func _hud() -> void:
 				self, Vector2(x, 204), str(f.combo), 66, GOLD if f.combo >= 5 else PAPER
 			)
 			ArcadeTheme.title(self, Vector2(x + 70, 202), "HITS!", 26, BLUE if f == a else RED, 3)
+	if game.online_active():
+		ArcadeTheme.plate(self, Rect2(390, 90, 560, 24), Color(INK, .9), 7)
+		text_at(Vector2(400, 105), "SALA " + game.net_session.room + " · VOCÊ: " + str(game.net_session.slot + 1) + "P · " + str(game.net_session.rtt) + " ms", 14, BLUE)
+		if story_mode:
+			ArcadeTheme.plate(self, Rect2(16, 108, 900, 46), Color(INK, .9), 7)
+			text_at(Vector2(28, 125), "W/S PROFUNDIDADE · ESPAÇO SALTAR · F/E OBJETO · TURNO %02d:%02d" % [int(game.story.remaining_ticks / 7200), int(game.story.remaining_ticks / 120) % 60], 13, GOLD)
+			text_at(Vector2(28, 147), "ATO %d · PONTOS %08d" % [mini(game.story.act_index + 1, 4), game.story.score], 14, PAPER)
+			text_at(Vector2(400, 147), "COOP · ONDA " + str(mini(game.story.wave_index + 1, 4)) + "/4 · E: AJUDAR PARCEIRO CAÍDO", 13, GOLD)
 	var message := ""
-	if game.paused:
+	if game.online_active() and game.net_session.phase not in ["playing", "paused"]:
+		message = game.net_session.status
+	elif game.online_active() and game.net_session.phase == "playing" and game.paused:
+		message = "AGUARDANDO A REDE…"
+	elif game.paused:
 		message = "PAUSA  /  ENTER CONTINUAR  /  ESC MENU"
 	elif story_mode and game.story.completed:
 		message = "NIT RESGATADO! / ENTER VOLTAR"
 	elif story_mode and game.story.defeated:
-		message = "FIM DE JOGO / F8 REPETIR ATO"
+		message = "FIM DE JOGO / ENTER SELEÇÃO" if game.online_active() else "FIM DE JOGO / F8 REPETIR ATO"
 	elif not story_mode and game.sim.winner >= 0 and game.sim.round_wait >= 90:
 		message = (
 			"EMPATE"
@@ -468,17 +488,11 @@ func _draw_player(f: FighterModel, right: bool, color: Color) -> void:
 
 func _online() -> void:
 	ArcadeTheme.backdrop(self, clock)
-	ArcadeTheme.title(self, Vector2(80, 130), "ONLINE 1 x 1", 64, PAPER)
-	ArcadeTheme.plate(self, Rect2(80, 190, 650, 55), GOLD, 12)
-	text_at(Vector2(105, 228), "ONLINE EM MIGRAÇÃO", 30, INK)
-	text_at(Vector2(85, 300), "O combate local está disponível no menu.", 25, PAPER)
-	wrapped(
-		Vector2(85, 350),
-		"As sessões online serão liberadas após os testes de rede e rollback.",
-		710,
-		22,
-		BLUE
-	)
+	ArcadeTheme.title(self, Vector2(75, 88), "ONLINE VICENTE", 55, PAPER)
+	text_at(Vector2(78, 118), "DUAS PESSOAS. OS MESMOS LUTADORES. UMA PARTIDA SINCRONIZADA.", 17, BLUE)
+	ArcadeTheme.plate(self, Rect2(55, 198, 367, 363), Color(INK, .8), 12)
+	text_at(Vector2(78, 220), "JOGAR ONLINE", 17, GOLD)
+	text_at(Vector2(455, 220), "SALAS · ENTER OU DOIS CLIQUES PARA ENTRAR", 17, GOLD)
 	_footer("ESC VOLTAR")
 
 
@@ -655,7 +669,7 @@ func _utilities() -> void:
 		ArcadeTheme.plate(self, stage_rect(), Color(INK, .85), 7)
 		centered(
 			stage_rect().position + Vector2(177, 19),
-			ArenaCatalog.get_arena(game.stage_id).name + " · F5",
+			ArenaCatalog.get_arena(game.stage_id).name + ("" if game.online_active() else " · F5"),
 			12,
 			BLUE
 		)

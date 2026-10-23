@@ -155,7 +155,7 @@ func damage(prop: Dictionary, amount: int) -> void:
 			prop.fall = 1
 
 
-func step(boxes: Array[Rect2i], move: MoveData) -> void:
+func step(boxes: Array[Rect2i], move: MoveData, advance_environment: bool = true) -> void:
 	var f := world.hero
 	if (
 		not carry.is_empty()
@@ -180,9 +180,11 @@ func step(boxes: Array[Rect2i], move: MoveData) -> void:
 			carry.clear()
 			pending_throw = false
 	for p in world.props:
-		p.cooldown = maxi(0, int(p.get("cooldown", 0)) - 1)
+		if advance_environment:
+			p.cooldown = maxi(0, int(p.get("cooldown", 0)) - 1)
 		if (
 			p.kind == "medkit"
+			and f.health > 0
 			and not p.used
 			and f.grounded()
 			and absi(int(p.x) - f.x) < 85 * UNIT
@@ -190,7 +192,7 @@ func step(boxes: Array[Rect2i], move: MoveData) -> void:
 		):
 			p.used = true
 			f.health = mini(1000, f.health + 220)
-		if p.get("fall", 0) > 0:
+		if advance_environment and p.get("fall", 0) > 0:
 			p.fall += 1
 			if p.fall in range(102, 181):
 				for target in world.power_actors():
@@ -216,8 +218,9 @@ func step(boxes: Array[Rect2i], move: MoveData) -> void:
 				damage(p, move.damage)
 				break
 	_step_thrown()
-	_step_hazards()
-	_step_bolts()
+	if advance_environment:
+		_step_hazards()
+		_step_bolts()
 
 
 func drop_medkit(x: int) -> void:
@@ -399,34 +402,37 @@ func _step_bolts() -> void:
 		p.x += int(p.vx)
 		p.y += int(p.vy)
 		var contact := false
-		if absi(world.hero.ground_y - int(p.lane)) <= 42 * UNIT:
-			for hurt in world.hero.hurtboxes():
-				if not (
-					BoxMath.sweep(from, Vector2i(int(p.x), int(p.y)), hurt, 17 * UNIT).is_empty()
-				):
-					contact = true
-					var move := MoveData.new()
-					move.damage = int(p.damage)
-					move.hitstun = 13
-					world.hero.receive_hit(
-						move,
-						1 if int(p.vx) > 0 else -1,
-						world.hero.blocking(MoveData.Level.MID),
-						int(p.owner)
-					)
-					world.events.append(
-						{
-							"id": "%d:bolt:%d" % [world.tick, int(p.owner)],
-							"kind": "block" if world.hero.state == FighterState.Id.BLOCK else "hit",
-							"tick": world.tick,
-							"character": world.hero.character.id,
-							"move": "enemy_shot",
-							"slot": 0,
-							"x": world.hero.x,
-							"y": world.hero.y - 145 * UNIT
-						}
-					)
-					break
+		for player in world.players():
+			if player.health <= 0 or contact:
+				continue
+			if absi(player.ground_y - int(p.lane)) <= 42 * UNIT:
+				for hurt in player.hurtboxes():
+					if not (
+						BoxMath.sweep(from, Vector2i(int(p.x), int(p.y)), hurt, 17 * UNIT).is_empty()
+					):
+						contact = true
+						var move := MoveData.new()
+						move.damage = int(p.damage)
+						move.hitstun = 13
+						player.receive_hit(
+							move,
+							1 if int(p.vx) > 0 else -1,
+							player.blocking(MoveData.Level.MID),
+							int(p.owner)
+						)
+						world.events.append(
+							{
+								"id": "%d:bolt:%d" % [world.tick, int(p.owner)],
+								"kind": "block" if player.state == FighterState.Id.BLOCK else "hit",
+								"tick": world.tick,
+								"character": player.character.id,
+								"move": "enemy_shot",
+								"slot": player.slot,
+								"x": player.x,
+								"y": player.y - 145 * UNIT
+							}
+						)
+						break
 		if not contact and p.age < 360:
 			alive.append(p)
 	bolts = alive

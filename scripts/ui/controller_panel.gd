@@ -107,6 +107,8 @@ func _ready() -> void:
 
 func open() -> void:
 	was_paused = game.paused
+	if game.online_active():
+		game.net_session.pause_game(true)
 	game.paused = true
 	game.input_source.clear()
 	game._snap_views()
@@ -127,6 +129,8 @@ func close() -> void:
 	AppSettings.ui_open = false
 	game.input_source.clear()
 	game.paused = was_paused
+	if game.online_active() and not was_paused:
+		game.net_session.pause_game(false)
 
 
 func refresh() -> void:

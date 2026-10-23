@@ -61,6 +61,7 @@ func _run() -> void:
 	RuanV19Tests.run(self)
 	RosterPowersV20Tests.run(self)
 	KhauanyV21Tests.run(self)
+	OnlineV22Tests.run(self)
 	print("COMBAT TESTS: %d checks, %d failures" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 

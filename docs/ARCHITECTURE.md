@@ -22,7 +22,7 @@ O controlador avança em `_physics_process` a 120 Hz. Até 16 passos de catch-up
 | SpriteFighterView/GameScreen/CombatImpact | Interpolação, desenho por chave, partículas | Não |
 | AppSettings | InputMap e dispositivo | Não |
 
-Snapshots copiam coleções mutáveis; restore não retém referências e limpa eventos. O hash usa serialização binária com ordem fixa de campos. O futuro handshake precisa incluir build e hash dos Resources; não comparar builds diferentes. ReplayTimeline testa correção local, sem prever ou confirmar frames remotos; não é usado como sessão online.
+Snapshots copiam coleções mutáveis; restore não retém referências e limpa eventos. O hash usa serialização binária com ordem fixa de campos. O handshake online usa o protocolo `svf-godot-v22`, que deve mudar com regras ou formato de estado incompatíveis. ReplayTimeline testa correção local; RollbackSession prevê e confirma frames remotos. OnlineSession negocia os dois assentos e checkpoints; RealtimeRelay transporta os pacotes. [Detalhes do online](ONLINE_V22.md).
 
 ## Extensão
 
@@ -36,7 +36,7 @@ Hitstop congela combate e timer, mantendo amostragem de input; buffer expira pel
 
 Views interpolam posições anterior/atual com `Engine.get_physics_interpolation_fraction()`. Não adicionar interpolação automática aos mesmos nós. Após reset/correção, chamar `sync(true)` e reconstruir apresentação. O manequim de referência conserva IK de dois segmentos. A apresentação do elenco usa atlas; Marcelo usa PilotArt com 64 novos desenhos e exposição das chaves conforme fase/tick. Caminhada avança pela distância efetiva após paredes/pushboxes. IK visual não decide hurtboxes.
 
-Eventos são `{id,tick,kind,slot,x,y}`. O modo local os consome uma vez por passo. Rollback futuro deve confirmar e deduplicar áudio/partículas/câmera por ID para não reapresentar efeitos a cada replay.
+Eventos são `{id,tick,kind,slot,x,y}`. O modo local os consome uma vez por passo. No online, RollbackSession retém eventos por tick e só libera os mutuamente confirmados, sem reapresentar efeitos a cada replay.
 
 ## Contato e VFX — revisão 3
 

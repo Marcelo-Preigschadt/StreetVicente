@@ -6,6 +6,7 @@ const LASER_STEP := 16 * UNIT  # 1920 px/s at 120 Hz.
 var projectiles: Array = []
 var sequence: int = 0
 var events: Array = []
+var friendly_slots: Array = []  # Immutable mode configuration; empty in Versus/solo.
 
 
 func emit(f: FighterModel, tick: int, lane_aware: bool = false) -> bool:
@@ -142,6 +143,8 @@ func advance(actors: Array[FighterModel], width: int, tick: int) -> Array:
 		var victim: FighterModel
 		var victim_box := Rect2i()
 		for target in actors:
+			if owner.slot in friendly_slots and target.slot in friendly_slots:
+				continue
 			if target.slot == owner.slot or target.health <= 0 or not _same_lane(p, target):
 				continue
 			for hurt in target.hurtboxes():
@@ -273,10 +276,12 @@ static func _same_lane(p: Dictionary, target: FighterModel) -> bool:
 	return not p.lane_aware or absi(int(p.lane_y) - target.ground_y) <= 48 * UNIT
 
 
-static func _target(actors: Array[FighterModel], p: Dictionary) -> FighterModel:
+func _target(actors: Array[FighterModel], p: Dictionary) -> FighterModel:
 	var nearest: FighterModel
 	var distance := 100000000
 	for f in actors:
+		if p.owner in friendly_slots and f.slot in friendly_slots:
+			continue
 		if f.slot == p.owner or f.health <= 0 or not _same_lane(p, f):
 			continue
 		var d := absi(f.x - int(p.x))
