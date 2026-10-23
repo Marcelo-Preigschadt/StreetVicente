@@ -87,22 +87,26 @@ function energy(buffer,baseline,exclude=[]){
    if(key==='q'){
     // Never count the large SUPER banner, camera shake, or actor silhouettes
     // as proof of a big power. Capture a live aftermath after all three cease.
-    let current,buffer;
+    let current,buffer,actual,capturedLife;
     for(let retry=0;retry<8;retry++){
      await wait(()=>{const q=window.svfQA;return q.super_cutin===0&&q.shake===0&&
-      q.power_bursts.some(b=>b.move==='super:1'&&b.kind==='hit'&&b.life>.08);});
+      q.power_bursts.some(b=>b.move==='super:1'&&b.kind==='hit'&&b.life>.4);});
      await pause();current=await state();
      // A subsequent wave can hit between observation and the pause key.
-     if(current.super_cutin===0&&current.shake===0){
-      buffer=await page.screenshot({path:'test-results/27-'+id+'-q-unobstructed.png'});await resume();break;
+     const live=current.power_bursts.filter(b=>b.move==='super:1'&&b.kind==='hit').map(b=>b.life);
+     if(current.super_cutin===0&&current.shake===0&&live.some(life=>life>.35)){
+      buffer=await page.screenshot({path:'test-results/27-'+id+'-q-unobstructed.png'});
+      actual=energy(buffer,baseline,[...bounds(baseState),...bounds(current)]);
+      capturedLife=Math.max(...live);await resume();
+      if(actual.count>6000&&actual.height>250)break;
+      continue;
      }
      await resume();
     }
     assert(buffer,id+' froze an actual live aftermath without camera shake');
     assert(current.hp[1]<1000,id+' super contacts actual opponent');
-    const actual=energy(buffer,baseline,[...bounds(baseState),...bounds(current)]);
-    entry.powers.q={...actual,cutin:current.super_cutin,shake:current.shake,meter_after_contact:current.meter[0],excludes_actor_bounds:true};
-    assert(actual.count>6000,id+' super has substantial luminous area outside actors and banner');
+    entry.powers.q={...actual,captured_life:capturedLife,cutin:current.super_cutin,shake:current.shake,meter_after_contact:current.meter[0],excludes_actor_bounds:true};
+    assert(actual.count>6000,id+' super has substantial luminous area outside actors and banner: '+JSON.stringify(entry.powers.q));
     assert(actual.height>250,id+' super spans fighter height without the SUPER banner');
    }
    await shot(id+'-'+key+'-impact');

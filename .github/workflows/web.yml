@@ -31,18 +31,6 @@ jobs:
         run: bash tools/test.sh
       - name: Export single-thread Web
         run: bash tools/export_web.sh
-      - name: Browser smoke test (WASM under /StreetVicente/)
-        run: |
-          npm ci --no-audit --no-fund
-          npx playwright install --with-deps chromium
-          npm run test:web
-      - name: Upload browser verification
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: StreetVicente-Web-QA
-          path: test-results/
-          if-no-files-found: ignore
       - name: Upload playable Web package
         if: always()
         uses: actions/upload-artifact@v4
@@ -55,9 +43,45 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/web/
+  browser:
+    name: Browser · ${{ matrix.smoke }}
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        smoke: [online, controller, presentation, gelton, marcelino, marcos, tais, luciana, ruan, powers, web, roster_v20, khauany]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            /tools/
+            /package.json
+            /package-lock.json
+            /assets/audio/v11/impact-light.ogg
+          sparse-checkout-cone-mode: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: StreetVicente-Web
+          path: build/web/
+      - name: Install browser test dependencies
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Test exported WASM
+        run: node tools/smoke_${{ matrix.smoke }}.cjs
+      - name: Upload browser verification
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: StreetVicente-Web-QA-${{ matrix.smoke }}
+          path: test-results/
+          if-no-files-found: ignore
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: build
+    needs: [build, browser]
     runs-on: ubuntu-24.04
     permissions:
       pages: write
