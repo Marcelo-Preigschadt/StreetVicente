@@ -2,6 +2,100 @@ class_name OnlineV22Tests
 extends RefCounted
 ## Network faults are applied to packets, never to a second gameplay authority.
 
+class ProbeRelay extends RealtimeRelay:
+	var outbox: Array = []
+
+	func send(value: Dictionary) -> bool:
+		var packet := value.duplicate(true)
+		packet.from = peer_id
+		outbox.append(packet)
+		return true
+
+	func take(type: String) -> Dictionary:
+		for i in outbox.size():
+			if outbox[i].get("t") == type:
+				return JSON.parse_string(JSON.stringify(outbox.pop_at(i)))
+		return {}
+
+
+static func _handshake(s: SceneTree) -> void:
+	var peers: Array[OnlineSession] = []
+	var loads := [0, 0]
+	for i in 2:
+		var peer := OnlineSession.new()
+		peer.slot = i
+		peer.phase = "lobby"
+		peer.local_id = "host:ABCDEFGH" if i == 0 else "guest"
+		peer.remote_id = "guest" if i == 0 else "host:ABCDEFGH"
+		peer.directory = RoomDirectory.new()
+		peer.add_child(peer.directory)
+		peer.relay = ProbeRelay.new()
+		peer.add_child(peer.relay)
+		peer.relay.peer_id = peer.local_id
+		peer.relay.connected = true
+		peers.append(peer)
+	var host := peers[0]
+	var guest := peers[1]
+	var outbound_host := host.relay as ProbeRelay
+	var outbound_guest := guest.relay as ProbeRelay
+	host.prepare_game.connect(func():
+		loads[0] += 1
+		host.attach_world(FightSimulation.new(LegacyRoster.get_character("marcelo"), LegacyRoster.get_character("rafael"))))
+	guest.prepare_game.connect(func():
+		loads[1] += 1
+		guest.attach_world(FightSimulation.new(LegacyRoster.get_character("marcelo"), LegacyRoster.get_character("rafael"))))
+	host.confirmed = [true, true]
+	host.choice_versions = [1, 1]
+	guest.choice_serial = 1
+	guest.proposed = "rafael"
+	guest.proposed_ready = true
+	guest.confirmed = [true, false]  # Deliberately withhold the last lobby acknowledgement.
+	host._maybe_prepare()
+	var lost := outbound_host.take("prepare")
+	host.last_control = Time.get_ticks_msec() - 1001
+	host._process(0)
+	var prepare := outbound_host.take("prepare")
+	s.check(not prepare.is_empty() and prepare.epoch == lost.epoch, "Prepare perdido é reenviado com a mesma partida")
+	guest._receive(prepare)
+	s.check(guest.world != null and guest.phase == "preparing", "Prepare confirma prontidão local sem depender de welcome anterior")
+	var stale := {"t": "welcome", "to": guest.local_id, "from": host.local_id,
+		"protocol": OnlineSession.VERSION, "game_mode": "versus", "pair": host.pair,
+		"confirmed": [true, true], "serials": [1, 1], "revision": int(prepare.revision) - 1,
+		"stage": "patio", "epoch": "", "in_game": false}
+	guest._receive(stale)
+	s.check(guest.world != null and guest.phase == "preparing", "Welcome atrasado não apaga o mundo preparado")
+	outbound_guest.take("loaded")  # Lose the first loading acknowledgement.
+	guest._receive(prepare)
+	s.check(loads[1] == 1 and not outbound_guest.take("loaded").is_empty(), "Prepare duplicado confirma sem carregar duas vezes")
+	guest.last_control = Time.get_ticks_msec() - 1001
+	guest._process(0)
+	var loaded := outbound_guest.take("loaded")
+	s.check(not loaded.is_empty(), "Confirmação de carregamento também tem reenvio")
+	host._receive(loaded)
+	var serial := host.sync_id
+	host._receive(loaded)
+	s.check(host.phase == "syncing" and host.sync_id == serial, "Loaded duplicado não cria outra sincronização")
+	guest._receive(outbound_host.take("sync"))
+	outbound_guest.take("synced")  # Lose the synchronization acknowledgement too.
+	outbound_host.outbox.clear()
+	host.last_control = Time.get_ticks_msec() - 2001
+	host._process(0)
+	guest._receive(outbound_host.take("sync"))
+	host._receive(outbound_guest.take("synced"))
+	guest._receive(outbound_host.take("run"))
+	s.check(host.phase == "playing" and guest.phase == "playing", "Handshake conclui apesar de perdas e reordenação")
+	host._receive(loaded)
+	s.check(host.sync_id == serial and host.phase == "playing", "Loaded tardio não interrompe uma partida em andamento")
+	guest.world = null
+	guest.timeline = null
+	guest.phase = "lobby"
+	guest.choice_serial = 2
+	guest.proposed_ready = false
+	guest._receive(prepare)
+	s.check(guest.world == null and not outbound_guest.take("cancel_prepare").is_empty(), "Prepare antigo não força jogador que cancelou prontidão")
+	for peer in peers:
+		peer.free()
+
 
 static func _input(tick: int, slot: int) -> CombatInput:
 	var held := 0
@@ -102,6 +196,7 @@ static func _exercise(s: SceneTree, coop: bool) -> void:
 
 
 static func run(s: SceneTree) -> void:
+	_handshake(s)
 	_exercise(s, false)
 	_exercise(s, true)
 	var c := LegacyRoster.get_character("marcelo")

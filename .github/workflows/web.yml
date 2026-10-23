@@ -67,6 +67,7 @@ jobs:
           name: StreetVicente-Web
           path: build/web/
       - name: Install browser test dependencies
+        timeout-minutes: 4
         run: |
           npm ci --no-audit --no-fund
           npx playwright install --with-deps chromium

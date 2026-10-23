@@ -44,6 +44,7 @@ var initial_registered := false
 var stalled_since := 0
 var last_control := 0
 var sync_packet: Dictionary = {}
+var prepare_packet: Dictionary = {}
 
 
 func setup(value: RoomDirectory) -> void:
@@ -118,6 +119,9 @@ func begin(kind: String, mode: String, code: String = "") -> void:
 	proposed_ready = false
 	user_paused = false
 	initial_registered = false
+	prepare_packet = {}
+	last_hash = -1
+	last_confirmed_hash = ""
 	local_id = "host:" + room if slot == 0 else RoomDirectory.token().left(32)
 	remote_id = "" if slot == 0 else "host:" + room
 	last_seen = Time.get_ticks_msec()
@@ -267,13 +271,25 @@ func _receive(message: Dictionary) -> void:
 			_welcome()
 		return
 	if type == "prepare" and slot == 1 and _valid_pair(message.get("pair")):
-		if message.get("serials", []).size() != 2 or int(message.serials[1]) < choice_serial:
+		if str(message.get("epoch", "")).is_empty() or message.get("stage") not in ArenaCatalog.IDS:
+			return
+		if world != null and str(message.epoch) == match_id:
+			_send({"t": "loaded", "epoch": match_id})
+			return
+		if phase != "lobby":
+			return
+		if not message.get("serials") is Array or message.serials.size() != 2 \
+			or int(message.serials[1]) != choice_serial or not proposed_ready \
+			or message.pair[1] != proposed:
 			_send({"t": "cancel_prepare", "epoch": message.get("epoch", "")})
 			_send({"t": "choice", "character": proposed, "ready": proposed_ready, "serial": choice_serial})
 			return
-		if phase != "lobby" or not confirmed.all(func(v): return v):
-			return
+		# Prepare is the authoritative ready acknowledgement. A separate welcome
+		# may arrive late; it must neither gate loading nor erase a prepared world.
 		pair = message.pair.duplicate()
+		confirmed = [true, true]
+		choice_versions = message.serials.duplicate()
+		lobby_revision = maxi(lobby_revision, int(message.get("revision", lobby_revision)))
 		stage = str(message.get("stage", "patio"))
 		match_id = str(message.get("epoch", ""))
 		phase = "preparing"
@@ -284,9 +300,12 @@ func _receive(message: Dictionary) -> void:
 	if type == "cancel_prepare" and slot == 0 and phase == "preparing":
 		_back_to_selection()
 	elif type == "loaded" and slot == 0:
-		loaded[1] = true
-		if loaded[0]:
-			_synchronize()
+		if phase == "preparing":
+			loaded[1] = true
+			if loaded[0]:
+				_synchronize()
+		elif phase == "syncing" and not sync_packet.is_empty():
+			_send(sync_packet)
 	elif type == "sync" and slot == 1:
 		var serial := int(message.get("sync", -1))
 		var state = message.get("state")
@@ -386,8 +405,12 @@ func _maybe_prepare() -> void:
 	finished = [false, false]
 	sync_id = 0
 	phase = "preparing"
+	lobby_revision += 1
+	last_control = Time.get_ticks_msec()
 	directory.update("playing", pair[0])
-	_send({"t": "prepare", "pair": pair, "stage": stage, "epoch": match_id, "serials": choice_versions})
+	prepare_packet = {"t": "prepare", "pair": pair, "stage": stage, "epoch": match_id,
+		"serials": choice_versions, "revision": lobby_revision}
+	_send(prepare_packet)
 	prepare_game.emit()
 
 
@@ -395,6 +418,7 @@ func attach_world(value) -> void:
 	world = value
 	loaded[slot] = true
 	if slot == 1:
+		last_control = Time.get_ticks_msec()
 		_send({"t": "loaded", "epoch": match_id})
 	elif loaded[1]:
 		_synchronize()
@@ -545,6 +569,12 @@ func _process(_delta: float) -> void:
 	if relay.connected and slot == 1 and phase in ["connecting", "reconnecting"] and now - last_hello > 1000:
 		_hello()
 	if relay.connected and not remote_id.is_empty():
+		if phase == "preparing" and now - last_control > 1000:
+			last_control = now
+			if slot == 0 and not prepare_packet.is_empty():
+				_send(prepare_packet)
+			elif slot == 1 and world != null:
+				_send({"t": "loaded", "epoch": match_id})
 		if phase == "syncing" and now - last_control > 2000:
 			last_control = now
 			if slot == 0 and not sync_packet.is_empty():
