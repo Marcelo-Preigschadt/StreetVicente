@@ -63,7 +63,7 @@ async function walkTo(x,lane){
  // scene stays in this act without changing any simulation state.
  await fightUntil(page,q=>q.wave>=2&&q.enemy_states.every(e=>e.hp<=0||e.kind==='snack'),{timeout:90000,useSuper:false});
  const table=(await state()).story.props.find(p=>p.kind==='table'&&!p.used);
- await walkTo(table.x-((await state()).story.prop_sizes.table[0]/2+35)*256,625*256);
+ await walkTo(table.x+((await state()).story.prop_sizes.table[0]/2+35)*256,625*256);
  await walkTo((await state()).story.x,table.lane+20*256);
  await shot('furniture-scale');
  for(let i=0;i<8;i++){

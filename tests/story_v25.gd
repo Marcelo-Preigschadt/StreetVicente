@@ -70,6 +70,27 @@ static func run(s: SceneTree) -> void:
 		objects.step(value)
 		copy.step(value)
 		s.check(objects.state_hash() == copy.state_hash(), "Projétil e combo continuam idênticos após JSON")
+	# Every approved fighter positions their own authored foot, including
+	# characters with different low-attack silhouettes and movement speeds.
+	for id in LegacyRoster.ids():
+		var cast := StorySimulation.new(LegacyRoster.get_character(id))
+		cast.enemies.clear()
+		cast.wave_index = 2
+		var seat: Dictionary = cast.props[1]
+		cast.hero.x = int(seat.x) - 90 * UNIT
+		cast.hero.ground_y = int(seat.lane)
+		cast.hero.y = cast.hero.ground_y
+		cast.step(CombatInput.new(0, CombatInput.THROW))
+		var replay := StorySimulation.new(cast.hero.character)
+		replay.restore(JSON.parse_string(JSON.stringify(cast.snapshot())))
+		var launched := false
+		for tick in 180:
+			cast.step(CombatInput.new())
+			replay.step(CombatInput.new())
+			if not cast.objects.thrown.is_empty():
+				launched = true
+			s.check(cast.state_hash() == replay.state_hash(), "Posicionamento e contato sobrevivem ao save: " + id)
+		s.check(launched and cast.objects.carry.is_empty(), "Pé registrado lança cadeira sem pose de agarrar: " + id)
 	# Source checkpoint queue: simultaneous cap without losing any wave member.
 	var checkpoint := StorySimulation.new(c)
 	checkpoint.enemies.clear()

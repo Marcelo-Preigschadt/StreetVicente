@@ -17,7 +17,8 @@ A licença e o mapa da adaptação estão em `third_party/fists_of_fury/`.
 - `FuryCheckpoint`: fila de reforços e limite de três inimigos simultâneos,
   preservando todos os membros, chefes e quatro atos da campanha.
 - Objetos: mesas destrutíveis com fragmentos da própria imagem; estantes
-  tombam; cadeiras são lançadas pelo contato do chute; refrigerante libera
+  tombam; cadeiras recebem um passo de ajuste e são lançadas somente quando o pé
+  registrado colide com o objeto; refrigerante libera
   projéteis; recipientes podem deixar recuperação de vida. Não existe pose
   de carregar mobília nesta versão. Saves antigos devolvem o móvel ao chão.
 - O mesmo adaptador atende solo e cooperativo. Estado de combo, reservas,

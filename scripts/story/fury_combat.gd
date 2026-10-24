@@ -58,7 +58,7 @@ func advance(world: StorySimulation, f: FighterModel, gear: StoryObjects, raw: C
 	var old_lane := f.ground_y
 	var mobile := f.state in [FighterState.Id.IDLE, FighterState.Id.WALK, FighterState.Id.CROUCH]
 	# Source Player.set_heading: turn with movement, not a nearby background foe.
-	if mobile and raw.axis_x() != 0:
+	if mobile and raw.axis_x() != 0 and gear.interaction_phase != "align":
 		f.facing = raw.axis_x()
 	if world.tick - int(data.last_hit) > COMBO_WINDOW and f.state != FighterState.Id.ATTACK:
 		data.index = -1

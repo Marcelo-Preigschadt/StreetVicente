@@ -13,6 +13,9 @@ var bolts: Array = []
 var pending_throw: bool = false
 var pickup_ticks: int = 0
 var interaction: int = -1
+var interaction_phase := ""
+var interaction_x: int = 0
+var interaction_clock: int = 0
 var debris: Array = []
 
 
@@ -28,6 +31,8 @@ func setup(act: int) -> void:
 	pending_throw = false
 	pickup_ticks = 0
 	interaction = -1
+	interaction_phase = ""
+	interaction_clock = 0
 	debris.clear()
 	world.props.clear()
 	if act == 0:
@@ -93,15 +98,44 @@ func migrate_layout() -> void:
 
 func input(value: CombatInput) -> CombatInput:
 	var f := world.hero
-	# Fists of Fury uses collectible weapons, not a full-size table held in
-	# a punching fist. Furniture stays on its real footprint until struck.
+	if interaction_phase == "align":
+		interaction_clock += 1
+		if value.axis_x() != 0 or value.has(CombatInput.UP) or value.has(CombatInput.DOWN) \
+			or interaction_clock > 120 or f.state not in [FighterState.Id.IDLE, FighterState.Id.WALK]:
+			interaction = -1
+			interaction_phase = ""
+			return value
+		var gap := interaction_x - f.x
+		if absi(gap) > 3 * UNIT:
+			return CombatInput.new(CombatInput.RIGHT if gap > 0 else CombatInput.LEFT)
+		interaction_phase = "strike"
+		return CombatInput.new(0, CombatInput.KICK)
 	if value.pressed & CombatInput.THROW and f.grounded() and FighterState.actionable(f.state):
 		var nearest := nearby(f)
 		if not nearest.is_empty():
 			interaction = int(nearest.id)
 			f.facing = 1 if int(nearest.x) >= f.x else -1
-			return CombatInput.new(value.held, (value.pressed & ~CombatInput.THROW) | CombatInput.KICK)
+			# The stance comes from this character's authored contact frame. A
+			# short visible backstep puts the actual foot onto the object.
+			interaction_x = int(nearest.x) - f.facing * _kick_reach(f)
+			interaction_phase = "align"
+			interaction_clock = 0
+			world.combat.actor(f).queued = 0
+			return CombatInput.new()
 	return value
+
+
+func _kick_reach(f: FighterModel) -> int:
+	var proxy := FighterModel.new(f.character, f.slot, 0)
+	proxy.facing = 1
+	proxy.ground_y = 0
+	proxy.y = 0
+	proxy._start_move(f.character.get_move("sweep", 1))
+	proxy.move_tick = proxy.current_move().startup * 2
+	var boxes := proxy.attack_boxes()
+	if boxes.is_empty():
+		return 150 * UNIT
+	return boxes[0].position.x + boxes[0].size.x / 2
 
 
 func nearby(f: FighterModel) -> Dictionary:
@@ -207,14 +241,19 @@ func _break(prop: Dictionary) -> void:
 func step(boxes: Array[Rect2i], move: MoveData, advance_environment: bool = true) -> void:
 	var f := world.hero
 	# An interaction is executed on the kick's contact frame, not on keydown.
-	if interaction >= 0:
+	if interaction >= 0 and interaction_phase == "strike":
 		if f.state != FighterState.Id.ATTACK:
 			interaction = -1
+			interaction_phase = ""
 		elif f.current_move().phase(f.move_tick) == "ACTIVE":
 			for prop in world.props.duplicate():
 				if int(prop.id) != interaction or prop.get("used", false) or prop.hp <= 0:
 					continue
-				if absi(int(prop.lane) - f.ground_y) <= 42 * UNIT and absi(int(prop.x) - f.x) <= bounds(prop).size.x / 2 + 95 * UNIT:
+				var contact := false
+				for box in boxes:
+					if BoxMath.overlap(box, bounds(prop)):
+						contact = true
+				if contact and absi(int(prop.lane) - f.ground_y) <= 42 * UNIT:
 					f.hit_targets.append(prop.id)
 					if prop.kind == "chair":
 						prop.used = true
@@ -222,7 +261,9 @@ func step(boxes: Array[Rect2i], move: MoveData, advance_environment: bool = true
 							int(prop.lane), f.facing, 650, -400)
 					else:
 						damage(prop, maxi(80, f.current_move().damage))
-			interaction = -1
+					interaction = -1
+					interaction_phase = ""
+					break
 	for p in world.props.duplicate():
 		if advance_environment:
 			p.cooldown = maxi(0, int(p.get("cooldown", 0)) - 1)
@@ -424,6 +465,9 @@ func snapshot() -> Dictionary:
 	return {
 		"carry": carry.duplicate(true),
 		"interaction": interaction,
+		"interaction_phase": interaction_phase,
+		"interaction_x": interaction_x,
+		"interaction_clock": interaction_clock,
 		"debris": debris.duplicate(true),
 		"pending": pending_throw,
 		"pickup_ticks": pickup_ticks,
@@ -444,6 +488,9 @@ func restore(data: Dictionary) -> void:
 				prop.lane = int(old_carry.get("source_lane", world.hero.ground_y))
 	carry.clear()
 	interaction = int(data.get("interaction", -1))
+	interaction_phase = str(data.get("interaction_phase", ""))
+	interaction_x = int(data.get("interaction_x", 0))
+	interaction_clock = int(data.get("interaction_clock", 0))
 	debris = data.get("debris", []).duplicate(true)
 	pending_throw = false
 	pickup_ticks = 0

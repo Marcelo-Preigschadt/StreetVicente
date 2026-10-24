@@ -365,7 +365,9 @@ func _hud() -> void:
 		var actor: FighterModel = game.story.players()[local_slot]
 		var gear: StoryObjects = game.story.object_sets()[local_slot]
 		var prompt := ""
-		if not gear.carry.is_empty():
+		if gear.interaction_phase == "align":
+			prompt = "POSICIONANDO O CHUTE…"
+		elif not gear.carry.is_empty():
 			prompt = "LEVANTANDO…" if gear.pickup_ticks > 0 and not gear.pending_throw else "F / E  ·  ARREMESSAR"
 		elif actor.grounded() and FighterState.actionable(actor.state):
 			var closest := 1 << 60
