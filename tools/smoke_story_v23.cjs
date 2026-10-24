@@ -6,7 +6,7 @@ process.chdir(path.resolve(__dirname,'..'));fs.mkdirSync('test-results',{recursi
 if(!fs.existsSync('build/StreetVicente'))fs.symlinkSync('web','build/StreetVicente');
 const server=spawn('python3',['-m','http.server','8074','--directory','build','--bind','127.0.0.1'],{stdio:'ignore'});
 const target=process.env.SVF_STORY_URL||'http://127.0.0.1:8074/StreetVicente/?qa=1';
-let browser,page;const errors=[];const report={revision:23,checks:[],errors};
+let browser,page;const errors=[];const report={revision:24,checks:[],errors};
 const state=()=>page.evaluate(()=>window.svfQA);
 const wait=(f,arg=null,timeout=30000)=>page.waitForFunction(f,arg,{timeout}).then(h=>h.dispose());
 async function shot(name){
@@ -32,7 +32,7 @@ async function pickUp(prop){
  // A slow render/keyboard round trip can overshoot a waypoint. Correct
  // from the observed position until inside the real interaction region,
  // including a valid position stopped against the furniture footprint.
- const reach=(prop.kind==='table'?92:35)+48;
+ const reach=(await state()).story.prop_sizes[prop.kind][0]/2+48;
  for(let i=0;i<20;i++){
   const q=(await state()).story;
   if(q.carry.kind===prop.kind)return;
@@ -52,13 +52,14 @@ async function pickUp(prop){
   if(u.username)net.proxy.username=decodeURIComponent(u.username);if(u.password)net.proxy.password=decodeURIComponent(u.password);
  }
  browser=await chromium.launch({...net,headless:true,args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
- page=await browser.newPage({viewport:{width:1280,height:720},ignoreHTTPSErrors:true});
+ page=await browser.newPage({viewport:{width:1280,height:720},ignoreHTTPSErrors:true,
+  ...(process.env.SVF_STORY_RECORD?{recordVideo:{dir:'test-results/story-motion',size:{width:1280,height:720}}}:{})});
  page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(/SCRIPT ERROR|Parse Error|ERROR:/i.test(m.text()))errors.push(m.text());});
  await page.goto(target,{timeout:180000,waitUntil:'domcontentloaded'});await wait(()=>window.svfQA?.screen==='menu');
  for(let i=0;i<3;i++)await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await wait(()=>window.svfQA.screen==='selection');
  let q=await state();for(let i=0;i<(q.roster_ids.indexOf('marcelo')-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
  await page.keyboard.press('Enter');await wait(()=>window.svfQA.screen==='story_dialog');await page.keyboard.press('Enter');await wait(()=>window.svfQA.screen==='story');
- q=(await state()).story;assert.equal(q.meter,0);assert.equal(q.presentation_revision,23);assert.equal(q.scene_scale,.8);
+ q=(await state()).story;assert.equal(q.meter,0);assert.equal(q.presentation_revision,24);assert.equal(q.scene_scale,.8);
  await page.keyboard.press('h');await delay(120);assert.equal((await state()).story.projectiles,0);
  const cels=new Map();for(let i=0;i<10;i++){
   for(const e of (await state()).story.enemy_states){if(!cels.has(e.kind))cels.set(e.kind,new Set());cels.get(e.kind).add(e.cel);}
@@ -79,7 +80,9 @@ async function pickUp(prop){
  // scene stays in this act without changing any simulation state.
  await fightUntil(page,q=>q.wave>=2&&q.enemy_states.every(e=>e.hp<=0||e.kind==='snack'),{timeout:90000,useSuper:false});
  const table=(await state()).story.props.find(p=>p.kind==='table'&&!p.used);
- await walkTo(table.x+115*256,table.lane+20*256);await pickUp(table);
+ await walkTo(table.x+((await state()).story.prop_sizes.table[0]/2+24)*256,table.lane+20*256);
+ await release(page);await wait(()=>window.svfQA.story.state==='IDLE');await shot('furniture-scale');
+ await pickUp(table);
  await wait(()=>window.svfQA.story.carry.kind==='table');
  await shot('table-lift');await wait(()=>window.svfQA.story.pickup_ticks===0);
  assert.equal((await state()).story.carry.kind,'table');await shot('table-held');
@@ -91,7 +94,7 @@ async function pickUp(prop){
  // Approach from the open front lane. Turning down beside the chair after
  // a long horizontal input can stop against its real ground footprint.
  await walkTo((await state()).story.x,chair.lane+24*256);
- await walkTo(chair.x+65*256,(await state()).story.ground_y);await pickUp(chair);
+ await walkTo(chair.x+((await state()).story.prop_sizes.chair[0]/2+30)*256,(await state()).story.ground_y);await pickUp(chair);
  await wait(()=>window.svfQA.story.carry.kind==='chair');await wait(()=>window.svfQA.story.pickup_ticks===0);
  await shot('chair-held');await page.keyboard.press('e');await wait(()=>window.svfQA.story.thrown.some(p=>p.kind==='chair'));
  await shot('chair-throw');report.checks.push('Chair uses its own consistent scale, hand grip and flight');

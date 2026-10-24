@@ -44,7 +44,7 @@ func _draw_enemy() -> void:
 	var frame: Dictionary = selected.frame
 	var sheet: Dictionary = selected.sheet
 	var rect: Array = frame.rect
-	var k := float(sheet.scale)
+	var k := float(sheet.scale) * float(frame.get("scaleCorrection", 1.0))
 	var age: int = maxi(0, presenter.world.tick - int(entity.dead_tick))
 	var alpha := 1.0 if f.health > 0 else clampf((132.0 - age) / 55.0, 0, 1)
 	var fallen := 0.0

@@ -30,8 +30,8 @@ func setup(act: int) -> void:
 		# Two seating groups on the foreground floor; the vending machine stays by the wall.
 		for x in [1150, 2600]:
 			_add_prop("table", x, 560, 160)
-			_add_prop("chair", x - 110, 590, 80)
-			_add_prop("chair", x + 110, 535, 80)
+			_add_prop("chair", x - 165, 590, 80)
+			_add_prop("chair", x + 165, 535, 80)
 		_add_prop("soda", 3260, 540, 200)
 	elif act == 2:
 		for x in [800, 1690, 2760]:
@@ -72,6 +72,19 @@ func _add_prop(kind: String, x: int, lane: int, hp: int) -> void:
 		}
 	)
 	world.next_id += 1
+
+
+func migrate_layout() -> void:
+	if world.act_index != 0:
+		return
+	for prop in world.props:
+		if prop.kind != "chair" or prop.get("used", false):
+			continue
+		for table_x in [1150, 2600]:
+			if int(prop.x) == (table_x - 110) * UNIT:
+				prop.x = (table_x - 165) * UNIT
+			elif int(prop.x) == (table_x + 110) * UNIT:
+				prop.x = (table_x + 165) * UNIT
 
 
 func input(value: CombatInput) -> CombatInput:

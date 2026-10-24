@@ -96,52 +96,14 @@ func step_party(values: Array[CombatInput]) -> void:
 		objects = gear[0]
 		var profile: Dictionary = LegacyRoster.catalog.story.enemies[enemy.kind]
 		var enemy_lane := f.ground_y
-		var delta_lane := hero.ground_y - f.ground_y
-		var lift := f.ground_y - f.y
-		if (
-			absi(delta_lane) > 12 * UNIT
-			and f.state not in [FighterState.Id.ATTACK, FighterState.Id.HITSTUN]
-		):
-			f.ground_y += signi(delta_lane) * UNIT
-			f.y = f.ground_y - lift
-		var distance := absi(f.x - hero.x)
-		var enemy_input := 0
-		var enemy_edge := 0
-		enemy.cooldown -= 1
-		var reach := int(profile.range)
-		if distance > reach * UNIT or (absi(delta_lane) > 42 * UNIT and distance > 60 * UNIT):
-			enemy_input = CombatInput.RIGHT if hero.x > f.x else CombatInput.LEFT
-		elif (
-			enemy.cooldown <= 0
-			and absi(delta_lane) < 48 * UNIT
-			and FighterState.actionable(f.state)
-		):
-			_prepare_enemy_attack(enemy)
-			enemy_edge = CombatInput.KICK
-			enemy.cooldown = (
-				100 if not LegacyRoster.catalog.story.enemies[enemy.kind].get("boss", false) else 65
-			)
 		var enemy_x := f.x
-		f.record_input(CombatInput.new(enemy_input, enemy_edge), tick)
+		var enemy_input := StoryEnemyMotion.intent(self, enemy, hero)
+		var delta_lane := hero.ground_y - f.ground_y
+		f.record_input(enemy_input, tick)
 		f.begin_tick(hero.x)
+		StoryEnemyMotion.finish(f, profile, enemy_x, enemy_lane)
 		objects.constrain_actor(f, enemy_x, enemy_lane)
-		f.walk_distance += absi(f.x - enemy_x) + absi(f.ground_y - enemy_lane)
-		if (
-			float(profile.get("fly", 0)) > 0
-			and not f.knockdown_pending
-			and f.vy >= 0
-			and (
-				f.state
-				in [
-					FighterState.Id.IDLE,
-					FighterState.Id.WALK,
-					FighterState.Id.ATTACK,
-					FighterState.Id.HITSTUN
-				]
-			)
-		):
-			f.y = f.ground_y - int(profile.fly) * UNIT
-			f.vy = 0
+		StoryEnemyMotion.record_walk(f, enemy_x, enemy_lane)
 		if f.state == FighterState.Id.ATTACK and f.current_move().phase(f.move_tick) == "ACTIVE":
 			if enemy.attack_mode == "shot" and not enemy.fired:
 				objects.fire_enemy(enemy)

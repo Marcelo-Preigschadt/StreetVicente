@@ -19,7 +19,7 @@ O bilhete usa `sessionStorage`: não é compartilhado entre abas e não vai para
 
 ## Implementação
 
-O Canvas original usa Supabase Broadcast por WebSocket TLS e o diretório `public.svf_rooms`. O Godot reutiliza esse serviço e as políticas de propriedade, mas usa protocolo e canal separados (`svf-godot-v23`). Salas Canvas e Godot não aparecem juntas e não podem iniciar partidas incompatíveis.
+O Canvas original usa Supabase Broadcast por WebSocket TLS e o diretório `public.svf_rooms`. O Godot reutiliza esse serviço e as políticas de propriedade, mas usa protocolo e canal separados (`svf-godot-v24`). Salas Canvas e Godot não aparecem juntas e não podem iniciar partidas incompatíveis.
 
 - `RoomDirectory`: lista pública, código legível e manutenção por token aleatório de 256 bits. Apenas SHA-256 do token é salvo no banco. O cliente contém somente a chave pública do projeto; nunca uma chave administrativa.
 - `RealtimeRelay`: conexão Phoenix v1 com heartbeat, limite de buffers e reconexão progressiva.

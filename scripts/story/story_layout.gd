@@ -5,9 +5,11 @@ const SCALE := 0.80
 const ORIGIN := Vector2(128, 125)
 const Z_BASE := -1000
 const PROP_SIZES := {
-	"table": Vector2(184, 112), "chair": Vector2(70, 124),
-	"soda": Vector2(126, 252), "shelf": Vector2(175, 300),
-	"tank": Vector2(109, 160), "cabinet": Vector2(166, 260),
+	# A standing fighter is 300 units tall. Preserve each source image's
+	# aspect ratio: chair back 57%, table top 45%, vending machine 103%.
+	"table": Vector2(246, 136), "chair": Vector2(113, 172),
+	"soda": Vector2(171, 310), "shelf": Vector2(191, 320),
+	"tank": Vector2(129, 190), "cabinet": Vector2(192, 300),
 	"medkit": Vector2(56, 42), "can": Vector2(19, 34)
 }
 

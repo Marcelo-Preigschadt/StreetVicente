@@ -615,7 +615,7 @@ func _publish_qa() -> void:
 			"pickup_ticks": story.objects.pickup_ticks,
 			"thrown": story.objects.thrown.duplicate(true),
 			"props": story.props.duplicate(true),
-			"presentation_revision": 23,
+			"presentation_revision": 24,
 			"scene_scale": StoryLayout.SCALE,
 			"enemy_states": story.enemies.map(func(e: Dictionary) -> Dictionary:
 				var f: FighterModel = e.fighter
@@ -626,6 +626,11 @@ func _publish_qa() -> void:
 			"x": story.hero.x,
 			"y": story.hero.y
 		}
+	if screen == "story" and story != null:
+		data.story.prop_sizes = {}
+		for kind in StoryLayout.PROP_SIZES:
+			var size: Vector2 = StoryLayout.prop_size(kind)
+			data.story.prop_sizes[kind] = [size.x, size.y]
 	data.controls_open = controls.visible
 	data.dizzy_indicators = FighterStatusV11.dizzy_actors(status_view.world).size()
 	if screen == "fight":
