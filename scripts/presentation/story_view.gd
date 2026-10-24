@@ -88,6 +88,9 @@ func _draw() -> void:
 			continue
 		var size := StoryLayout.prop_size(str(prop.kind))
 		_shadow(Vector2(float(prop.x) / FighterModel.SCALE - camera, float(prop.lane) / FighterModel.SCALE), size.x * .46)
+	for gear in world.object_sets():
+		for prop in gear.thrown:
+			_shadow(Vector2(float(prop.x) / FighterModel.SCALE - camera, float(prop.lane) / FighterModel.SCALE), StoryLayout.prop_size(str(prop.kind)).x * .35)
 	_draw_hazards(camera)
 
 

@@ -196,6 +196,7 @@ func step_party(values: Array[CombatInput]) -> void:
 								}
 							)
 							break
+		f.x = clampi(f.x, 70 * UNIT, gate - 60 * UNIT)
 		f.end_tick()
 	for contact in powers.advance(power_actors(), 3600, tick):
 		var target := _enemy(int(contact.defender))

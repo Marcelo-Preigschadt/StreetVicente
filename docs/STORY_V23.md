@@ -8,6 +8,7 @@ Base de campanha revisada: inimigos animados por deslocamento e fases reais de a
 - H e U custam 25; Z custa 40; Q custa 100. Socos e chutes continuam livres.
 - Contatos de golpes normais e impactos recebidos carregam a barra. Poderes não devolvem energia pelos próprios acertos. Não existe recarga passiva.
 - Contra máquinas baixas, o golpe normal usa a pose de ataque baixo aprovada, com contato na altura do inimigo.
+- A formação e o recuo de cada inimigo ficam dentro da área de combate da onda; não deixam uma máquina fora do alcance atrás da barreira de progressão.
 - Custos, energia, objetos e movimento continuam serializados para save/load e rollback. Versus mantém seus custos anteriores.
 
 ## Objetos e apresentação

@@ -78,3 +78,16 @@ static func run(s: SceneTree) -> void:
 		s.check(StoryEnemyArt.sample(enemy, 50).index == 15, "Queda tem desfecho próprio: " + kind)
 	var coop := CoopStorySimulation.new(LegacyRoster.get_character("marcelo"), LegacyRoster.get_character("khauany"))
 	s.check(coop.heroes.all(func(f): return f.campaign_costs and f.meter == 0), "Coop usa a mesma energia e custos nos dois jogadores")
+	for wave in 4:
+		var bounded := StorySimulation.new(LegacyRoster.get_character("marcelo"))
+		bounded.wave_index = wave
+		bounded.enemies.clear()
+		bounded._spawn_wave()
+		var edge := mini(3560, 880 + wave * 820) * UNIT
+		for enemy in bounded.enemies:
+			var f: FighterModel = enemy.fighter
+			s.check(f.x <= edge - 80 * UNIT, "Formação nasce dentro da área acessível da onda")
+			f.x = edge + 500 * UNIT
+		bounded.step(CombatInput.new())
+		for enemy in bounded.enemies:
+			s.check(enemy.fighter.x <= edge - 60 * UNIT, "Recuo de máquina não cria alvo inalcançável atrás da barreira")

@@ -63,15 +63,17 @@ func _start_act() -> void:
 
 func _spawn_wave() -> void:
 	var kinds: Array = act().waves[wave_index] if wave_index < 3 else [act().boss]
+	var wave_edge := mini(3560, 880 + wave_index * 820)
+	var first_spawn := mini(650 + wave_index * 820, wave_edge - 80 - maxi(0, kinds.size() - 1) * 90)
 	for i in kinds.size():
 		var kind: String = kinds[i]
 		var p: Dictionary = LegacyRoster.catalog.story.enemies[kind]
 		var c := _enemy_character(kind)
-		var f := FighterModel.new(c, next_id, mini(3400, 650 + wave_index * 820 + i * 130))
+		var f := FighterModel.new(c, next_id, first_spawn + i * 90)
 		f.ground_y = (580 + i % 3 * 30) * UNIT
 		f.y = f.ground_y
 		if float(p.get("fly", 0)) > 0:
-			f.y -= 125 * UNIT
+			f.y -= int(p.fly) * UNIT
 		enemies.append(
 			{
 				"id": next_id,
@@ -264,6 +266,7 @@ func step(value: CombatInput) -> void:
 							}
 						)
 						break  # One contact per victim, not one per overlapping hurtbox row.
+		f.x = clampi(f.x, 70 * UNIT, gate - 60 * UNIT)
 		f.end_tick()
 	for contact in powers.advance(power_actors(), 3600, tick):
 		var target := _enemy(int(contact.defender))

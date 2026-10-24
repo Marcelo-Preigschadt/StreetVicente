@@ -54,10 +54,10 @@ async function walkTo(x,lane){
  const energy=(await state()).story.meter;await page.keyboard.press('h');
  await wait(()=>window.svfQA.story.projectiles>0);assert.equal((await state()).story.meter,energy-25);
  await shot('power');report.checks.push('Real melee contacts earn energy and H spends 25');
- await fightUntil(page,q=>q.wave>=1&&!q.enemy_states.some(e=>e.hp>0&&!['snack','book','archaeologist'].includes(e.kind)),{timeout:90000});
- console.log('STORY V23: first wave defeated through normal combat');
+ await fightUntil(page,q=>q.wave>=2,{timeout:90000});
+ console.log('STORY V23: two waves defeated through normal combat');
  const table=(await state()).story.props.find(p=>p.kind==='table'&&!p.used);
- await walkTo(table.x+95*256,table.lane+10*256);await page.keyboard.press('e');
+ await walkTo(table.x+115*256,table.lane+20*256);await page.keyboard.press('e');
  await wait(()=>window.svfQA.story.carry.kind==='table');
  await shot('table-lift');await wait(()=>window.svfQA.story.pickup_ticks===0);
  assert.equal((await state()).story.carry.kind,'table');await shot('table-held');
@@ -66,7 +66,7 @@ async function walkTo(x,lane){
  report.checks.push('Reach a real table, lift, hold and release it during the actual throw phase');
  await fightUntil(page,q=>q.wave>=2,{timeout:90000});
  const chair=(await state()).story.props.find(p=>p.kind==='chair'&&!p.used&&p.lane>570*256);
- await walkTo(chair.x+75*256,chair.lane);await page.keyboard.press('e');
+ await walkTo(chair.x+65*256,chair.lane);await page.keyboard.press('e');
  await wait(()=>window.svfQA.story.carry.kind==='chair');await wait(()=>window.svfQA.story.pickup_ticks===0);
  await shot('chair-held');await page.keyboard.press('e');await wait(()=>window.svfQA.story.thrown.some(p=>p.kind==='chair'));
  await shot('chair-throw');report.checks.push('Chair uses its own consistent scale, hand grip and flight');
