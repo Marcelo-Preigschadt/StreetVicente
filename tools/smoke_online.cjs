@@ -63,7 +63,13 @@ async function leave(c) {
  if(q.screen==='menu')return;
  if(q.screen==='selection'||q.screen==='online')await c.page.keyboard.press('Escape');
  else {
-  if(q.online.phase!=='paused') {await c.page.keyboard.press('Escape');await wait(c,()=>window.svfQA.online.phase==='paused');}
+  if(q.online.phase!=='paused') {
+   await c.page.keyboard.press('Escape');
+   // A resync can begin after the observation: Escape then closes the
+   // session directly. The menu is already the intended terminal state.
+   await wait(c,()=>window.svfQA.online.phase==='paused'||window.svfQA.screen==='menu');
+   if((await state(c)).screen==='menu')return;
+  }
   await c.page.keyboard.press('Escape');
  }
  await wait(c,()=>window.svfQA.screen==='menu');
