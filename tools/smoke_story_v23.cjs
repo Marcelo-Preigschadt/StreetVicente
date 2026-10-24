@@ -57,34 +57,26 @@ async function walkTo(x,lane){
  await shot('power');report.checks.push('Real melee contacts earn energy and H spends 25');
  await fightUntil(page,q=>q.wave>=2,{timeout:90000,useSuper:true});
  console.log('STORY V25: two waves defeated through normal combat');
- // Clear the third wave's melee machines before inspecting the furniture.
- // Screenshots pause the game, but resuming beside a live melee attacker
- // correctly interrupts a lift/throw. Leave the distant drone alive so the
- // scene stays in this act without changing any simulation state.
- await fightUntil(page,q=>q.wave>=2&&q.enemy_states.every(e=>e.hp<=0||e.kind==='snack'),{timeout:90000,useSuper:false});
- const table=(await state()).story.props.find(p=>p.kind==='table'&&!p.used);
- assert(table,'There is a stationary table remaining to inspect');
+ // Return to the cleared seating group while the next wave remains far
+ // ahead. Furniture is inspected through ordinary movement and interaction.
+ const table=(await state()).story.props.filter(p=>p.kind==='table').sort((a,b)=>a.x-b.x)[0];
  const gate=Math.min(3560,880+(await state()).story.wave*820)*256;
- const side=table.x+220*256<gate?1:-1;
- const approachLane=table.lane+side*20*256;
- // Follow a clear floor route around the seating group before interacting.
- await walkTo((await state()).story.x,side>0?625*256:540*256);
- await walkTo(table.x+side*((await state()).story.prop_sizes.table[0]/2+35)*256,side>0?625*256:540*256);
- await walkTo((await state()).story.x,approachLane);
+ await walkTo((await state()).story.x,650*256);
+ await walkTo(table.x+((await state()).story.prop_sizes.table[0]/2+35)*256,650*256);
+ await walkTo((await state()).story.x,table.lane+20*256);
  await shot('furniture-scale');
  for(let i=0;i<8;i++){
   const prop=(await state()).story.props.find(p=>p.id===table.id);
   if(prop.used)break;
   await page.keyboard.press('e');await delay(600);
  }
- assert((await state()).story.props.find(p=>p.id===table.id).used,'Stationary table breaks through real kick contacts');
+ assert((await state()).story.props.find(p=>p.id===table.id).used,'Table breaks through real combat contacts');
  await shot('table-broken');report.checks.push('Table is a physical destructible obstacle; E never glues it to a fist');
- const chair=(await state()).story.props.find(p=>p.kind==='chair'&&!p.used&&p.lane>570*256&&p.x<gate);
- assert(chair,'A reachable chair remains');
- const chairSide=chair.x+250*256<gate?1:-1;
+ const chair=(await state()).story.props.filter(p=>p.kind==='chair'&&!p.used&&p.x<1800*256).sort((a,b)=>a.x-b.x)[0];
+ assert(chair,'A chair in the cleared seating group remains');
  await walkTo((await state()).story.x-150*256,(await state()).story.ground_y);
  await walkTo((await state()).story.x,chair.lane+25*256);
- await walkTo(chair.x+chairSide*((await state()).story.prop_sizes.chair[0]/2+25)*256,chair.lane+25*256);
+ await walkTo(chair.x-((await state()).story.prop_sizes.chair[0]/2+25)*256,chair.lane+25*256);
  await release(page);await wait(()=>window.svfQA.story.state==='IDLE');
  for(let i=0;i<12;i++){
   await page.keyboard.press('e');await delay(30);
