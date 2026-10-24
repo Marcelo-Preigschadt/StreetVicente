@@ -26,17 +26,18 @@ func setup(act: int) -> void:
 	pending_throw = false
 	pickup_ticks = 0
 	world.props.clear()
+	if act == 0:
+		# Two seating groups on the foreground floor; the vending machine stays by the wall.
+		for x in [1150, 2600]:
+			_add_prop("table", x, 560, 160)
+			_add_prop("chair", x - 110, 590, 80)
+			_add_prop("chair", x + 110, 535, 80)
+		_add_prop("soda", 3260, 540, 200)
+	elif act == 2:
+		for x in [800, 1690, 2760]:
+			_add_prop("shelf", x, 548, 110)
 	for i in 3:
 		var x: int = [640, 1650, 2590][i]
-		if act == 0:
-			x = [2100, 2650, 3200][i]
-			_add_prop("table", x, 595, 160)
-			_add_prop("chair", x + 160, 610, 80)
-			_add_prop("chair", x - 150, 565, 80)
-			if i < 2:
-				_add_prop("soda", [1800, 3500][i], 540, 200)
-		elif act == 2:
-			_add_prop("shelf", x + 240, 550, 110)
 		if act in [1, 3]:
 			hazards.append(
 				{
@@ -76,6 +77,13 @@ func _add_prop(kind: String, x: int, lane: int, hp: int) -> void:
 func input(value: CombatInput) -> CombatInput:
 	var f := world.hero
 	pickup_ticks = maxi(0, pickup_ticks - 1)
+	if not carry.is_empty() and pickup_ticks > 0 and not pending_throw:
+		return CombatInput.new()
+	if not carry.is_empty():
+		if value.axis_x() != 0:
+			f.facing = value.axis_x()
+		var unavailable := CombatInput.SPECIAL | CombatInput.UPPERCUT | CombatInput.SUPER | CombatInput.DRONE | CombatInput.CUSTOM | CombatInput.JUMP
+		value = CombatInput.new(value.held & ~unavailable, value.pressed & ~unavailable)
 	if (
 		f.health <= 0
 		or not f.grounded()
@@ -106,20 +114,23 @@ func input(value: CombatInput) -> CombatInput:
 			if p.get("used", false) or p.hp <= 0 or p.kind not in ["table", "chair", "shelf"]:
 				continue
 			var gap := absi(int(p.x) - f.x)
+			var score := maxi(0, gap - bounds(p).size.x / 2) + 3 * absi(int(p.lane) - f.ground_y)
 			if (
 				absi(int(p.lane) - f.ground_y) <= 42 * UNIT
 				and gap < (bounds(p).size.x / 2 + 50 * UNIT)
-				and gap < distance
+				and score < distance
 			):
 				nearest = p
-				distance = gap
+				distance = score
 		if not nearest.is_empty():
 			if nearest.kind == "shelf":
 				damage(nearest, int(nearest.hp))
 			else:
 				nearest.used = true
-				carry = {"kind": nearest.kind, "id": nearest.id}
-				pickup_ticks = 22
+				f.facing = 1 if int(nearest.x) >= f.x else -1
+				carry = {"kind": nearest.kind, "id": nearest.id,
+					"source_x": nearest.x, "source_lane": nearest.lane}
+				pickup_ticks = 42
 			return CombatInput.new(
 				value.held & ~(CombatInput.PUNCH | CombatInput.THROW),
 				value.pressed & ~(CombatInput.PUNCH | CombatInput.THROW)
@@ -128,10 +139,40 @@ func input(value: CombatInput) -> CombatInput:
 
 
 func bounds(prop: Dictionary) -> Rect2i:
-	var art: Dictionary = LegacyRoster.catalog.story.props[prop.kind]
-	var width := roundi(float(art.width) * UNIT)
-	var height := roundi(float(art.height) * UNIT)
+	var size := StoryLayout.prop_size(str(prop.kind))
+	var width := roundi(size.x * UNIT)
+	var height := roundi(size.y * UNIT)
 	return Rect2i(int(prop.x) - width / 2, int(prop.lane) - height, width, height)
+
+
+func constrain_actor(actor: FighterModel, old_x: int, old_lane: int) -> void:
+	if not actor.grounded():
+		return
+	var wanted_x := actor.x
+	for prop in world.props:
+		if prop.get("used", false) or prop.hp <= 0 or prop.kind in ["can", "medkit"]:
+			continue
+		var half_x := roundi(StoryLayout.prop_size(str(prop.kind)).x * .38 * UNIT) + 18 * UNIT
+		var half_lane := (32 if prop.kind == "table" else 24) * UNIT
+		var dx := actor.x - int(prop.x)
+		var dy := actor.ground_y - int(prop.lane)
+		if absi(dx) >= half_x or absi(dy) >= half_lane:
+			continue
+		var lift := actor.ground_y - actor.y
+		if absi(old_x - int(prop.x)) >= half_x:
+			actor.x = int(prop.x) + (half_x if old_x > int(prop.x) else -half_x)
+		elif absi(old_lane - int(prop.lane)) >= half_lane or half_lane - absi(dy) < half_x - absi(dx):
+			var next_lane := int(prop.lane) + (half_lane if old_lane >= int(prop.lane) else -half_lane)
+			if next_lane >= 535 * UNIT and next_lane <= 655 * UNIT:
+				actor.ground_y = next_lane
+			else:
+				actor.x = int(prop.x) + (half_x if dx >= 0 else -half_x)
+		else:
+			actor.x = int(prop.x) + (half_x if dx >= 0 else -half_x)
+		actor.y = actor.ground_y - lift
+		if actor.character.id.begins_with("enemy_") and actor.x != wanted_x:
+			actor.ground_y = clampi(actor.ground_y + (1 if old_lane >= int(prop.lane) else -1) * 3 * UNIT, 535 * UNIT, 655 * UNIT)
+			actor.y = actor.ground_y - lift
 
 
 func damage(prop: Dictionary, amount: int) -> void:
@@ -168,14 +209,16 @@ func step(boxes: Array[Rect2i], move: MoveData, advance_environment: bool = true
 		if f.state != FighterState.Id.ATTACK or f.current_move().legacy.get("name", "") != "throw":
 			pending_throw = false
 		elif f.current_move().phase(f.move_tick) == "ACTIVE":
+			var grip := StoryCarryArt.held_bottom(f, self)
+			var size := StoryLayout.prop_size(str(carry.kind))
 			_throw(
 				carry.kind,
-				f.x + f.facing * 45 * UNIT,
-				f.y - 165 * UNIT,
+				f.x + roundi(grip.x * UNIT),
+				f.y + roundi((grip.y - size.y / 2) * UNIT),
 				f.ground_y,
 				f.facing,
-				700,
-				-340
+				520 if carry.kind == "table" else 620,
+				-280 if carry.kind == "table" else -360
 			)
 			carry.clear()
 			pending_throw = false
@@ -230,6 +273,7 @@ func drop_medkit(x: int) -> void:
 func _throw(kind: String, x: int, y: int, lane: int, direction: int, speed: int, lift: int) -> void:
 	thrown.append(
 		{
+			"id": world.next_id,
 			"kind": kind,
 			"x": x,
 			"y": y,
@@ -237,15 +281,23 @@ func _throw(kind: String, x: int, y: int, lane: int, direction: int, speed: int,
 			"vx": int(direction * speed * UNIT / 120),
 			"vy": int(lift * UNIT / 120),
 			"age": 0,
+			"landed": false,
+			"direction": direction,
 			"hits": []
 		}
 	)
+	world.next_id += 1
 
 
 func _step_thrown() -> void:
 	var alive: Array = []
 	for p in thrown:
 		p.age += 1
+		if p.get("landed", false):
+			p.rest += 1
+			if p.rest < 30:
+				alive.append(p)
+			continue
 		var from := Vector2i(int(p.x), int(p.y))
 		p.x += int(p.vx)
 		p.vy += 64
@@ -276,7 +328,8 @@ func _step_thrown() -> void:
 						int(p.x)
 					)
 					break
-		if p.y >= p.lane:
+		var half_height := roundi(StoryLayout.prop_size(str(p.kind)).y * UNIT / 2)
+		if p.y + half_height >= p.lane:
 			if p.kind == "can":
 				for enemy in world.enemies:
 					var target: FighterModel = enemy.fighter
@@ -286,6 +339,10 @@ func _step_thrown() -> void:
 						and absi(target.ground_y - int(p.lane)) < 65 * UNIT
 					):
 						_environment_hit(target, 110, int(p.x))
+			p.y = int(p.lane) - half_height
+			p.landed = true
+			p.rest = 0
+			alive.append(p)
 			continue
 		if p.age < 300:
 			alive.append(p)

@@ -1,0 +1,88 @@
+class_name StoryEntityView
+extends Node2D
+var presenter
+var entity: Dictionary
+var kind := "enemy"
+var previous := Vector2.ZERO
+var current := Vector2.ZERO
+
+
+func sync(snap := false) -> void:
+	previous = current
+	var lane: float
+	if kind == "enemy":
+		var f: FighterModel = entity.fighter
+		current = Vector2(f.x, f.y) / FighterModel.SCALE
+		lane = float(f.ground_y) / FighterModel.SCALE
+	else:
+		current = Vector2(float(entity.x), float(entity.lane if kind == "prop" else entity.y)) / FighterModel.SCALE
+		lane = float(entity.lane) / FighterModel.SCALE
+	if snap:
+		previous = current
+	z_index = roundi(lane)
+	scale = Vector2.ONE * StoryLayout.depth(lane)
+
+
+func _process(_delta: float) -> void:
+	position = previous.lerp(current, presenter.render_alpha()) - Vector2(presenter.render_camera(), 0)
+	queue_redraw()
+
+
+func _draw() -> void:
+	if entity.is_empty():
+		return
+	if kind == "enemy":
+		_draw_enemy()
+	else:
+		_draw_prop()
+
+
+func _draw_enemy() -> void:
+	var f: FighterModel = entity.fighter
+	var profile: Dictionary = LegacyRoster.catalog.story.enemies[entity.kind]
+	var selected := StoryEnemyArt.sample(entity, presenter.world.tick)
+	var frame: Dictionary = selected.frame
+	var sheet: Dictionary = selected.sheet
+	var rect: Array = frame.rect
+	var k := float(sheet.scale)
+	var age: int = maxi(0, presenter.world.tick - int(entity.dead_tick))
+	var alpha := 1.0 if f.health > 0 else clampf((132.0 - age) / 55.0, 0, 1)
+	var fallen := 0.0
+	if f.health <= 0 and float(profile.get("fly", 0)) > 0:
+		fallen = minf(float(f.ground_y - f.y) / FighterModel.SCALE, age * age * .045)
+	draw_set_transform(Vector2(0, fallen), 0, Vector2(f.facing, 1))
+	var tint := Color(1.6, 1.6, 1.6, alpha) if f.state == FighterState.Id.HITSTUN and f.state_tick < 6 else Color(1, 1, 1, alpha)
+	draw_texture_rect_region(LegacyRoster.texture(sheet.file),
+		Rect2(-float(frame.anchorX) * k, -float(frame.bottom) * k, float(rect[2]) * k, float(rect[3]) * k),
+		Rect2(rect[0], rect[1], rect[2], rect[3]), tint)
+	draw_set_transform(Vector2.ZERO)
+	if f.health > 0:
+		var top := -float(profile.h) - 13
+		draw_rect(Rect2(-35, top, 70, 5), Color("192a31"))
+		draw_rect(Rect2(-35, top, 70.0 * f.health / f.character.max_health, 5), Color(profile.color))
+
+
+func _draw_prop() -> void:
+	var item := str(entity.kind)
+	var art: Dictionary = LegacyRoster.catalog.story.props[item]
+	var size := StoryLayout.prop_size(item)
+	var tint := Color(1, .98, .94, 1) if presenter.world.act_index == 0 else Color.WHITE
+	var offset := Vector2.ZERO
+	var angle := 0.0
+	if kind == "prop":
+		if int(entity.get("fall", 0)) > 0:
+			angle = minf(PI / 2, float(entity.fall) / 102 * PI / 2)
+		offset = Vector2(-size.x / 2, -size.y)
+	else:
+		angle = float(entity.age) * (.025 if item == "table" else .045) * int(entity.get("direction", 1))
+		var support := (absf(sin(angle)) * size.x + absf(cos(angle)) * size.y) / 2
+		var floor_delta := float(entity.lane) / FighterModel.SCALE - current.y
+		var adjustment := minf(0, floor_delta - support)
+		draw_set_transform(Vector2(0, adjustment), angle)
+		offset = -size / 2
+		if entity.get("landed", false):
+			tint.a = clampf((30.0 - int(entity.rest)) / 20, 0, 1)
+	if kind == "prop":
+		draw_set_transform(Vector2.ZERO, angle)
+	draw_texture_rect(LegacyRoster.texture(art.file), Rect2(offset, size), false, tint)
+	draw_set_transform(Vector2.ZERO)

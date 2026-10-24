@@ -1,3 +1,4 @@
+const {chargeStory}=require('./story_driver.cjs');
 /* QA uses real keyboard/mouse input. svfQA is a read-only state observer. */
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');const {PNG}=require('pngjs');
@@ -112,8 +113,8 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  assert((await state()).story.enemies>=3);await page.keyboard.press('Space');await delay(180);await page.screenshot({path:'test-results/11-story.png'});await delay(800);
  // Restart each campaign check through F8: screenshot latency must not let the
  // approaching enemies interrupt the next cast before its startup completes.
- await page.keyboard.press('F8');await delay(100);await page.keyboard.press('h');await wait(()=>window.svfQA?.story?.projectiles>0);assert.equal((await state()).story.power_sprites,true);await page.screenshot({path:'test-results/11a-story-code.png'});
- await page.keyboard.press('F8');await delay(100);await page.keyboard.press('z');await wait(()=>window.svfQA?.story?.power_kinds?.includes('drone'));await page.screenshot({path:'test-results/11b-story-drone.png'});
+ await page.keyboard.press('F8');await chargeStory(page,25);await page.keyboard.press('F8');await delay(100);await page.keyboard.press('h');await wait(()=>window.svfQA?.story?.projectiles>0);assert.equal((await state()).story.power_sprites,true);await page.screenshot({path:'test-results/11a-story-code.png'});
+ await page.keyboard.press('F8');await chargeStory(page,40);await page.keyboard.press('F8');await delay(100);await page.keyboard.press('z');await wait(()=>window.svfQA?.story?.power_kinds?.includes('drone'));await page.screenshot({path:'test-results/11b-story-drone.png'});
  await page.keyboard.press('Escape');await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');
  // Visual review playback, actual commands into the same simulation as the player.
  await page.keyboard.press('ArrowUp');await page.keyboard.press('ArrowUp');await page.keyboard.press('ArrowUp');await page.keyboard.press('Enter');

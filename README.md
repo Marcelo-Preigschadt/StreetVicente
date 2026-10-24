@@ -137,3 +137,7 @@ Frame data usa **60 Hz de design**, convertido para **120 ticks/s**. Exemplo do 
 A origem dos dados está fixada em `data/legacy/source-lock.json`. Para reimportar assets/dados aprovados, execute `node tools/import_legacy.mjs` com Node 22+ ou use o workflow de importação. Nenhum JavaScript do motor Canvas é executado no jogo Godot.
 
 [Arte do piloto](docs/ART_PILOT.md) · [Plano e limites da migração](docs/MIGRATION.md) · [Arquitetura](docs/ARCHITECTURE.md) · [Web](docs/WEB.md)
+
+### História V23
+
+Robôs com ciclos de deslocamento, ataque, impacto e queda; registro de pés, profundidade compartilhada e perspectiva uniforme dos lutadores, poderes e móveis. Energia inicial zero: H/U 25, Z 40 e Q 100, obtida em combate. Mesas e cadeiras têm levantamento, pega na mão e arremesso com escala constante. Veja `docs/STORY_V23.md` e `tools/smoke_story_v23.cjs`.

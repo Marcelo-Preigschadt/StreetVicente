@@ -11,7 +11,8 @@ func _init(first: CharacterData, second: CharacterData) -> void:
 	heroes = [hero, FighterModel.new(second, PARTNER_SLOT, 320)]
 	heroes[1].ground_y = 590 * UNIT
 	heroes[1].y = heroes[1].ground_y
-	heroes[1].meter = 50
+	heroes[1].campaign_costs = true
+	heroes[1].meter = 0
 	gear = [objects, StoryObjects.new(self)]
 	powers.friendly_slots = [0, PARTNER_SLOT]
 
@@ -94,6 +95,7 @@ func step_party(values: Array[CombatInput]) -> void:
 		hero = _nearest(f)
 		objects = gear[0]
 		var profile: Dictionary = LegacyRoster.catalog.story.enemies[enemy.kind]
+		var enemy_lane := f.ground_y
 		var delta_lane := hero.ground_y - f.ground_y
 		var lift := f.ground_y - f.y
 		if (
@@ -107,7 +109,7 @@ func step_party(values: Array[CombatInput]) -> void:
 		var enemy_edge := 0
 		enemy.cooldown -= 1
 		var reach := int(profile.range)
-		if distance > reach * UNIT:
+		if distance > reach * UNIT or (absi(delta_lane) > 42 * UNIT and distance > 60 * UNIT):
 			enemy_input = CombatInput.RIGHT if hero.x > f.x else CombatInput.LEFT
 		elif (
 			enemy.cooldown <= 0
@@ -119,8 +121,11 @@ func step_party(values: Array[CombatInput]) -> void:
 			enemy.cooldown = (
 				100 if not LegacyRoster.catalog.story.enemies[enemy.kind].get("boss", false) else 65
 			)
+		var enemy_x := f.x
 		f.record_input(CombatInput.new(enemy_input, enemy_edge), tick)
 		f.begin_tick(hero.x)
+		objects.constrain_actor(f, enemy_x, enemy_lane)
+		f.walk_distance += absi(f.x - enemy_x) + absi(f.ground_y - enemy_lane)
 		if (
 			float(profile.get("fly", 0)) > 0
 			and not f.knockdown_pending
@@ -265,14 +270,22 @@ func _move_actor(value: CombatInput) -> Dictionary:
 		held &= ~CombatInput.DOWN
 	var nearest_x := hero.x + hero.facing * 200 * UNIT
 	var best := 100000000
+	var low_target := false
 	for enemy in enemies:
 		var f: FighterModel = enemy.fighter
 		if f.health > 0 and absi(f.x - hero.x) < best:
 			best = absi(f.x - hero.x)
 			nearest_x = f.x
+			var body: Dictionary = LegacyRoster.catalog.story.enemies[enemy.kind]
+			low_target = int(body.h) < 230 and int(body.get("fly", 0)) == 0 and absi(f.ground_y - hero.ground_y) < 50 * UNIT
+	if low_target and best < 220 * UNIT and hero.grounded() and pressed & (CombatInput.PUNCH | CombatInput.KICK):
+		held |= CombatInput.DOWN
 	hero.record_input(CombatInput.new(held, pressed), tick)
 	var old_x := hero.x
+	if not objects.carry.is_empty():
+		nearest_x = hero.x + hero.facing * 200 * UNIT
 	hero.begin_tick(nearest_x)
+	objects.constrain_actor(hero, old_x, old_lane)
 	var gate := mini(3560, 880 + wave_index * 820) * UNIT
 	hero.x = clampi(hero.x, 70 * UNIT, gate)
 	var traveled := absi(hero.x - old_x)
@@ -313,6 +326,7 @@ func _new_act() -> void:
 	heroes[1] = FighterModel.new(partner.character, PARTNER_SLOT, 320)
 	heroes[1].health = mini(1000, partner.health + 300)
 	heroes[1].meter = partner.meter
+	heroes[1].campaign_costs = true
 	heroes[1].ground_y = 590 * UNIT
 	heroes[1].y = heroes[1].ground_y
 	gear[1] = StoryObjects.new(self)
@@ -342,5 +356,6 @@ func restore(data: Dictionary) -> void:
 	super(data)
 	heroes[0] = hero
 	heroes[1].restore(SnapshotCodec.integers(data.partner))
+	heroes[1].campaign_costs = true
 	gear[1].restore(SnapshotCodec.integers(data.get("partner_gear", {})))
 	camera_x = clampf((heroes[0].x + heroes[1].x) / (2.0 * UNIT) - 640, 0, 2320)

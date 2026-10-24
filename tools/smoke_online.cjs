@@ -37,7 +37,7 @@ async function menu(c,mode='versus') {
  if(mode==='story')await c.page.mouse.click(875,156);
 }
 async function join(c,code) {
- await c.page.mouse.click(240,417);await c.page.keyboard.type(code);await c.page.keyboard.press('Enter');
+ await c.page.mouse.click(240,417);await c.page.keyboard.press('ControlOrMeta+A');await c.page.keyboard.type(code,{delay:40});await c.page.keyboard.press('Enter');
  await wait(c,()=>window.svfQA.screen==='selection');
 }
 async function choose(c,id) {

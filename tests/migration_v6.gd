@@ -233,12 +233,12 @@ static func _arcade(s: SceneTree) -> void:
 static func _story(s: SceneTree) -> void:
 	var world := StorySimulation.new(LegacyRoster.get_character("marcelo"))
 	world.wave_index = 2
-	world.hero.x = 2100 * UNIT
-	world.hero.ground_y = 595 * UNIT
+	world.hero.x = int(world.props[0].x)
+	world.hero.ground_y = int(world.props[0].lane)
 	world.hero.y = world.hero.ground_y
 	world.step(CombatInput.new(0, CombatInput.PUNCH))
 	s.check(world.objects.carry.get("kind", "") == "table", "Soco próximo pega mesa do cenário")
-	for tick in 26:
+	for tick in 46:
 		world.step(CombatInput.new())
 	world.step(CombatInput.new(0, CombatInput.PUNCH))
 	for tick in 60:

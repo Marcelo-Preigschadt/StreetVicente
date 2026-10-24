@@ -62,6 +62,7 @@ func _run() -> void:
 	RosterPowersV20Tests.run(self)
 	KhauanyV21Tests.run(self)
 	OnlineV22Tests.run(self)
+	StoryV23Tests.run(self)
 	print("COMBAT TESTS: %d checks, %d failures" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 
@@ -500,6 +501,7 @@ func _test_shared_powers() -> void:
 	check(found_laser, "Sentinela emite entidade de laser separada")
 	check(sim.fighters[1].health < 1000, "Laser acerta alvo abaixo do drone")
 	var world := StorySimulation.new(LegacyRoster.get_character("marcelo"))
+	world.hero.meter = 25  # Fixture: earned campaign energy is exercised separately below.
 	world.step(CombatInput.new(0, CombatInput.SPECIAL))
 	for i in 30:
 		world.step(CombatInput.new())

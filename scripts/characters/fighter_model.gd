@@ -25,6 +25,7 @@ var step_cancel: int = 0
 var ground_y: int = FLOOR_Y
 var walk_distance: int = 0
 var meter: int = 0
+var campaign_costs: bool = false
 var combo: int = 0
 var combo_ticks: int = 0
 var stun_gauge: int = 0
@@ -332,7 +333,7 @@ func _start_move(move: MoveData) -> void:
 	emitted_waves = 0
 	move_motion_started = false
 	if not move.legacy.is_empty():
-		meter -= int(move.legacy.get("cost", 0))
+		meter -= move_cost(move)
 		invincible_ticks = int(round(float(move.legacy.get("invincibility", 0)) * 120.0))
 	if grounded():
 		vx = 0
@@ -576,6 +577,7 @@ func snapshot() -> Dictionary:
 		"ground_y": ground_y,
 		"walk_distance": walk_distance,
 		"meter": meter,
+		"campaign_costs": campaign_costs,
 		"combo": combo,
 		"combo_ticks": combo_ticks,
 		"stun_gauge": stun_gauge,
@@ -641,6 +643,7 @@ func restore(data: Dictionary) -> void:
 		"ground_y",
 		"walk_distance",
 		"meter",
+		"campaign_costs",
 		"combo",
 		"combo_ticks",
 		"stun_gauge",
@@ -721,7 +724,7 @@ func _legacy_command(cancel: bool) -> bool:
 		var move := character.get_move(resolved, strength)
 		if move == null:
 			continue
-		if int(move.legacy.get("cost", 0)) > meter:
+		if move_cost(move) > meter:
 			continue
 		if (
 			cancel
@@ -735,6 +738,18 @@ func _legacy_command(cancel: bool) -> bool:
 			_start_move(move)
 			return true
 	return false
+
+
+func move_cost(move: MoveData) -> int:
+	if campaign_costs:
+		match str(move.legacy.get("name", "")):
+			"special", "uppercut":
+				return 25
+			"drone":
+				return 40
+			"super":
+				return 100
+	return int(move.legacy.get("cost", 0))
 
 
 func _attack_motion() -> void:

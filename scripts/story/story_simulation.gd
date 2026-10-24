@@ -30,7 +30,8 @@ func _init(character: CharacterData, first_act: int = 0) -> void:
 	LegacyRoster.load_catalog()
 	objects = StoryObjects.new(self)
 	hero = FighterModel.new(character, 0, 220)
-	hero.meter = 50
+	hero.campaign_costs = true
+	hero.meter = 0
 	act_index = first_act
 	_start_act()
 
@@ -48,6 +49,7 @@ func _start_act() -> void:
 	var life := mini(1000, hero.health + 300)
 	hero = FighterModel.new(hero.character, 0, 220)
 	hero.health = life
+	hero.campaign_costs = true
 	hero.meter = charge
 	wave_index = 0
 	hero.x = 220 * UNIT
@@ -113,14 +115,22 @@ func step(value: CombatInput) -> void:
 		held &= ~CombatInput.DOWN
 	var nearest_x := hero.x + hero.facing * 200 * UNIT
 	var best := 100000000
+	var low_target := false
 	for enemy in enemies:
 		var f: FighterModel = enemy.fighter
 		if f.health > 0 and absi(f.x - hero.x) < best:
 			best = absi(f.x - hero.x)
 			nearest_x = f.x
+			var body: Dictionary = LegacyRoster.catalog.story.enemies[enemy.kind]
+			low_target = int(body.h) < 230 and int(body.get("fly", 0)) == 0 and absi(f.ground_y - hero.ground_y) < 50 * UNIT
+	if low_target and best < 220 * UNIT and hero.grounded() and pressed & (CombatInput.PUNCH | CombatInput.KICK):
+		held |= CombatInput.DOWN
 	hero.record_input(CombatInput.new(held, pressed), tick)
 	var old_x := hero.x
+	if not objects.carry.is_empty():
+		nearest_x = hero.x + hero.facing * 200 * UNIT
 	hero.begin_tick(nearest_x)
+	objects.constrain_actor(hero, old_x, old_lane)
 	var gate := mini(3560, 880 + wave_index * 820) * UNIT
 	hero.x = clampi(hero.x, 70 * UNIT, gate)
 	var traveled := absi(hero.x - old_x)
@@ -156,6 +166,7 @@ func step(value: CombatInput) -> void:
 			continue
 		alive += 1
 		var profile: Dictionary = LegacyRoster.catalog.story.enemies[enemy.kind]
+		var enemy_lane := f.ground_y
 		var delta_lane := hero.ground_y - f.ground_y
 		var lift := f.ground_y - f.y
 		if (
@@ -169,7 +180,7 @@ func step(value: CombatInput) -> void:
 		var enemy_edge := 0
 		enemy.cooldown -= 1
 		var reach := int(profile.range)
-		if distance > reach * UNIT:
+		if distance > reach * UNIT or (absi(delta_lane) > 42 * UNIT and distance > 60 * UNIT):
 			enemy_input = CombatInput.RIGHT if hero.x > f.x else CombatInput.LEFT
 		elif (
 			enemy.cooldown <= 0
@@ -181,8 +192,13 @@ func step(value: CombatInput) -> void:
 			enemy.cooldown = (
 				100 if not LegacyRoster.catalog.story.enemies[enemy.kind].get("boss", false) else 65
 			)
+		var enemy_x := f.x
 		f.record_input(CombatInput.new(enemy_input, enemy_edge), tick)
 		f.begin_tick(hero.x)
+		objects.constrain_actor(f, enemy_x, enemy_lane)
+		f.walk_distance += absi(f.x - enemy_x) + absi(f.ground_y - enemy_lane)
+		if f.state == FighterState.Id.IDLE and delta_lane != 0 and f.ground_y != enemy_lane:
+			f.transition(FighterState.Id.WALK)
 		if (
 			float(profile.get("fly", 0)) > 0
 			and not f.knockdown_pending
@@ -368,7 +384,8 @@ func _apply_hero_hit(
 		move = RollMotion.contact_move(hero)
 	hero.has_contact = true
 	if not blocked:
-		hero.meter = mini(100, hero.meter + int(move.legacy.get("meter", 8)))
+		if move_cost_earns_energy(move):
+			hero.meter = mini(100, hero.meter + maxi(8, int(move.legacy.get("meter", 8))))
 		hero.connect_hit(target, move)
 	target.receive_hit(move, facing, blocked, hero.slot, hero.combo, hero.scaled_damage(move))
 	if rolling:
@@ -435,6 +452,7 @@ func restore(data: Dictionary) -> void:
 	freeze_ticks = int(data.freeze)
 	next_id = int(data.next_id)
 	hero.restore(data.hero)
+	hero.campaign_costs = true
 	enemies.clear()
 	for raw in data.enemies:
 		var e: Dictionary = raw.duplicate(true)
@@ -508,3 +526,7 @@ func _prepare_enemy_attack(enemy: Dictionary) -> void:
 
 func state_hash() -> String:
 	return SnapshotCodec.state_hash(snapshot())
+
+
+static func move_cost_earns_energy(move: MoveData) -> bool:
+	return str(move.legacy.get("name", "")) not in ["special", "uppercut", "drone", "super"]

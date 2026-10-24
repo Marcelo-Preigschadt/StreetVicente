@@ -64,6 +64,7 @@ func _ready() -> void:
 	audio = GameAudio.new()
 	add_child(audio)
 	stage_view = ArenaView.new()
+	stage_view.z_index = -2000
 	add_child(stage_view)
 	stage_audio = StageAudio.new()
 	stage_audio.game = self
@@ -72,6 +73,7 @@ func _ready() -> void:
 	add_child(story_view)
 	impact = CombatImpact.new()
 	var backdrop := PowerBackdrop.new()
+	backdrop.z_index = -800
 	backdrop.impact = impact
 	add_child(backdrop)
 	for i in 2:
@@ -290,6 +292,7 @@ func _bind_story() -> void:
 	views[0].show()
 	views[1].hide()
 	story_view.world = story
+	story_view.sync(true)
 	story_view.show()
 	power_view.setup(story)
 	power_view.show()
@@ -300,6 +303,8 @@ func _physics_process(_delta: float) -> void:
 		if not controls.visible:
 			net_session.advance(input_source.sample(0))
 		_online_views()
+		if screen == "story":
+			story_view.sync()
 		if qa and screen == "fight":
 			_capture_qa_trace()
 		return
@@ -347,6 +352,7 @@ func _physics_process(_delta: float) -> void:
 				_show_arcade_outcome()
 	elif screen == "story":
 		story.step(input_source.sample(0))
+		story_view.sync()
 		if views[0].model != story.hero:
 			views[0].setup(story.hero, story.hero.character.color)
 		views[0].camera_x = story.camera_x
@@ -372,24 +378,40 @@ func _process(_delta: float) -> void:
 	stage_audio.play_arena(current_stage)
 	stage_view.impact_offset = impact.offset() * .25
 	status_view.world = story if screen == "story" else sim if screen == "fight" else null
-	status_view.camera_x = story.camera_x if screen == "story" else 0.0
+	status_view.camera_x = story_view.render_camera() if screen == "story" else 0.0
+	status_view.position = StoryLayout.ORIGIN if screen == "story" else Vector2.ZERO
+	status_view.scale = Vector2.ONE * (StoryLayout.SCALE if screen == "story" else 1.0)
 	status_view.visible = screen in ["fight", "story"]
 	save_clock += _delta
 	if save_clock >= 1.0 and progress.record != saved_record:
 		progress.save()
 		saved_record = progress.record
 		save_clock = 0.0
-	for view in views:
+	var campaign := screen == "story" and story != null
+	var scene_scale := StoryLayout.SCALE if campaign else 1.0
+	var scene_origin := StoryLayout.ORIGIN if campaign else Vector2.ZERO
+	story_view.presentation_frozen = paused or (campaign and story.freeze_ticks > 0)
+	for i in views.size():
+		var view: SpriteFighterView = views[i]
+		view.world_scale = scene_scale
+		view.world_origin = scene_origin
+		view.depth_scale = StoryLayout.depth(float(view.model.ground_y) / FighterModel.SCALE) if campaign and view.model != null else 1.0
+		view.z_index = StoryLayout.Z_BASE + roundi(float(view.model.ground_y) / FighterModel.SCALE) if campaign and view.model != null else 0
+		view.story_gear = story.object_sets()[i] if campaign and i < story.object_sets().size() else null
+		if campaign:
+			view.camera_x = story_view.render_camera()
 		view.impact_offset = impact.offset()
 		view.presentation_paused = paused
 		view.presentation_frozen = (
-			paused or (screen == "fight" and sim != null and sim.freeze_ticks > 0)
+			paused or (screen == "fight" and sim != null and sim.freeze_ticks > 0) or (campaign and story.freeze_ticks > 0)
 		)
-	power_view.position = impact.offset()
+	power_view.position = scene_origin + impact.offset() * scene_scale
+	power_view.scale = Vector2.ONE * scene_scale
 	power_view.presentation_paused = paused
 	impact.presentation_paused = paused
-	impact.position = impact.offset()
-	impact.camera_x = story.camera_x if screen == "story" else 0.0
+	impact.position = scene_origin + impact.offset() * scene_scale
+	impact.scale = Vector2.ONE * scene_scale
+	impact.camera_x = story_view.render_camera() if campaign else 0.0
 	power_view.camera_x = impact.camera_x
 	queue_redraw()
 	if qa:
@@ -587,6 +609,17 @@ func _publish_qa() -> void:
 			"wave": story.wave_index,
 			"enemies": story.enemies.size(),
 			"hp": story.hero.health,
+			"meter": story.hero.meter,
+			"state": FighterState.NAMES[story.hero.state],
+			"carry": story.objects.carry.duplicate(true),
+			"pickup_ticks": story.objects.pickup_ticks,
+			"thrown": story.objects.thrown.duplicate(true),
+			"props": story.props.duplicate(true),
+			"presentation_revision": 23,
+			"scene_scale": StoryLayout.SCALE,
+			"enemy_states": story.enemies.map(func(e: Dictionary) -> Dictionary:
+				var f: FighterModel = e.fighter
+				return {"id": e.id, "kind": e.kind, "x": f.x, "lane": f.ground_y, "hp": f.health, "state": FighterState.NAMES[f.state], "cel": StoryEnemyArt.sample(e, story.tick).index}),
 			"projectiles": story.projectiles.size(),
 			"power_sprites": power_view.visible,
 			"power_kinds": story.projectiles.map(func(p: Dictionary) -> String: return str(p.kind)),

@@ -325,12 +325,8 @@ func _hud() -> void:
 			16,
 			PAPER
 		)
-	_footer(
-		(
-			"A/D MOVER · W PULAR · T/F/Y SOCOS · V/G/B CHUTES · R DEFESA"
-			+ " · H PODER · U GANCHO · Q ESPECIAL · ESC PAUSA"
-		)
-	)
+	_footer("A/D MOVER · W/S PROFUNDIDADE · ESPAÇO SALTAR · T/F/Y SOCOS · V/G/B CHUTES · R DEFESA · E OBJETO · ESC PAUSA"
+		if story_mode else "A/D MOVER · W PULAR · T/F/Y SOCOS · V/G/B CHUTES · R DEFESA · H PODER · U GANCHO · Q ESPECIAL · ESC PAUSA")
 	if game.mode == "training" and not story_mode:
 		ArcadeTheme.plate(self, Rect2(16, 108, 625, 27), Color(INK, 0.85), 7)
 		text_at(
@@ -351,10 +347,11 @@ func _hud() -> void:
 		centered(Vector2(640, 128), "CIRCUITO  %02d / 12" % (game.arcade.index + 1), 15, PAPER)
 		text_at(Vector2(970, 128), "RECORDE  %08d" % game.progress.record, 15, BLUE)
 	if story_mode and not game.online_active():
+		ArcadeTheme.plate(self, Rect2(16, 105, 694, 30), Color(INK, .9), 7)
 		text_at(
 			Vector2(28, 125),
 			(
-				"W/S PROFUNDIDADE · ESPAÇO SALTAR · F/E OBJETO · TURNO %02d:%02d"
+				"W/S PROFUNDIDADE · ESPAÇO SALTAR · E PEGAR/ARREMESSAR · TURNO %02d:%02d"
 				% [
 					int(game.story.remaining_ticks / 7200),
 					int(game.story.remaining_ticks / 120) % 60
@@ -363,7 +360,30 @@ func _hud() -> void:
 			13,
 			GOLD
 		)
+	if story_mode:
+		var local_slot: int = game.net_session.slot if game.online_active() else 0
+		var actor: FighterModel = game.story.players()[local_slot]
+		var gear: StoryObjects = game.story.object_sets()[local_slot]
+		var prompt := ""
+		if not gear.carry.is_empty():
+			prompt = "LEVANTANDO…" if gear.pickup_ticks > 0 and not gear.pending_throw else "F / E  ·  ARREMESSAR"
+		elif actor.grounded() and FighterState.actionable(actor.state):
+			var closest := 1 << 60
+			for prop in game.story.props:
+				if prop.get("used", false) or prop.hp <= 0 or prop.kind not in ["table", "chair", "shelf"]:
+					continue
+				if absi(int(prop.lane) - actor.ground_y) > 42 * FighterModel.SCALE or absi(int(prop.x) - actor.x) >= gear.bounds(prop).size.x / 2 + 50 * FighterModel.SCALE:
+					continue
+				var score := maxi(0, absi(int(prop.x) - actor.x) - gear.bounds(prop).size.x / 2) + 3 * absi(int(prop.lane) - actor.ground_y)
+				if score < closest:
+					closest = score
+					prompt = "E  ·  LEVANTAR MESA" if prop.kind == "table" else "E  ·  PEGAR CADEIRA" if prop.kind == "chair" else "E  ·  DERRUBAR ESTANTE"
+		if not prompt.is_empty():
+			ArcadeTheme.plate(self, Rect2(451, 643, 378, 30), Color(INK, .9), 8)
+			centered(Vector2(640, 665), prompt, 16, GOLD)
 	for f in [a, b]:
+		if f != null and f.campaign_costs:
+			text_at(Vector2(40 if f == a else 870, 633), "H / U  25  ·  Z  40  ·  Q  100  /  ACERTE INIMIGOS", 12, BLUE if f == a else RED)
 		if f != null and f.custom_ticks > 0:
 			text_at(Vector2(52 if f == a else 987, 602), "CUSTOM  %d/8" % f.custom_moves, 21, GOLD)
 		if f != null and f.state == FighterState.Id.DIZZY:
@@ -379,7 +399,7 @@ func _hud() -> void:
 		text_at(Vector2(400, 105), "SALA " + game.net_session.room + " · VOCÊ: " + str(game.net_session.slot + 1) + "P · " + str(game.net_session.rtt) + " ms", 14, BLUE)
 		if story_mode:
 			ArcadeTheme.plate(self, Rect2(16, 108, 900, 46), Color(INK, .9), 7)
-			text_at(Vector2(28, 125), "W/S PROFUNDIDADE · ESPAÇO SALTAR · F/E OBJETO · TURNO %02d:%02d" % [int(game.story.remaining_ticks / 7200), int(game.story.remaining_ticks / 120) % 60], 13, GOLD)
+			text_at(Vector2(28, 125), "W/S PROFUNDIDADE · ESPAÇO SALTAR · E PEGAR/ARREMESSAR · TURNO %02d:%02d" % [int(game.story.remaining_ticks / 7200), int(game.story.remaining_ticks / 120) % 60], 13, GOLD)
 			text_at(Vector2(28, 147), "ATO %d · PONTOS %08d" % [mini(game.story.act_index + 1, 4), game.story.score], 14, PAPER)
 			text_at(Vector2(400, 147), "COOP · ONDA " + str(mini(game.story.wave_index + 1, 4)) + "/4 · E: AJUDAR PARCEIRO CAÍDO", 13, GOLD)
 	var message := ""
@@ -406,7 +426,7 @@ func _hud() -> void:
 				else " / ENTER CONTINUAR" if game.arcade != null else " / ENTER SELEÇÃO"
 			)
 	if not message.is_empty():
-		var inspect: bool = game.paused and game.mode == "training"
+		var inspect: bool = game.paused and (game.mode == "training" or game.qa)
 		if inspect:
 			panel(Rect2(0, 682, 1280, 38), INK)
 			centered(Vector2(640, 708), message, 22, GOLD)
@@ -480,7 +500,7 @@ func _draw_player(f: FighterModel, right: bool, color: Color) -> void:
 		Rect2(meter_x + 87 + (288 - fill if right else 0), 651, fill, 13),
 		color if f.meter < 100 else GOLD
 	)
-	text_at(Vector2(meter_x + 4, 664), "SUPER", 19, color if f.meter < 100 else GOLD)
+	text_at(Vector2(meter_x + 4, 664), "ENERGIA" if f.campaign_costs else "SUPER", 16 if f.campaign_costs else 19, color if f.meter < 100 else GOLD)
 	if f.meter == 100:
 		text_at(Vector2(meter_x + 193, 663), "MAX", 12, INK)
 	text_at(Vector2(x, 88), str(f.character.legacy.style).to_upper(), 12, color)

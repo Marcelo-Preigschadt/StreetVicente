@@ -19,7 +19,7 @@ O bilhete usa `sessionStorage`: não é compartilhado entre abas e não vai para
 
 ## Implementação
 
-O Canvas original usa Supabase Broadcast por WebSocket TLS e o diretório `public.svf_rooms`. O Godot reutiliza esse serviço e as políticas de propriedade, mas usa protocolo e canal separados (`svf-godot-v22`). Salas Canvas e Godot não aparecem juntas e não podem iniciar partidas incompatíveis.
+O Canvas original usa Supabase Broadcast por WebSocket TLS e o diretório `public.svf_rooms`. O Godot reutiliza esse serviço e as políticas de propriedade, mas usa protocolo e canal separados (`svf-godot-v23`). Salas Canvas e Godot não aparecem juntas e não podem iniciar partidas incompatíveis.
 
 - `RoomDirectory`: lista pública, código legível e manutenção por token aleatório de 256 bits. Apenas SHA-256 do token é salvo no banco. O cliente contém somente a chave pública do projeto; nunca uma chave administrativa.
 - `RealtimeRelay`: conexão Phoenix v1 com heartbeat, limite de buffers e reconexão progressiva.
@@ -36,3 +36,5 @@ A migração SQL amplia somente o CHECK de personagens de oito para 13; mantém 
 `bash tools/test.sh` inclui dois peers simulados comparados a uma execução offline, com atraso, perda e reordenação de pacotes, replay, snapshots JSON, eventos sem repetição, espera limitada, comandos durante espera, comandos inválidos, drones aliados e ajuda ao parceiro.
 
 `node tools/smoke_online.cjs` executa dois clientes WASM independentes pelo serviço real. A automação usa a interface e comandos normais; `window.svfQA` é somente leitura. Ela verifica Versus, cooperativo, hashes confirmados, pausa, interrupção de rede, retomada dos dois assentos após reload e saída da sala. Capturas e relatório ficam em `test-results/`. `SVF_ONLINE_URL` permite repetir o teste na publicação.
+
+A revisão de campanha V23 usa custos por golpe, levantamento e física de móveis serializados. O protocolo V23 impede misturar simulações das duas revisões na mesma sala.
