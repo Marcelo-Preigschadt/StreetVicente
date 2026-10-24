@@ -71,7 +71,10 @@ async function walkTo(x,lane){
  report.checks.push('Reach a real table, lift, hold and release it during the actual throw phase');
  await fightUntil(page,q=>q.wave>=2,{timeout:90000});
  const chair=(await state()).story.props.find(p=>p.kind==='chair'&&!p.used&&p.lane>570*256);
- await walkTo(chair.x+65*256,chair.lane);await page.keyboard.press('e');
+ // Approach from the open front lane. Turning down beside the chair after
+ // a long horizontal input can stop against its real ground footprint.
+ await walkTo((await state()).story.x,chair.lane+24*256);
+ await walkTo(chair.x+65*256,(await state()).story.ground_y);await page.keyboard.press('e');
  await wait(()=>window.svfQA.story.carry.kind==='chair');await wait(()=>window.svfQA.story.pickup_ticks===0);
  await shot('chair-held');await page.keyboard.press('e');await wait(()=>window.svfQA.story.thrown.some(p=>p.kind==='chair'));
  await shot('chair-throw');report.checks.push('Chair uses its own consistent scale, hand grip and flight');
