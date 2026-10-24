@@ -179,8 +179,12 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));let browser,page;const errors=[
  assert((await state()).record>=earned,'Recorde persiste após recarregar a página');assert.deepEqual((await state()).checkpoint_meta,checkpoint,'Checkpoint persiste após recarregar');
  for(let i=0;i<3;i++)await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='story_resume');
  await page.screenshot({path:'test-results/17-story-resume.png'});await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='story_dialog');
+ // _start_story captures the restored world before opening this dialog.
+ // Compare here: after Enter the live enemies can legally push the hero
+ // before a separate Escape input arrives on a slower browser runner.
+ assert.deepEqual((await state()).checkpoint_meta,checkpoint,'Retoma personagem, ato, posição, vida e pontos salvos antes do combate');
  await page.keyboard.press('Enter');await wait(()=>window.svfQA?.screen==='story');await page.keyboard.press('Escape');await wait(()=>window.svfQA?.paused);
- assert.equal((await state()).story.x,checkpoint.x,'Retoma a posição salva, não reinicia o ato');await page.screenshot({path:'test-results/17a-resumed.png'});
+ assert.equal((await state()).story.act,checkpoint.act,'Retoma o ato salvo');assert.equal((await state()).story.character,checkpoint.character,'Retoma o personagem salvo');await page.screenshot({path:'test-results/17a-resumed.png'});
  await page.keyboard.press('Escape');await wait(()=>window.svfQA?.screen==='menu');
  await page.setViewportSize({width:960,height:540});await delay(200);await page.screenshot({path:'test-results/13-resize.png'});
  assert.equal(responses['index.wasm'],200);assert.equal(responses['index.pck'],200);assert.deepEqual(errors,[],'Console Web sem erros');
