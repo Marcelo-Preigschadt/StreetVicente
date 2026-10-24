@@ -54,8 +54,13 @@ async function walkTo(x,lane){
  const energy=(await state()).story.meter;await page.keyboard.press('h');
  await wait(()=>window.svfQA.story.projectiles>0);assert.equal((await state()).story.meter,energy-25);
  await shot('power');report.checks.push('Real melee contacts earn energy and H spends 25');
- await fightUntil(page,q=>q.wave>=2,{timeout:90000});
+ await fightUntil(page,q=>q.wave>=2,{timeout:90000,useSuper:false});
  console.log('STORY V23: two waves defeated through normal combat');
+ // Clear the third wave's melee machines before inspecting the furniture.
+ // Screenshots pause the game, but resuming beside a live melee attacker
+ // correctly interrupts a lift/throw. Leave the distant drone alive so the
+ // scene stays in this act without changing any simulation state.
+ await fightUntil(page,q=>q.wave>=2&&q.enemy_states.every(e=>e.hp<=0||e.kind==='snack'),{timeout:90000,useSuper:false});
  const table=(await state()).story.props.find(p=>p.kind==='table'&&!p.used);
  await walkTo(table.x+115*256,table.lane+20*256);await page.keyboard.press('e');
  await wait(()=>window.svfQA.story.carry.kind==='table');
