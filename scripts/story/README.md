@@ -1,1 +1,1 @@
-Extensão futura para StoryWorld, StoryEntity e WaveDirector. Campanha ainda não implementada; ver docs/MIGRATION.md antes de adaptar colisões laterais para lanes 2.5D.
+Campanha Godot 4: adaptação Fists of Fury. Ver docs/STORY_V25.md e third_party/fists_of_fury/README.md.

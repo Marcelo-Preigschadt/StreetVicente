@@ -5,7 +5,7 @@ signal changed
 signal prepare_game
 signal reset_presentation
 signal committed(events: Array)
-const VERSION := "svf-godot-v24"
+const VERSION := "svf-godot-v25"
 const TICKET := "svf-online-godot-v22"
 var directory: RoomDirectory
 var relay: RealtimeRelay

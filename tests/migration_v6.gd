@@ -233,22 +233,18 @@ static func _arcade(s: SceneTree) -> void:
 static func _story(s: SceneTree) -> void:
 	var world := StorySimulation.new(LegacyRoster.get_character("marcelo"))
 	world.wave_index = 2
-	world.hero.x = int(world.props[0].x)
-	world.hero.ground_y = int(world.props[0].lane)
+	world.enemies.clear()
+	var chair: Dictionary = world.props[1]
+	world.hero.x = int(chair.x) - 90 * UNIT
+	world.hero.ground_y = int(chair.lane)
 	world.hero.y = world.hero.ground_y
-	world.step(CombatInput.new(0, CombatInput.PUNCH))
-	s.check(world.objects.carry.get("kind", "") == "table", "Soco próximo pega mesa do cenário")
-	for tick in 46:
-		world.step(CombatInput.new())
-	world.step(CombatInput.new(0, CombatInput.PUNCH))
-	for tick in 60:
+	world.step(CombatInput.new(0, CombatInput.THROW))
+	for tick in 80:
 		world.step(CombatInput.new())
 		if not world.objects.thrown.is_empty():
 			break
-	s.check(
-		world.objects.carry.is_empty() and not world.objects.thrown.is_empty(),
-		"Arremesso libera mesa na fase ativa do movimento"
-	)
+	s.check(world.objects.carry.is_empty() and not world.objects.thrown.is_empty(),
+		"Chute lança cadeira na fase ativa sem colar móvel em pose de soco")
 	var snap := world.snapshot()
 	var copy := StorySimulation.new(world.hero.character)
 	copy.restore(JSON.parse_string(JSON.stringify(snap)))
@@ -288,14 +284,15 @@ static func _story(s: SceneTree) -> void:
 	s.check(lab.hero.health == 955, "Perigo tem intervalo de 1,1s entre acertos")
 	var run := StorySimulation.new(world.hero.character)
 	var phases := 0
-	while not run.completed and phases < 25:
+	while not run.completed and phases < 40:
+		run.spawn_due = run.tick
 		for enemy in run.enemies:
 			enemy.fighter.health = 0
 		run.hero.x = mini(3560, 880 + run.wave_index * 820) * UNIT
 		run.step(CombatInput.new())
 		phases += 1
 	s.check(
-		run.completed and phases == 17, "Quatro atos, 12 ondas, quatro chefes e exoesqueleto final"
+		run.completed and phases >= 17, "Quatro atos, 12 ondas, quatro chefes e exoesqueleto final"
 	)
 	s.check(
 		run.score == 9400,

@@ -23,16 +23,17 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true}={}){
    const desired=[];
    if(target){
     const dx=target.x-q.x,dy=target.lane-q.ground_y;
-    // Use the actual reach of the approved attacks, with room to defend.
-    // Low machines are knocked down by the sweep; a head-height drone
-    // is reached by the standing punch rather than a low kick.
-    if(Math.abs(dx)>195*256)desired.push(dx>0?'d':'a');
-    else if(Math.abs(dx)<180*256)desired.push(dx>0?'a':'d');
-    const lane=625*256-q.ground_y;if(Math.abs(lane)>8*256)desired.push(lane>0?'s':'w');
-    if(Math.abs(dx)>=180*256&&Math.abs(dx)<220*256&&Math.abs(dy)<45*256&&!desired.some(k=>k==='a'||k==='d'))desired.push('r');
+    const reach=target.kind==='snack'||target.kind==='book'||target.kind==='archaeologist'?170:135;
+    if(Math.abs(dx)>(reach+15)*256)desired.push(dx>0?'d':'a');
+    else if(Math.abs(dx)<(reach-15)*256)desired.push(dx>0?'a':'d');
+    if(Math.abs(dy)>12*256)desired.push(dy>0?'s':'w');
+    if(Math.abs(dx)<(reach+25)*256&&Math.abs(dy)<25*256&&!desired.length)desired.push('r');
     for(const k of ['a','d','w','s','r'])await page.keyboard[desired.includes(k)?'down':'up'](k);
-    if(Math.abs(dx)>=75*256&&Math.abs(dx)<230*256&&Math.abs(dy)<45*256&&Date.now()-strike>350){
-     await page.keyboard.press(target.kind==='snack'?'f':'g');strike=Date.now();
+    if(Math.abs(dx)<240*256&&Math.abs(dy)<42*256&&Date.now()-strike>300){
+     if(q.facing!==(dx>0?1:-1)&&['IDLE','WALK','BLOCK'].includes(q.state)){
+      await page.keyboard.up('r');await page.keyboard.press(dx>0?'d':'a',{delay:40});
+     }
+     await page.keyboard.press(['snack','book','archaeologist'].includes(target.kind)?'g':'f');strike=Date.now();
     }
    }else{
     await release(page);await page.keyboard.down('d');

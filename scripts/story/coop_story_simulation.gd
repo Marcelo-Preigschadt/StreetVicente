@@ -8,7 +8,7 @@ var gear: Array = []
 
 func _init(first: CharacterData, second: CharacterData) -> void:
 	super(first)
-	heroes = [hero, FighterModel.new(second, PARTNER_SLOT, 320)]
+	heroes = [hero, FighterModel.new(FuryCombat.character(second), PARTNER_SLOT, 320)]
 	heroes[1].ground_y = 590 * UNIT
 	heroes[1].y = heroes[1].ground_y
 	heroes[1].campaign_costs = true
@@ -59,6 +59,8 @@ func step_party(values: Array[CombatInput]) -> void:
 		tick += 1  # Online peers must still confirm the terminal result.
 		return
 	if freeze_ticks > 0:
+		for i in 2:
+			combat.buffer_input(heroes[i], values[i])
 		freeze_ticks -= 1
 		tick += 1
 		return
@@ -66,11 +68,12 @@ func step_party(values: Array[CombatInput]) -> void:
 	if remaining_ticks == 0:
 		defeated = true
 		return
+	FuryCheckpoint.pump(self)
 	var actions: Array = []
 	for i in 2:
 		hero = heroes[i]
 		objects = gear[i]
-		var value := values[i] if hero.health > 0 else CombatInput.new()
+		var value := combat.take_input(hero, values[i]) if hero.health > 0 else CombatInput.new()
 		var partner := heroes[1 - i]
 		if hero.health > 0 and partner.health <= 0 and value.pressed & CombatInput.THROW \
 			and absi(hero.x - partner.x) < 130 * UNIT and absi(hero.ground_y - partner.ground_y) < 45 * UNIT \
@@ -83,13 +86,16 @@ func step_party(values: Array[CombatInput]) -> void:
 		actions.append(_move_actor(value))
 		hero.x = clampi(hero.x, partner.x - 1040 * UNIT, partner.x + 1040 * UNIT)
 	var gate := mini(3560, 880 + wave_index * 820) * UNIT
-	var alive := 0
+	var alive := spawn_queue.size()
 	for enemy in enemies:
 		var f: FighterModel = enemy.fighter
 		if f.health <= 0:
 			if enemy.dead_tick < 0:
 				enemy.dead_tick = tick
 				score += 1000 if LegacyRoster.catalog.story.enemies[enemy.kind].get("boss", false) else 100
+			f.record_input(CombatInput.new(), tick)
+			f.begin_tick(f.x + f.facing * UNIT)
+			f.end_tick()
 			continue
 		alive += 1
 		hero = _nearest(f)
@@ -195,6 +201,9 @@ func step_party(values: Array[CombatInput]) -> void:
 				"kind": "exo",
 				"fighter": f,
 				"cooldown": 65,
+				"spawn_tick": tick,
+				"engagement_slot": -1,
+				"engagement_target": -1,
 				"dead_tick": -1,
 				"attack_serial": 0,
 				"fired": false,
@@ -219,58 +228,12 @@ func step_party(values: Array[CombatInput]) -> void:
 
 func _move_actor(value: CombatInput) -> Dictionary:
 	value = objects.input(value)
-	var lane_input := int(value.has(CombatInput.DOWN)) - int(value.has(CombatInput.UP))
-	var old_lane := hero.ground_y
-	var vertical := hero.ground_y - hero.y
-	hero.ground_y = clampi(hero.ground_y + lane_input * 2 * UNIT, 535 * UNIT, 655 * UNIT)
-	hero.y = hero.ground_y - vertical
-	# Up/down address lane; Space (JUMP) addresses height. Low attacks remain available.
-	var held := value.held & ~CombatInput.UP
-	var pressed := value.pressed & ~CombatInput.UP
-	if value.pressed & CombatInput.JUMP:
-		pressed |= CombatInput.UP
-	if not value.has(CombatInput.GUARD):
-		held &= ~CombatInput.DOWN
-	var nearest_x := hero.x + hero.facing * 200 * UNIT
-	var best := 100000000
-	var low_target := false
-	for enemy in enemies:
-		var f: FighterModel = enemy.fighter
-		if f.health > 0 and absi(f.x - hero.x) < best:
-			best = absi(f.x - hero.x)
-			nearest_x = f.x
-			var body: Dictionary = LegacyRoster.catalog.story.enemies[enemy.kind]
-			low_target = int(body.h) < 230 and int(body.get("fly", 0)) == 0 and absi(f.ground_y - hero.ground_y) < 50 * UNIT
-	if low_target and best < 220 * UNIT and hero.grounded() and pressed & (CombatInput.PUNCH | CombatInput.KICK):
-		held |= CombatInput.DOWN
-	hero.record_input(CombatInput.new(held, pressed), tick)
-	var old_x := hero.x
-	if not objects.carry.is_empty():
-		nearest_x = hero.x + hero.facing * 200 * UNIT
-	hero.begin_tick(nearest_x)
-	objects.constrain_actor(hero, old_x, old_lane)
-	var gate := mini(3560, 880 + wave_index * 820) * UNIT
-	hero.x = clampi(hero.x, 70 * UNIT, gate)
-	var traveled := absi(hero.x - old_x)
-	if (
-		hero.character.id in ["marcos", "tais", "luciana", "ruan", "khauany"]
-		and hero.grounded()
-		and hero.state in [FighterState.Id.IDLE, FighterState.Id.WALK]
-	):
-		traveled += absi(hero.ground_y - old_lane)
-		if traveled > 0 and hero.state == FighterState.Id.IDLE:
-			hero.transition(FighterState.Id.WALK)
-	if hero.state == FighterState.Id.WALK:
-		hero.walk_distance += traveled
-	var boxes: Array[Rect2i] = []
-	if not objects.pending_throw:
-		boxes.assign(hero.attack_boxes())
-	var power := hero.current_move() if hero.state == FighterState.Id.ATTACK else null
+	var action := combat.advance(self, hero, objects, value)
 	if powers.emit(hero, tick, true):
 		freeze_ticks = maxi(freeze_ticks, 20)
 	events.append_array(powers.events)
 	powers.events.clear()
-	return {"boxes": boxes, "power": power}
+	return action
 
 
 func _apply_hero_hit(target: FighterModel, move: MoveData, facing: int, blocked: bool,
@@ -286,7 +249,7 @@ func _new_act() -> void:
 	objects = gear[0]
 	_start_act()
 	heroes[0] = hero
-	heroes[1] = FighterModel.new(partner.character, PARTNER_SLOT, 320)
+	heroes[1] = FighterModel.new(FuryCombat.character(partner.character), PARTNER_SLOT, 320)
 	heroes[1].health = mini(1000, partner.health + 300)
 	heroes[1].meter = partner.meter
 	heroes[1].campaign_costs = true

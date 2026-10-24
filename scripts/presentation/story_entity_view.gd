@@ -33,6 +33,8 @@ func _draw() -> void:
 		return
 	if kind == "enemy":
 		_draw_enemy()
+	elif kind == "debris":
+		_draw_debris()
 	else:
 		_draw_prop()
 
@@ -46,17 +48,19 @@ func _draw_enemy() -> void:
 	var rect: Array = frame.rect
 	var k := float(sheet.scale) * float(frame.get("scaleCorrection", 1.0))
 	var age: int = maxi(0, presenter.world.tick - int(entity.dead_tick))
-	var alpha := 1.0 if f.health > 0 else clampf((132.0 - age) / 55.0, 0, 1)
-	var fallen := 0.0
-	if f.health <= 0 and float(profile.get("fly", 0)) > 0:
-		fallen = minf(float(f.ground_y - f.y) / FighterModel.SCALE, age * age * .045)
-	draw_set_transform(Vector2(0, fallen), 0, Vector2(f.facing, 1))
+	var alpha := clampf((presenter.world.tick - int(entity.get("spawn_tick", -24))) / 24.0, 0, 1) if f.health > 0 else clampf((132.0 - age) / 55.0, 0, 1)
+	draw_set_transform(Vector2.ZERO, 0, Vector2(f.facing, 1))
 	var tint := Color(1.6, 1.6, 1.6, alpha) if f.state == FighterState.Id.HITSTUN and f.state_tick < 6 else Color(1, 1, 1, alpha)
 	draw_texture_rect_region(LegacyRoster.texture(sheet.file),
 		Rect2(-float(frame.anchorX) * k, -float(frame.bottom) * k, float(rect[2]) * k, float(rect[3]) * k),
 		Rect2(rect[0], rect[1], rect[2], rect[3]), tint)
 	draw_set_transform(Vector2.ZERO)
 	if f.health > 0:
+		if f.state == FighterState.Id.ATTACK and f.current_move().phase(f.move_tick) == "STARTUP":
+			var warning := float(f.move_tick) / maxi(1, f.current_move().startup * 2)
+			draw_set_transform(Vector2(0, float(f.ground_y - f.y) / FighterModel.SCALE), 0, Vector2(1, .22))
+			draw_arc(Vector2.ZERO, 55 + 15 * warning, 0, TAU * warning, 32, Color(1, .3, .12, .75), 5, true)
+			draw_set_transform(Vector2.ZERO)
 		var top := -float(profile.h) - 13
 		draw_rect(Rect2(-35, top, 70, 5), Color("192a31"))
 		draw_rect(Rect2(-35, top, 70.0 * f.health / f.character.max_health, 5), Color(profile.color))
@@ -85,4 +89,16 @@ func _draw_prop() -> void:
 	if kind == "prop":
 		draw_set_transform(Vector2.ZERO, angle)
 	draw_texture_rect(LegacyRoster.texture(art.file), Rect2(offset, size), false, tint)
+	draw_set_transform(Vector2.ZERO)
+
+
+func _draw_debris() -> void:
+	var texture := LegacyRoster.texture(LegacyRoster.catalog.story.props[entity.kind].file)
+	var full := StoryLayout.prop_size(str(entity.kind))
+	var part := int(entity.part)
+	var region := Rect2((part % 2) * texture.get_width() / 2.0,
+		(part / 2) * texture.get_height() / 2.0, texture.get_width() / 2.0, texture.get_height() / 2.0)
+	var tint := Color(1, .96, .9, clampf((110.0 - int(entity.age)) / 35, 0, 1))
+	draw_set_transform(Vector2.ZERO, int(entity.direction) * int(entity.age) * .06)
+	draw_texture_rect_region(texture, Rect2(-full / 4, full / 2), region, tint)
 	draw_set_transform(Vector2.ZERO)

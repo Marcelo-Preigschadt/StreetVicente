@@ -21,6 +21,9 @@ var camera_x: float = 0.0
 var next_id: int = 1
 var freeze_ticks: int = 0
 var powers := PowerSystem.new()
+var combat := FuryCombat.new()
+var spawn_queue: Array = []
+var spawn_due: int = 0
 var projectiles: Array:
 	get:
 		return powers.projectiles
@@ -29,7 +32,7 @@ var projectiles: Array:
 func _init(character: CharacterData, first_act: int = 0) -> void:
 	LegacyRoster.load_catalog()
 	objects = StoryObjects.new(self)
-	hero = FighterModel.new(character, 0, 220)
+	hero = FighterModel.new(FuryCombat.character(character), 0, 220)
 	hero.campaign_costs = true
 	hero.meter = 0
 	act_index = first_act
@@ -42,12 +45,13 @@ func act() -> Dictionary:
 
 func _start_act() -> void:
 	act_start_ticks = remaining_ticks
+	combat.actors.clear()
 	enemies.clear()
 	props.clear()
 	powers.projectiles.clear()
 	var charge := hero.meter
 	var life := mini(1000, hero.health + 300)
-	hero = FighterModel.new(hero.character, 0, 220)
+	hero = FighterModel.new(FuryCombat.character(hero.character), 0, 220)
 	hero.health = life
 	hero.campaign_costs = true
 	hero.meter = charge
@@ -62,31 +66,20 @@ func _start_act() -> void:
 
 
 func _spawn_wave() -> void:
-	var kinds: Array = act().waves[wave_index] if wave_index < 3 else [act().boss]
-	var wave_edge := mini(3560, 880 + wave_index * 820)
-	var first_spawn := mini(650 + wave_index * 820, wave_edge - 80 - maxi(0, kinds.size() - 1) * 90)
-	for i in kinds.size():
-		var kind: String = kinds[i]
-		var p: Dictionary = LegacyRoster.catalog.story.enemies[kind]
-		var c := _enemy_character(kind)
-		var f := FighterModel.new(c, next_id, first_spawn + i * 90)
-		f.ground_y = (580 + i % 3 * 30) * UNIT
-		f.y = f.ground_y
-		if float(p.get("fly", 0)) > 0:
-			f.y -= int(p.fly) * UNIT
-		enemies.append(
-			{
-				"id": next_id,
-				"kind": kind,
-				"fighter": f,
-				"cooldown": 40 + i * 25,
-				"dead_tick": -1,
-				"attack_serial": 0,
-				"fired": false,
-				"attack_mode": "melee"
-			}
-		)
-		next_id += 1
+	FuryCheckpoint.begin(self)
+
+
+func _spawn_enemy(entry: Dictionary) -> void:
+	var kind: String = entry.kind
+	var p: Dictionary = LegacyRoster.catalog.story.enemies[kind]
+	var f := FighterModel.new(_enemy_character(kind), next_id, int(entry.x))
+	f.ground_y = int(entry.lane) * UNIT
+	f.y = f.ground_y - int(p.get("fly", 0)) * UNIT
+	enemies.append({"id": next_id, "kind": kind, "fighter": f,
+		"cooldown": int(entry.cooldown), "dead_tick": -1, "spawn_tick": tick,
+		"attack_serial": 0, "fired": false, "attack_mode": "melee",
+		"engagement_slot": -1, "engagement_target": -1})
+	next_id += 1
 
 
 func step(value: CombatInput) -> void:
@@ -95,6 +88,7 @@ func step(value: CombatInput) -> void:
 	if completed or defeated:
 		return
 	if freeze_ticks > 0:
+		combat.buffer_input(hero, value)
 		freeze_ticks -= 1
 		tick += 1
 		return
@@ -102,59 +96,18 @@ func step(value: CombatInput) -> void:
 	if remaining_ticks == 0:
 		defeated = true
 		return
+	FuryCheckpoint.pump(self)
+	value = combat.take_input(hero, value)
 	value = objects.input(value)
-	var lane_input := int(value.has(CombatInput.DOWN)) - int(value.has(CombatInput.UP))
-	var old_lane := hero.ground_y
-	var vertical := hero.ground_y - hero.y
-	hero.ground_y = clampi(hero.ground_y + lane_input * 2 * UNIT, 535 * UNIT, 655 * UNIT)
-	hero.y = hero.ground_y - vertical
-	# Up/down address lane; Space (JUMP) addresses height. Low attacks remain available.
-	var held := value.held & ~CombatInput.UP
-	var pressed := value.pressed & ~CombatInput.UP
-	if value.pressed & CombatInput.JUMP:
-		pressed |= CombatInput.UP
-	if not value.has(CombatInput.GUARD):
-		held &= ~CombatInput.DOWN
-	var nearest_x := hero.x + hero.facing * 200 * UNIT
-	var best := 100000000
-	var low_target := false
-	for enemy in enemies:
-		var f: FighterModel = enemy.fighter
-		if f.health > 0 and absi(f.x - hero.x) < best:
-			best = absi(f.x - hero.x)
-			nearest_x = f.x
-			var body: Dictionary = LegacyRoster.catalog.story.enemies[enemy.kind]
-			low_target = int(body.h) < 230 and int(body.get("fly", 0)) == 0 and absi(f.ground_y - hero.ground_y) < 50 * UNIT
-	if low_target and best < 220 * UNIT and hero.grounded() and pressed & (CombatInput.PUNCH | CombatInput.KICK):
-		held |= CombatInput.DOWN
-	hero.record_input(CombatInput.new(held, pressed), tick)
-	var old_x := hero.x
-	if not objects.carry.is_empty():
-		nearest_x = hero.x + hero.facing * 200 * UNIT
-	hero.begin_tick(nearest_x)
-	objects.constrain_actor(hero, old_x, old_lane)
+	var action := combat.advance(self, hero, objects, value)
 	var gate := mini(3560, 880 + wave_index * 820) * UNIT
-	hero.x = clampi(hero.x, 70 * UNIT, gate)
-	var traveled := absi(hero.x - old_x)
-	if (
-		hero.character.id in ["marcos", "tais", "luciana", "ruan", "khauany"]
-		and hero.grounded()
-		and hero.state in [FighterState.Id.IDLE, FighterState.Id.WALK]
-	):
-		traveled += absi(hero.ground_y - old_lane)
-		if traveled > 0 and hero.state == FighterState.Id.IDLE:
-			hero.transition(FighterState.Id.WALK)
-	if hero.state == FighterState.Id.WALK:
-		hero.walk_distance += traveled
-	var boxes: Array[Rect2i] = []
-	if not objects.pending_throw:
-		boxes.assign(hero.attack_boxes())
-	var power := hero.current_move() if hero.state == FighterState.Id.ATTACK else null
+	var boxes: Array[Rect2i] = action.boxes
+	var power: MoveData = action.power
 	if powers.emit(hero, tick, true):
 		freeze_ticks = maxi(freeze_ticks, 20)
 	events.append_array(powers.events)
 	powers.events.clear()
-	var alive := 0
+	var alive := spawn_queue.size()
 	for enemy in enemies:
 		var f: FighterModel = enemy.fighter
 		if f.health <= 0:
@@ -165,13 +118,15 @@ func step(value: CombatInput) -> void:
 					if LegacyRoster.catalog.story.enemies[enemy.kind].get("boss", false)
 					else 100
 				)
+			f.record_input(CombatInput.new(), tick)
+			f.begin_tick(f.x + f.facing * UNIT)
+			f.end_tick()
 			continue
 		alive += 1
 		var profile: Dictionary = LegacyRoster.catalog.story.enemies[enemy.kind]
 		var enemy_lane := f.ground_y
 		var enemy_x := f.x
 		var enemy_input := StoryEnemyMotion.intent(self, enemy, hero)
-		var delta_lane := hero.ground_y - f.ground_y
 		f.record_input(enemy_input, tick)
 		f.begin_tick(hero.x)
 		StoryEnemyMotion.finish(f, profile, enemy_x, enemy_lane)
@@ -187,7 +142,7 @@ func step(value: CombatInput) -> void:
 				enemy.fired = true
 			elif enemy.attack_mode == "charge":
 				f.x = clampi(f.x + f.facing * 460 * UNIT / 120, 70 * UNIT, 3530 * UNIT)
-		if absi(delta_lane) <= 50 * UNIT:
+		if absi(hero.ground_y - f.ground_y) <= 42 * UNIT:
 			var contact := false
 			for hit in boxes:
 				for hurt in f.hurtboxes():
@@ -262,6 +217,9 @@ func step(value: CombatInput) -> void:
 				"kind": "exo",
 				"fighter": f,
 				"cooldown": 65,
+				"spawn_tick": tick,
+				"engagement_slot": -1,
+				"engagement_target": -1,
 				"dead_tick": -1,
 				"attack_serial": 0,
 				"fired": false,
@@ -291,7 +249,10 @@ func snapshot() -> Dictionary:
 		e.fighter = enemy.fighter.snapshot()
 		values.append(e)
 	return {
-		"story_revision": 24,
+		"story_revision": 25,
+		"combat": combat.snapshot(),
+		"spawn_queue": spawn_queue.duplicate(true),
+		"spawn_due": spawn_due,
 		"remaining_ticks": remaining_ticks,
 		"act_start_ticks": act_start_ticks,
 		"tick": tick,
@@ -347,11 +308,17 @@ func _apply_hero_hit(
 	if rolling:
 		move = RollMotion.contact_move(hero)
 	hero.has_contact = true
+	combat.contact(hero, tick)
 	if not blocked:
 		if move_cost_earns_energy(move):
 			hero.meter = mini(100, hero.meter + maxi(8, int(move.legacy.get("meter", 8))))
 		hero.connect_hit(target, move)
 	target.receive_hit(move, facing, blocked, hero.slot, hero.combo, hero.scaled_damage(move))
+	# Ordinary campaign machines use the source hurt/fall/recover cycle; no
+	# long versus dizziness lock after the player's fourth confirmed normal.
+	if not LegacyRoster.catalog.story.enemies[target.character.id.trim_prefix("enemy_")].get("boss", false):
+		target.dizzy_pending = 0
+		target.stun_gauge = 0
 	if rolling:
 		RollMotion.contact(hero, target, blocked)
 	freeze_ticks = maxi(freeze_ticks, move.hitstop * 2)
@@ -416,6 +383,9 @@ func restore(data: Dictionary) -> void:
 	freeze_ticks = int(data.freeze)
 	next_id = int(data.next_id)
 	hero.restore(data.hero)
+	combat.restore(data.get("combat", {}))
+	spawn_queue = data.get("spawn_queue", []).duplicate(true)
+	spawn_due = int(data.get("spawn_due", tick))
 	hero.campaign_costs = true
 	enemies.clear()
 	for raw in data.enemies:
@@ -471,10 +441,10 @@ func _prepare_enemy_attack(enemy: Dictionary) -> void:
 	enemy.attack_mode = mode
 	var move := MoveData.new()
 	move.id = "enemy_" + mode
-	move.startup = 27 if p.get("boss", false) else 18
-	move.active = 45 if mode == "flame" else 33 if mode == "charge" else 12
+	move.startup = 30 if p.get("boss", false) else 23
+	move.active = 45 if mode == "flame" else 33 if mode == "charge" else 6
 	move.recovery = 27 if p.get("boss", false) else 20
-	move.damage = roundi(float(p.damage) * (1.0 if p.get("boss", false) else 1.65))
+	move.damage = roundi(float(p.damage) * (1.0 if p.get("boss", false) else 1.25))
 	move.hitstun = 18
 	move.level = MoveData.Level.LOW if mode == "slam" else MoveData.Level.MID
 	move.legacy = {

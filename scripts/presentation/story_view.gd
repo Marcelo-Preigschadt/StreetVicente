@@ -29,6 +29,10 @@ func sync(snap := false) -> void:
 	for gear in world.object_sets():
 		for prop in gear.thrown:
 			_bind("thrown:" + str(prop.get("id", str(prop.age) + ":" + str(prop.x))), "thrown", prop, retained, snap)
+	for gear in world.object_sets():
+		for i in gear.debris.size():
+			var piece: Dictionary = gear.debris[i]
+			_bind("debris:%d:%d" % [world.object_sets().find(gear), int(piece.id)], "debris", piece, retained, snap)
 	for key in entities.keys():
 		if not retained.has(key):
 			entities[key].queue_free()

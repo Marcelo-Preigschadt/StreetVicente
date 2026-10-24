@@ -88,11 +88,7 @@ func _draw() -> void:
 		return
 	var sheet: Dictionary
 	var frame: Dictionary
-	if story_gear != null and not story_gear.carry.is_empty():
-		var art := StoryCarryArt.sample(model, story_gear)
-		sheet = art.sheet
-		frame = art.frame
-	elif use_new_art and CharacterArt.has_frame(model):
+	if use_new_art and CharacterArt.has_frame(model):
 		var art := CharacterArt.frame(model)
 		sheet = art.sheet
 		frame = art.frame
@@ -135,7 +131,6 @@ func _draw() -> void:
 			Color(model.character.color, float(ghost.life) * 1.6)
 		)
 	draw_set_transform(Vector2.ZERO)
-	_draw_carry()
 	draw_set_transform(Vector2.ZERO, 0, Vector2(model.facing * width_factor, 1))
 	var target := Rect2(
 		(float(frame.x) - float(frame.anchor)) * factor,
@@ -166,17 +161,3 @@ func _show_box(rect: Rect2i, color: Color) -> void:
 	)
 	draw_rect(local, Color(color, 0.12))
 	draw_rect(local, color, false, 2)
-
-
-func _draw_carry() -> void:
-	if story_gear == null or story_gear.carry.is_empty():
-		return
-	var item := str(story_gear.carry.kind)
-	var size := StoryLayout.prop_size(item)
-	var bottom := StoryCarryArt.held_bottom(model, story_gear)
-	if story_gear.pickup_ticks > 0 and not story_gear.pending_throw:
-		var source := Vector2(float(story_gear.carry.get("source_x", model.x)), float(story_gear.carry.get("source_lane", model.ground_y))) / FighterModel.SCALE
-		source -= Vector2(model.x, model.y) / FighterModel.SCALE
-		bottom = source.lerp(bottom, smoothstep(0, 1, (42.0 - story_gear.pickup_ticks) / 42.0))
-	var art: Dictionary = LegacyRoster.catalog.story.props[item]
-	draw_texture_rect(LegacyRoster.texture(art.file), Rect2(bottom + Vector2(-size.x / 2, -size.y), size), false)

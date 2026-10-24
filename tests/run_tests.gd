@@ -64,6 +64,7 @@ func _run() -> void:
 	OnlineV22Tests.run(self)
 	StoryV23Tests.run(self)
 	StoryV24Tests.run(self)
+	StoryV25Tests.run(self)
 	print("COMBAT TESTS: %d checks, %d failures" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 
@@ -373,7 +374,7 @@ func _test_story() -> void:
 	for act_index in 4:
 		var world := StorySimulation.new(LegacyRoster.get_character("marcelo"), act_index)
 		check(
-			world.enemies.size() == world.act().waves[0].size(),
+			world.enemies.size() + world.spawn_queue.size() == world.act().waves[0].size(),
 			"Primeira onda do ato %d" % act_index
 		)
 		var lane := world.hero.ground_y

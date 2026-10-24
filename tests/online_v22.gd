@@ -233,6 +233,10 @@ static func run(s: SceneTree) -> void:
 	for tick in 240:
 		coop.step_party([CombatInput.new(), CombatInput.new()])
 	s.check(coop.heroes[1].health == 1000, "Drones e projéteis não atacam o parceiro")
+	coop.enemies.clear()
+	coop.freeze_ticks = 0
+	coop.heroes[0].stun_ticks = 0
+	coop.heroes[0].transition(FighterState.Id.IDLE)
 	coop.heroes[1].health = 0
 	coop.heroes[1].transition(FighterState.Id.KO)
 	coop.heroes[1].x = coop.heroes[0].x + 80 * 256
@@ -246,7 +250,8 @@ static func run(s: SceneTree) -> void:
 	campaign.step_party([CombatInput.new(), CombatInput.new()])
 	s.check(campaign.wave_index == 0, "Portão espera o segundo herói vivo")
 	var clock := campaign.remaining_ticks
-	for wave in 18:
+	for wave in 40:
+		campaign.spawn_due = campaign.tick
 		for enemy in campaign.enemies:
 			enemy.fighter.health = 0
 		var gate := mini(3560, 880 + campaign.wave_index * 820)

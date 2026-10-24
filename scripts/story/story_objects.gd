@@ -12,6 +12,8 @@ var hazards: Array = []
 var bolts: Array = []
 var pending_throw: bool = false
 var pickup_ticks: int = 0
+var interaction: int = -1
+var debris: Array = []
 
 
 func _init(owner_world: StorySimulation) -> void:
@@ -25,6 +27,8 @@ func setup(act: int) -> void:
 	hazards.clear()
 	pending_throw = false
 	pickup_ticks = 0
+	interaction = -1
+	debris.clear()
 	world.props.clear()
 	if act == 0:
 		# Two seating groups on the foreground floor; the vending machine stays by the wall.
@@ -89,66 +93,29 @@ func migrate_layout() -> void:
 
 func input(value: CombatInput) -> CombatInput:
 	var f := world.hero
-	pickup_ticks = maxi(0, pickup_ticks - 1)
-	if not carry.is_empty() and pickup_ticks > 0 and not pending_throw:
-		return CombatInput.new()
-	if not carry.is_empty():
-		if value.axis_x() != 0:
-			f.facing = value.axis_x()
-		var unavailable := CombatInput.SPECIAL | CombatInput.UPPERCUT | CombatInput.SUPER | CombatInput.DRONE | CombatInput.CUSTOM | CombatInput.JUMP
-		value = CombatInput.new(value.held & ~unavailable, value.pressed & ~unavailable)
-	if (
-		f.health <= 0
-		or not f.grounded()
-		or not FighterState.actionable(f.state)
-		or pickup_ticks > 0
-	):
-		return value
-	if not carry.is_empty() and value.pressed & (CombatInput.PUNCH | CombatInput.THROW):
-		pending_throw = true
-		pickup_ticks = 26
-		return CombatInput.new(
-			value.held & ~CombatInput.PUNCH,
-			(value.pressed & ~CombatInput.PUNCH) | CombatInput.THROW
-		)
-	if carry.is_empty() and value.pressed & (CombatInput.PUNCH | CombatInput.THROW):
-		if not value.pressed & CombatInput.THROW:
-			for enemy in world.enemies:
-				var foe: FighterModel = enemy.fighter
-				if (
-					foe.health > 0
-					and absi(foe.x - f.x) < 190 * UNIT
-					and absi(foe.ground_y - f.ground_y) < 42 * UNIT
-				):
-					return value  # F ataca o inimigo próximo; E ainda permite pegar o móvel.
-		var nearest: Dictionary = {}
-		var distance := 100000000
-		for p in world.props:
-			if p.get("used", false) or p.hp <= 0 or p.kind not in ["table", "chair", "shelf"]:
-				continue
-			var gap := absi(int(p.x) - f.x)
-			var score := maxi(0, gap - bounds(p).size.x / 2) + 3 * absi(int(p.lane) - f.ground_y)
-			if (
-				absi(int(p.lane) - f.ground_y) <= 42 * UNIT
-				and gap < (bounds(p).size.x / 2 + 50 * UNIT)
-				and score < distance
-			):
-				nearest = p
-				distance = score
+	# Fists of Fury uses collectible weapons, not a full-size table held in
+	# a punching fist. Furniture stays on its real footprint until struck.
+	if value.pressed & CombatInput.THROW and f.grounded() and FighterState.actionable(f.state):
+		var nearest := nearby(f)
 		if not nearest.is_empty():
-			if nearest.kind == "shelf":
-				damage(nearest, int(nearest.hp))
-			else:
-				nearest.used = true
-				f.facing = 1 if int(nearest.x) >= f.x else -1
-				carry = {"kind": nearest.kind, "id": nearest.id,
-					"source_x": nearest.x, "source_lane": nearest.lane}
-				pickup_ticks = 42
-			return CombatInput.new(
-				value.held & ~(CombatInput.PUNCH | CombatInput.THROW),
-				value.pressed & ~(CombatInput.PUNCH | CombatInput.THROW)
-			)
+			interaction = int(nearest.id)
+			f.facing = 1 if int(nearest.x) >= f.x else -1
+			return CombatInput.new(value.held, (value.pressed & ~CombatInput.THROW) | CombatInput.KICK)
 	return value
+
+
+func nearby(f: FighterModel) -> Dictionary:
+	var result: Dictionary = {}
+	var best := 1 << 60
+	for prop in world.props:
+		if prop.get("used", false) or prop.hp <= 0 or prop.kind == "medkit":
+			continue
+		var gap := maxi(0, absi(int(prop.x) - f.x) - bounds(prop).size.x / 2)
+		var lane := absi(int(prop.lane) - f.ground_y)
+		if gap <= 80 * UNIT and lane <= 40 * UNIT and gap + lane * 3 < best:
+			result = prop
+			best = gap + lane * 3
+	return result
 
 
 func bounds(prop: Dictionary) -> Rect2i:
@@ -186,56 +153,77 @@ func constrain_actor(actor: FighterModel, old_x: int, old_lane: int) -> void:
 		if actor.character.id.begins_with("enemy_") and actor.x != wanted_x:
 			actor.ground_y = clampi(actor.ground_y + (1 if old_lane >= int(prop.lane) else -1) * 3 * UNIT, 535 * UNIT, 655 * UNIT)
 			actor.y = actor.ground_y - lift
+	# Source CharacterBody2D floor collision, ported to deterministic footprints.
+	# Reaction/air movement is handled by hit physics; only walking is stopped.
+	if actor.state not in [FighterState.Id.IDLE, FighterState.Id.WALK]:
+		return
+	for other in world.power_actors():
+		if other == actor or other.health <= 0 or not other.grounded():
+			continue
+		var dx := actor.x - other.x
+		var dy := actor.ground_y - other.ground_y
+		var width := 65 * UNIT
+		if absi(dx) < width and absi(dy) < 18 * UNIT:
+			if absi(old_x - other.x) >= width:
+				actor.x = other.x + (width if old_x > other.x else -width)
+			elif absi(old_lane - other.ground_y) >= 18 * UNIT:
+				var lift := actor.ground_y - actor.y
+				actor.ground_y = clampi(other.ground_y + (18 if old_lane > other.ground_y else -18) * UNIT, 535 * UNIT, 655 * UNIT)
+				actor.y = actor.ground_y - lift
 
 
 func damage(prop: Dictionary, amount: int) -> void:
 	if prop.get("used", false) or prop.hp <= 0:
 		return
 	prop.hp -= amount
+	world.events.append({"id": "%d:prop:%d" % [world.tick, int(prop.id)], "kind": "hit",
+		"tick": world.tick, "slot": -1, "character": world.hero.character.id,
+		"move": "object", "x": int(prop.x), "y": int(prop.lane) - 80 * UNIT})
 	if prop.kind == "soda" and prop.cooldown <= 0:
 		prop.cooldown = 84
-		_throw(
-			"can",
-			int(prop.x),
-			int(prop.lane) - 160 * UNIT,
-			int(prop.lane),
-			world.hero.facing,
-			520,
-			-500
-		)
+		_throw("can", int(prop.x), int(prop.lane) - 160 * UNIT,
+			int(prop.lane), world.hero.facing, 520, -500)
 	if prop.hp <= 0:
 		prop.used = true
+		world.score += 25
 		if prop.kind == "shelf":
 			prop.fall = 1
+		else:
+			_break(prop)
+		if int(prop.id) % 3 == 0:
+			_add_prop("medkit", int(prop.x) / UNIT, int(prop.lane) / UNIT, 1)
+
+
+func _break(prop: Dictionary) -> void:
+	# Pieces keep the object's original texture; no unrelated placeholder art.
+	for i in 4:
+		debris.append({"id": world.next_id, "kind": prop.kind, "part": i, "x": int(prop.x),
+			"y": int(prop.lane) - 55 * UNIT, "lane": int(prop.lane),
+			"vx": (i * 2 - 3) * 135, "vy": -350 - i * 95,
+			"age": 0, "direction": -1 if i % 2 else 1})
+		world.next_id += 1
 
 
 func step(boxes: Array[Rect2i], move: MoveData, advance_environment: bool = true) -> void:
 	var f := world.hero
-	if (
-		not carry.is_empty()
-		and f.state in [FighterState.Id.HITSTUN, FighterState.Id.KO, FighterState.Id.DIZZY]
-	):
-		_throw(carry.kind, f.x, f.y - 170 * UNIT, f.ground_y, -f.facing, 100, -100)
-		carry.clear()
-		pending_throw = false
-	if pending_throw:
-		if f.state != FighterState.Id.ATTACK or f.current_move().legacy.get("name", "") != "throw":
-			pending_throw = false
+	# An interaction is executed on the kick's contact frame, not on keydown.
+	if interaction >= 0:
+		if f.state != FighterState.Id.ATTACK:
+			interaction = -1
 		elif f.current_move().phase(f.move_tick) == "ACTIVE":
-			var grip := StoryCarryArt.held_bottom(f, self)
-			var size := StoryLayout.prop_size(str(carry.kind))
-			_throw(
-				carry.kind,
-				f.x + roundi(grip.x * UNIT),
-				f.y + roundi((grip.y - size.y / 2) * UNIT),
-				f.ground_y,
-				f.facing,
-				520 if carry.kind == "table" else 620,
-				-280 if carry.kind == "table" else -360
-			)
-			carry.clear()
-			pending_throw = false
-	for p in world.props:
+			for prop in world.props.duplicate():
+				if int(prop.id) != interaction or prop.get("used", false) or prop.hp <= 0:
+					continue
+				if absi(int(prop.lane) - f.ground_y) <= 42 * UNIT and absi(int(prop.x) - f.x) <= bounds(prop).size.x / 2 + 95 * UNIT:
+					f.hit_targets.append(prop.id)
+					if prop.kind == "chair":
+						prop.used = true
+						_throw("chair", int(prop.x), int(prop.lane) - 86 * UNIT,
+							int(prop.lane), f.facing, 650, -400)
+					else:
+						damage(prop, maxi(80, f.current_move().damage))
+			interaction = -1
+	for p in world.props.duplicate():
 		if advance_environment:
 			p.cooldown = maxi(0, int(p.get("cooldown", 0)) - 1)
 		if (
@@ -274,9 +262,25 @@ func step(boxes: Array[Rect2i], move: MoveData, advance_environment: bool = true
 				damage(p, move.damage)
 				break
 	_step_thrown()
+	_step_debris()
 	if advance_environment:
 		_step_hazards()
 		_step_bolts()
+
+
+func _step_debris() -> void:
+	var kept: Array = []
+	for piece in debris:
+		piece.age += 1
+		piece.x += int(piece.vx)
+		piece.vy += 50
+		piece.y = mini(int(piece.lane), int(piece.y) + int(piece.vy))
+		if int(piece.y) >= int(piece.lane):
+			piece.vx = int(piece.vx) * 240 / 256
+			piece.vy = 0
+		if piece.age < 110:
+			kept.append(piece)
+	debris = kept
 
 
 func drop_medkit(x: int) -> void:
@@ -419,6 +423,8 @@ func _environment_hit(target: FighterModel, amount: int, x: int, stun: int = 26)
 func snapshot() -> Dictionary:
 	return {
 		"carry": carry.duplicate(true),
+		"interaction": interaction,
+		"debris": debris.duplicate(true),
 		"pending": pending_throw,
 		"pickup_ticks": pickup_ticks,
 		"thrown": thrown.duplicate(true),
@@ -428,9 +434,19 @@ func snapshot() -> Dictionary:
 
 
 func restore(data: Dictionary) -> void:
-	carry = data.get("carry", {}).duplicate(true)
-	pending_throw = data.get("pending", false)
-	pickup_ticks = int(data.get("pickup_ticks", 0))
+	# A save from the old hold mechanic returns the furniture to the floor.
+	var old_carry: Dictionary = data.get("carry", {})
+	if not old_carry.is_empty():
+		for prop in world.props:
+			if int(prop.id) == int(old_carry.get("id", -1)):
+				prop.used = false
+				prop.x = int(old_carry.get("source_x", world.hero.x))
+				prop.lane = int(old_carry.get("source_lane", world.hero.ground_y))
+	carry.clear()
+	interaction = int(data.get("interaction", -1))
+	debris = data.get("debris", []).duplicate(true)
+	pending_throw = false
+	pickup_ticks = 0
 	thrown = data.get("thrown", []).duplicate(true)
 	bolts = data.get("bolts", []).duplicate(true)
 	hazards = data.get("hazards", []).duplicate(true)

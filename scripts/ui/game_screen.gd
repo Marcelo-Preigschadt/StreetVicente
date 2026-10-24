@@ -351,7 +351,7 @@ func _hud() -> void:
 		text_at(
 			Vector2(28, 125),
 			(
-				"W/S PROFUNDIDADE · ESPAÇO SALTAR · E PEGAR/ARREMESSAR · TURNO %02d:%02d"
+				"F COMBO · G CHUTE · ESPAÇO SALTAR · E INTERAGIR · TURNO %02d:%02d"
 				% [
 					int(game.story.remaining_ticks / 7200),
 					int(game.story.remaining_ticks / 120) % 60
@@ -377,7 +377,7 @@ func _hud() -> void:
 				var score := maxi(0, absi(int(prop.x) - actor.x) - gear.bounds(prop).size.x / 2) + 3 * absi(int(prop.lane) - actor.ground_y)
 				if score < closest:
 					closest = score
-					prompt = "E  ·  LEVANTAR MESA" if prop.kind == "table" else "E  ·  PEGAR CADEIRA" if prop.kind == "chair" else "E  ·  DERRUBAR ESTANTE"
+					prompt = "E  ·  GOLPEAR MESA" if prop.kind == "table" else "E  ·  LANÇAR COM CHUTE" if prop.kind == "chair" else "E  ·  DERRUBAR ESTANTE"
 		if not prompt.is_empty():
 			ArcadeTheme.plate(self, Rect2(451, 643, 378, 30), Color(INK, .9), 8)
 			centered(Vector2(640, 665), prompt, 16, GOLD)
@@ -399,7 +399,7 @@ func _hud() -> void:
 		text_at(Vector2(400, 105), "SALA " + game.net_session.room + " · VOCÊ: " + str(game.net_session.slot + 1) + "P · " + str(game.net_session.rtt) + " ms", 14, BLUE)
 		if story_mode:
 			ArcadeTheme.plate(self, Rect2(16, 108, 900, 46), Color(INK, .9), 7)
-			text_at(Vector2(28, 125), "W/S PROFUNDIDADE · ESPAÇO SALTAR · E PEGAR/ARREMESSAR · TURNO %02d:%02d" % [int(game.story.remaining_ticks / 7200), int(game.story.remaining_ticks / 120) % 60], 13, GOLD)
+			text_at(Vector2(28, 125), "F COMBO · G CHUTE · ESPAÇO SALTAR · E INTERAGIR · TURNO %02d:%02d" % [int(game.story.remaining_ticks / 7200), int(game.story.remaining_ticks / 120) % 60], 13, GOLD)
 			text_at(Vector2(28, 147), "ATO %d · PONTOS %08d" % [mini(game.story.act_index + 1, 4), game.story.score], 14, PAPER)
 			text_at(Vector2(400, 147), "COOP · ONDA " + str(mini(game.story.wave_index + 1, 4)) + "/4 · E: AJUDAR PARCEIRO CAÍDO", 13, GOLD)
 	var message := ""
@@ -661,7 +661,7 @@ func _story_dialog() -> void:
 	)
 	wrapped(Vector2(83, 344), chapter.quote, 710, 24, PAPER)
 	wrapped(Vector2(83, 460), chapter.action, 705, 18, PAPER)
-	wrapped(Vector2(83, 542), "OBJETIVO: " + str(chapter.objective), 705, 18, GOLD)
+	wrapped(Vector2(83, 542), "OBJETIVO: " + ("Abra caminho, quebre obstáculos e lance cadeiras com chutes." if game.story.act_index == 0 else str(chapter.objective)), 705, 18, GOLD)
 	_footer("ENTER / START INICIAR ATO   ·   ESC MENU   ·   CHECKPOINT AUTOMÁTICO")
 
 
