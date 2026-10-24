@@ -18,6 +18,7 @@ Base de campanha revisada: inimigos animados por deslocamento e fases reais de a
 - O panorama conserva sua proporção original.
 - E pega o móvel próximo; F/E arremessa. Há uma sequência de abaixar, levantar, segurar e liberar na fase ativa. A pega acompanha a mão do quadro aprovado.
 - O móvel conserva seu tamanho entre chão, mão e voo. A trajetória é balística e o chão usa a base do objeto.
+- Os pontos de pega de 195 quadros aprovados estão em `data/story/hand-grips-v23.json`. O objeto passa atrás da mão e do antebraço, com a ordem de desenho correta.
 - Levantar é interrompido quando o personagem recebe um golpe; não concede invulnerabilidade.
 - Rostos, retratos e atlas aprovados dos lutadores não foram redesenhados.
 
@@ -36,6 +37,8 @@ Arquivos finais:
 - `assets/story/v23/projector.webp`
 
 Metadados, escalas, sequências e hashes das fontes: `data/story/enemy-animation-v23.json`. Cada novo atlas tem 16 quadros; os atlas existentes dos outros inimigos passam pelo mesmo seletor de caminhada, preparação, contato, recuperação, impacto e queda. O empacotador é `tools/pack_story_v23.py`.
+
+Ao atualizar os atlas de um lutador, regenere os pontos de pega com `godot --headless --path . --script tools/export_story_grips.gd` e `python tools/register_story_grips.py`. Esses passos apenas leem os pixels aprovados e escrevem metadados; não editam os sprites.
 
 ## Validação
 

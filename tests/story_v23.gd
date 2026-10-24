@@ -18,6 +18,11 @@ static func run(s: SceneTree) -> void:
 		s.check(world.hero.move_id == "special:1" and world.hero.meter == 0, "H paga 25 na partida: " + id)
 		var duel := FighterModel.new(LegacyRoster.get_character(id), 0, 300)
 		s.check(duel.move_cost(duel.character.get_move("special", 1)) == int(duel.character.get_move("special", 1).legacy.get("cost", 0)), "Versus preserva custo original: " + id)
+		world.hero.transition(FighterState.Id.IDLE)
+		world.objects.carry = {"kind": "chair", "id": -1}
+		var art := StoryCarryArt.sample(world.hero, world.objects)
+		StoryCarryArt.hand(art, id)
+		s.check(art.frame.get("collision", {}).has("hand") or StoryCarryArt.grips.has(StoryCarryArt.frame_key(art, id)), "Pega registrada no quadro aprovado: " + id)
 	var world := StorySimulation.new(LegacyRoster.get_character("marcelo"))
 	world.wave_index = 2
 	world.enemies = [world.enemies[1]]

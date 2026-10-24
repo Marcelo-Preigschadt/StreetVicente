@@ -134,6 +134,8 @@ func _draw() -> void:
 			Rect2(r[0], r[1], r[2], r[3]),
 			Color(model.character.color, float(ghost.life) * 1.6)
 		)
+	draw_set_transform(Vector2.ZERO)
+	_draw_carry()
 	draw_set_transform(Vector2.ZERO, 0, Vector2(model.facing * width_factor, 1))
 	var target := Rect2(
 		(float(frame.x) - float(frame.anchor)) * factor,
@@ -150,7 +152,6 @@ func _draw() -> void:
 		tex, target, Rect2(float(src[0]), float(src[1]), float(src[2]), float(src[3])), tint
 	)
 	draw_set_transform(Vector2.ZERO)
-	_draw_carry()
 	if debug_boxes:
 		for rect in model.hurtboxes():
 			_show_box(rect, Color("58deff"))

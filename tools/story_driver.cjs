@@ -11,7 +11,6 @@ async function fightUntil(page,done,{timeout=60000}={}){
    if(Date.now()-statusAt>8000){console.log('STORY DRIVER',JSON.stringify({wave:q.wave,hp:q.hp,meter:q.meter,x:Math.round(q.x/256),state:q.state,foes:q.enemy_states.filter(e=>e.hp>0).map(e=>[e.kind,e.hp,Math.round(e.x/256)])}));statusAt=Date.now();}
    assert(q.hp>0,'Campaign hero stays alive while earning energy');
    const live=q.enemy_states.filter(e=>e.hp>0);
-   const ground=live.filter(e=>!['snack','book','archaeologist'].includes(e.kind));
    if(live.length&&q.meter>=100){
     await release(page);
     for(let i=0;i<30;i++){
@@ -20,19 +19,16 @@ async function fightUntil(page,done,{timeout=60000}={}){
     }
     await delay(500);continue;
    }
-   const target=(ground.length?ground:live).sort((a,b)=>Math.abs(a.x-q.x)-Math.abs(b.x-q.x))[0];
+   const target=live.sort((a,b)=>Math.abs(a.x-q.x)-Math.abs(b.x-q.x))[0];
    const desired=[];
    if(target){
     const dx=target.x-q.x,dy=target.lane-q.ground_y;
-    if(Math.abs(dx)>(ground.length?105:135)*256)desired.push(dx>0?'d':'a');
+    if(Math.abs(dx)>105*256)desired.push(dx>0?'d':'a');
     const lane=625*256-q.ground_y;if(Math.abs(lane)>8*256)desired.push(lane>0?'s':'w');
-    if(Math.abs(dx)<(ground.length?125:150)*256&&Math.abs(dy)<45*256)desired.push('r');
+    if(Math.abs(dx)<125*256&&Math.abs(dy)<45*256)desired.push('r');
     for(const k of ['a','d','w','s','r'])await page.keyboard[desired.includes(k)?'down':'up'](k);
-    if(Math.abs(dx)<200*256&&Math.abs(dy)<45*256){
-     if(!ground.length&&Date.now()-jump>1200){
-      await page.keyboard.up('r');await page.keyboard.press('Space');
-      try{await page.waitForFunction(()=>window.svfQA.story.y<window.svfQA.story.ground_y-60*256,null,{timeout:900});await page.keyboard.press('g');}catch(e){if(e.name!=='TimeoutError')throw e;}jump=Date.now();
-     }else if(ground.length&&Date.now()-strike>350){await page.keyboard.press('f');strike=Date.now();}
+    if(Math.abs(dx)<200*256&&Math.abs(dy)<45*256&&Date.now()-strike>350){
+     await page.keyboard.press('f');strike=Date.now();
     }
    }else{
     await release(page);await page.keyboard.down('d');
