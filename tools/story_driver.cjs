@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 async function release(page){for(const key of ['a','d','w','s','r'])await page.keyboard.up(key);}
 async function fightUntil(page,done,{timeout=60000}={}){
- const deadline=Date.now()+timeout;let strike=0,jump=0,statusAt=0;
+ const deadline=Date.now()+timeout;let strike=0,statusAt=0;
  try{
   while(Date.now()<deadline){
    const q=await page.evaluate(()=>window.svfQA.story);assert(q,'Campaign observation exists');
@@ -24,10 +24,11 @@ async function fightUntil(page,done,{timeout=60000}={}){
    if(target){
     const dx=target.x-q.x,dy=target.lane-q.ground_y;
     if(Math.abs(dx)>105*256)desired.push(dx>0?'d':'a');
+    else if(Math.abs(dx)<90*256)desired.push(dx>0?'a':'d');
     const lane=625*256-q.ground_y;if(Math.abs(lane)>8*256)desired.push(lane>0?'s':'w');
-    if(Math.abs(dx)<125*256&&Math.abs(dy)<45*256)desired.push('r');
+    if(Math.abs(dx)>=90*256&&Math.abs(dx)<125*256&&Math.abs(dy)<45*256&&!desired.some(k=>k==='a'||k==='d'))desired.push('r');
     for(const k of ['a','d','w','s','r'])await page.keyboard[desired.includes(k)?'down':'up'](k);
-    if(Math.abs(dx)<200*256&&Math.abs(dy)<45*256&&Date.now()-strike>350){
+    if(Math.abs(dx)>=75*256&&Math.abs(dx)<200*256&&Math.abs(dy)<45*256&&Date.now()-strike>350){
      await page.keyboard.press('f');strike=Date.now();
     }
    }else{
