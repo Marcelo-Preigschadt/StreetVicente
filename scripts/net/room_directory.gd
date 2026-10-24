@@ -5,7 +5,7 @@ signal changed
 signal failed(message: String)
 const URL := "https://rulmufwtytgfmznuduuo.supabase.co/rest/v1/svf_rooms"
 const KEY := "sb_publishable_ImcwfTJHChOS_o3gYTOn-Q_mIEB1lhB"
-const PROTOCOL := "svf-godot-v25a"
+const PROTOCOL := "svf-godot-v25b"
 const FIELDS := "code,status,character,game_mode,protocol,created_at,expires_at"
 var rooms: Array = []
 var game_mode := "versus"

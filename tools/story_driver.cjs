@@ -25,14 +25,17 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true}={}){
     const dx=target.x-q.x,dy=target.lane-q.ground_y;
     const reach=target.kind==='snack'||target.kind==='book'||target.kind==='archaeologist'?170:135;
     if(Math.abs(dx)>(reach+15)*256)desired.push(dx>0?'d':'a');
-    else if(Math.abs(dx)<(reach-15)*256)desired.push(dx>0?'a':'d');
+    else if(Math.abs(dx)<70*256)desired.push(dx>0?'a':'d');
     if(Math.abs(dy)>12*256)desired.push(dy>0?'s':'w');
     if(Math.abs(dx)<(reach+25)*256&&Math.abs(dy)<25*256&&!desired.length)desired.push('r');
     for(const k of ['a','d','w','s','r'])await page.keyboard[desired.includes(k)?'down':'up'](k);
-    if(Math.abs(dx)<240*256&&Math.abs(dy)<42*256&&Date.now()-strike>300){
-     if(q.facing!==(dx>0?1:-1)&&['IDLE','WALK','BLOCK'].includes(q.state)){
-      await page.keyboard.up('r');await page.keyboard.press(dx>0?'d':'a',{delay:40});
-     }
+    // Let the current attack finish before turning. Queuing more attacks
+    // while facing away would intentionally keep a real player facing away.
+    if(q.facing!==(dx>0?1:-1)&&Math.abs(dx)>=70*256){
+     await release(page);await page.keyboard.press(dx>0?'d':'a',{delay:50});continue;
+    }
+    if(Math.abs(dx)>=75*256&&Math.abs(dx)<240*256&&Math.abs(dy)<42*256&&Date.now()-strike>300){
+     await release(page);
      await page.keyboard.press(['snack','book','archaeologist'].includes(target.kind)?'g':'f');strike=Date.now();
     }
    }else{

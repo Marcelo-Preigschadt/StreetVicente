@@ -91,6 +91,13 @@ static func run(s: SceneTree) -> void:
 				launched = true
 			s.check(cast.state_hash() == replay.state_hash(), "Posicionamento e contato sobrevivem ao save: " + id)
 		s.check(launched and cast.objects.carry.is_empty(), "Pé registrado lança cadeira sem pose de agarrar: " + id)
+	var flight := StorySimulation.new(c)
+	flight.enemies = [flight.enemies[0]]
+	var drone: FighterModel = flight.enemies[0].fighter
+	var spawn_x := drone.x
+	for tick in 40:
+		flight.step(CombatInput.new())
+	s.check(drone.x < spawn_x and not drone.grounded(), "Drone se aproxima no plano do chão sem perder altura de voo")
 	# Source checkpoint queue: simultaneous cap without losing any wave member.
 	var checkpoint := StorySimulation.new(c)
 	checkpoint.enemies.clear()

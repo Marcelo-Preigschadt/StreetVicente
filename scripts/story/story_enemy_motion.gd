@@ -76,7 +76,12 @@ static func _reserve(world: StorySimulation, enemy: Dictionary, actor: FighterMo
 
 
 static func finish(f: FighterModel, profile: Dictionary, old_x: int, old_lane: int) -> void:
-	if f.state == FighterState.Id.WALK and f.ground_y != old_lane:
+	# Height is separate from movement on the floor plane. FighterModel's
+	# grounded walking branch does not run while a drone is hovering.
+	if int(profile.get("fly", 0)) > 0 and f.state in [FighterState.Id.IDLE, FighterState.Id.WALK]:
+		f.x = old_x + f.input.axis_x() * f.character.speed_units
+		f.vx = 0
+	if f.state in [FighterState.Id.IDLE, FighterState.Id.WALK] and f.ground_y != old_lane:
 		f.x = old_x + (f.x - old_x) * 181 / 256
 	if int(profile.get("fly", 0)) > 0 and not f.knockdown_pending and f.vy >= 0 \
 		and f.state in [FighterState.Id.IDLE, FighterState.Id.WALK, FighterState.Id.ATTACK, FighterState.Id.HITSTUN]:

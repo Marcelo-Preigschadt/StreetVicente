@@ -23,7 +23,7 @@ func open(code: String, id: String) -> void:
 	close()
 	room = code
 	peer_id = id
-	topic = "realtime:svf-godot-v25a-" + code
+	topic = "realtime:svf-godot-v25b-" + code
 	enabled = true
 	_connect()
 
