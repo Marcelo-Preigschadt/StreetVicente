@@ -23,13 +23,16 @@ async function fightUntil(page,done,{timeout=60000}={}){
    const desired=[];
    if(target){
     const dx=target.x-q.x,dy=target.lane-q.ground_y;
-    if(Math.abs(dx)>105*256)desired.push(dx>0?'d':'a');
-    else if(Math.abs(dx)<90*256)desired.push(dx>0?'a':'d');
+    // Use the actual reach of the approved attacks, with room to defend.
+    // Low machines are knocked down by the sweep; a head-height drone
+    // is reached by the standing punch rather than a low kick.
+    if(Math.abs(dx)>195*256)desired.push(dx>0?'d':'a');
+    else if(Math.abs(dx)<180*256)desired.push(dx>0?'a':'d');
     const lane=625*256-q.ground_y;if(Math.abs(lane)>8*256)desired.push(lane>0?'s':'w');
-    if(Math.abs(dx)>=90*256&&Math.abs(dx)<125*256&&Math.abs(dy)<45*256&&!desired.some(k=>k==='a'||k==='d'))desired.push('r');
+    if(Math.abs(dx)>=180*256&&Math.abs(dx)<220*256&&Math.abs(dy)<45*256&&!desired.some(k=>k==='a'||k==='d'))desired.push('r');
     for(const k of ['a','d','w','s','r'])await page.keyboard[desired.includes(k)?'down':'up'](k);
-    if(Math.abs(dx)>=75*256&&Math.abs(dx)<200*256&&Math.abs(dy)<45*256&&Date.now()-strike>350){
-     await page.keyboard.press('f');strike=Date.now();
+    if(Math.abs(dx)>=75*256&&Math.abs(dx)<230*256&&Math.abs(dy)<45*256&&Date.now()-strike>350){
+     await page.keyboard.press(target.kind==='snack'?'f':'g');strike=Date.now();
     }
    }else{
     await release(page);await page.keyboard.down('d');
