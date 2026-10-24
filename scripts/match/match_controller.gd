@@ -616,8 +616,8 @@ func _publish_qa() -> void:
 			"pickup_ticks": story.objects.pickup_ticks,
 			"thrown": story.objects.thrown.duplicate(true),
 			"props": story.props.duplicate(true),
-			"presentation_revision": 25,
-			"combat_base": "fists-of-fury",
+			"presentation_revision": 26,
+			"combat_base": "openbor-motion-grab-port",
 			"campaign_combo": story.combat.actors.get(str(story.hero.slot), {}).duplicate(),
 			"debris": story.objects.debris.size(),
 			"move": story.hero.move_id,
@@ -626,7 +626,7 @@ func _publish_qa() -> void:
 			"scene_scale": StoryLayout.SCALE,
 			"enemy_states": story.enemies.map(func(e: Dictionary) -> Dictionary:
 				var f: FighterModel = e.fighter
-				return {"id": e.id, "kind": e.kind, "x": f.x, "lane": f.ground_y, "hp": f.health, "state": FighterState.NAMES[f.state], "cel": StoryEnemyArt.sample(e, story.tick).index, "engagement_slot": e.get("engagement_slot", -1), "attack_mode": e.attack_mode}),
+				return {"id": e.id, "kind": e.kind, "x": f.x, "y": f.y, "lane": f.ground_y, "hp": f.health, "state": FighterState.NAMES[f.state], "cel": StoryEnemyArt.sample(e, story.tick).index, "engagement_slot": e.get("engagement_slot", -1), "attack_mode": e.attack_mode}),
 			"projectiles": story.projectiles.size(),
 			"power_sprites": power_view.visible,
 			"power_kinds": story.projectiles.map(func(p: Dictionary) -> String: return str(p.kind)),

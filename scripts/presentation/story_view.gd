@@ -74,7 +74,8 @@ func _draw() -> void:
 		return
 	var camera := render_camera()
 	var act: Dictionary = LegacyRoster.catalog.story.acts[mini(world.act_index, 3)]
-	var texture := LegacyRoster.texture(act.background)
+	var background: String = "res://assets/stages/v26/patio-illustrated.png" if world.act_index == 0 else str(act.background)
+	var texture := LegacyRoster.texture(background)
 	var height := 760.0
 	var width := height * texture.get_width() / texture.get_height()
 	var pan := maxf(0.0, width - 1280.0) / 2320.0

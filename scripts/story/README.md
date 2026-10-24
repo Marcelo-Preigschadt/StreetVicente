@@ -1,1 +1,1 @@
-Campanha Godot 4: adaptação Fists of Fury. Ver docs/STORY_V25.md e third_party/fists_of_fury/README.md.
+Campanha Godot 4: protótipo v26 com cenário ilustrado e adaptação de rotinas de movimento/agarrão do OpenBOR. Ver docs/STORY_V26.md e third_party/openbor/README.md para implementação, origem e limites.

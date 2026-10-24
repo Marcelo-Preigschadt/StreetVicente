@@ -8,7 +8,7 @@ var gear: Array = []
 
 func _init(first: CharacterData, second: CharacterData) -> void:
 	super(first)
-	heroes = [hero, FighterModel.new(FuryCombat.character(second), PARTNER_SLOT, 320)]
+	heroes = [hero, FighterModel.new(OpenBorCombat.character(second), PARTNER_SLOT, 320)]
 	heroes[1].ground_y = 590 * UNIT
 	heroes[1].y = heroes[1].ground_y
 	heroes[1].campaign_costs = true
@@ -95,6 +95,7 @@ func step_party(values: Array[CombatInput]) -> void:
 				score += 1000 if LegacyRoster.catalog.story.enemies[enemy.kind].get("boss", false) else 100
 			f.record_input(CombatInput.new(), tick)
 			f.begin_tick(f.x + f.facing * UNIT)
+			combat.advance_throw(self, f)
 			f.end_tick()
 			continue
 		alive += 1
@@ -103,13 +104,14 @@ func step_party(values: Array[CombatInput]) -> void:
 		var profile: Dictionary = LegacyRoster.catalog.story.enemies[enemy.kind]
 		var enemy_lane := f.ground_y
 		var enemy_x := f.x
-		var enemy_input := StoryEnemyMotion.intent(self, enemy, hero)
+		var enemy_input := OpenBorEnemyMotion.intent(self, enemy, hero)
 		var delta_lane := hero.ground_y - f.ground_y
 		f.record_input(enemy_input, tick)
 		f.begin_tick(hero.x)
-		StoryEnemyMotion.finish(f, profile, enemy_x, enemy_lane)
+		OpenBorEnemyMotion.finish(f, profile, enemy_x, enemy_lane)
+		combat.advance_throw(self, f)
 		objects.constrain_actor(f, enemy_x, enemy_lane)
-		StoryEnemyMotion.record_walk(f, enemy_x, enemy_lane)
+		OpenBorEnemyMotion.record_walk(f, enemy_x, enemy_lane)
 		if f.state == FighterState.Id.ATTACK and f.current_move().phase(f.move_tick) == "ACTIVE":
 			if enemy.attack_mode == "shot" and not enemy.fired:
 				objects.fire_enemy(enemy)
@@ -249,7 +251,7 @@ func _new_act() -> void:
 	objects = gear[0]
 	_start_act()
 	heroes[0] = hero
-	heroes[1] = FighterModel.new(FuryCombat.character(partner.character), PARTNER_SLOT, 320)
+	heroes[1] = FighterModel.new(OpenBorCombat.character(partner.character), PARTNER_SLOT, 320)
 	heroes[1].health = mini(1000, partner.health + 300)
 	heroes[1].meter = partner.meter
 	heroes[1].campaign_costs = true

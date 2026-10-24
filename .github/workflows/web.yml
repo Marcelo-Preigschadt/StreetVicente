@@ -52,7 +52,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        smoke: [story_v23, online, controller, presentation, gelton, marcelino, marcos, tais, luciana, ruan, powers, web, roster_v20, khauany]
+        smoke: [story_v23, story_v26, online, controller, presentation, gelton, marcelino, marcos, tais, luciana, ruan, powers, web, roster_v20, khauany]
     steps:
       - uses: actions/checkout@v4
         with:

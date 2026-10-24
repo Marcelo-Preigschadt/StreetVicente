@@ -6,7 +6,7 @@ process.chdir(path.resolve(__dirname,'..'));fs.mkdirSync('test-results',{recursi
 if(!fs.existsSync('build/StreetVicente'))fs.symlinkSync('web','build/StreetVicente');
 const server=spawn('python3',['-m','http.server','8074','--directory','build','--bind','127.0.0.1'],{stdio:'ignore'});
 const target=process.env.SVF_STORY_URL||'http://127.0.0.1:8074/StreetVicente/?qa=1';
-let browser,page;const errors=[];const report={revision:25,checks:[],errors};
+let browser,page;const errors=[];const report={revision:26,checks:[],errors};
 const state=()=>page.evaluate(()=>window.svfQA);
 const wait=(f,arg=null,timeout=30000)=>page.waitForFunction(f,arg,{timeout}).then(h=>h.dispose());
 async function shot(name){
@@ -34,7 +34,7 @@ async function walkTo(x,lane){
   const u=new URL(process.env.HTTPS_PROXY||process.env.HTTP_PROXY);net.proxy={server:u.protocol+'//'+u.hostname+':'+u.port};
   if(u.username)net.proxy.username=decodeURIComponent(u.username);if(u.password)net.proxy.password=decodeURIComponent(u.password);
  }
- browser=await chromium.launch({...net,headless:true,args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+ browser=await chromium.launch({executablePath:process.env.SVF_CHROMIUM_BIN,...net,headless:true,args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  page=await browser.newPage({viewport:{width:1280,height:720},ignoreHTTPSErrors:true,
   ...(process.env.SVF_STORY_RECORD?{recordVideo:{dir:'test-results/story-motion',size:{width:1280,height:720}}}:{})});
  page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(/SCRIPT ERROR|Parse Error|ERROR:/i.test(m.text()))errors.push(m.text());});
@@ -42,7 +42,7 @@ async function walkTo(x,lane){
  for(let i=0;i<3;i++)await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await wait(()=>window.svfQA.screen==='selection');
  let q=await state();for(let i=0;i<(q.roster_ids.indexOf('marcelo')-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
  await page.keyboard.press('Enter');await wait(()=>window.svfQA.screen==='story_dialog');await page.keyboard.press('Enter');await wait(()=>window.svfQA.screen==='story');
- q=(await state()).story;assert.equal(q.meter,0);assert.equal(q.presentation_revision,25);assert.equal(q.scene_scale,.8);
+ q=(await state()).story;assert.equal(q.meter,0);assert.equal(q.presentation_revision,26);assert.equal(q.scene_scale,.8);
  await page.keyboard.press('h');await delay(120);assert.equal((await state()).story.projectiles,0);
  const cels=new Map();for(let i=0;i<10;i++){
   for(const e of (await state()).story.enemy_states){if(!cels.has(e.kind))cels.set(e.kind,new Set());cels.get(e.kind).add(e.cel);}

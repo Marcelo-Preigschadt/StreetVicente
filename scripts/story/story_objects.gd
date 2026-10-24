@@ -117,7 +117,7 @@ func input(value: CombatInput) -> CombatInput:
 			f.facing = 1 if int(nearest.x) >= f.x else -1
 			# The stance comes from this character's authored contact frame. A
 			# short visible backstep puts the actual foot onto the object.
-			interaction_x = int(nearest.x) - f.facing * _kick_reach(f)
+			interaction_x = int(nearest.x) - f.facing * maxi(_kick_reach(f), roundi(StoryLayout.prop_size(str(nearest.kind)).x * .38 * UNIT) + 20 * UNIT)
 			interaction_phase = "align"
 			interaction_clock = 0
 			world.combat.actor(f).queued = 0
@@ -160,50 +160,7 @@ func bounds(prop: Dictionary) -> Rect2i:
 
 
 func constrain_actor(actor: FighterModel, old_x: int, old_lane: int) -> void:
-	if not actor.grounded():
-		return
-	var wanted_x := actor.x
-	for prop in world.props:
-		if prop.get("used", false) or prop.hp <= 0 or prop.kind in ["can", "medkit"]:
-			continue
-		var half_x := roundi(StoryLayout.prop_size(str(prop.kind)).x * .38 * UNIT) + 18 * UNIT
-		var half_lane := (32 if prop.kind == "table" else 24) * UNIT
-		var dx := actor.x - int(prop.x)
-		var dy := actor.ground_y - int(prop.lane)
-		if absi(dx) >= half_x or absi(dy) >= half_lane:
-			continue
-		var lift := actor.ground_y - actor.y
-		if absi(old_x - int(prop.x)) >= half_x:
-			actor.x = int(prop.x) + (half_x if old_x > int(prop.x) else -half_x)
-		elif absi(old_lane - int(prop.lane)) >= half_lane or half_lane - absi(dy) < half_x - absi(dx):
-			var next_lane := int(prop.lane) + (half_lane if old_lane >= int(prop.lane) else -half_lane)
-			if next_lane >= 535 * UNIT and next_lane <= 655 * UNIT:
-				actor.ground_y = next_lane
-			else:
-				actor.x = int(prop.x) + (half_x if dx >= 0 else -half_x)
-		else:
-			actor.x = int(prop.x) + (half_x if dx >= 0 else -half_x)
-		actor.y = actor.ground_y - lift
-		if actor.character.id.begins_with("enemy_") and actor.x != wanted_x:
-			actor.ground_y = clampi(actor.ground_y + (1 if old_lane >= int(prop.lane) else -1) * 3 * UNIT, 535 * UNIT, 655 * UNIT)
-			actor.y = actor.ground_y - lift
-	# Source CharacterBody2D floor collision, ported to deterministic footprints.
-	# Reaction/air movement is handled by hit physics; only walking is stopped.
-	if actor.state not in [FighterState.Id.IDLE, FighterState.Id.WALK]:
-		return
-	for other in world.power_actors():
-		if other == actor or other.health <= 0 or not other.grounded():
-			continue
-		var dx := actor.x - other.x
-		var dy := actor.ground_y - other.ground_y
-		var width := 65 * UNIT
-		if absi(dx) < width and absi(dy) < 18 * UNIT:
-			if absi(old_x - other.x) >= width:
-				actor.x = other.x + (width if old_x > other.x else -width)
-			elif absi(old_lane - other.ground_y) >= 18 * UNIT:
-				var lift := actor.ground_y - actor.y
-				actor.ground_y = clampi(other.ground_y + (18 if old_lane > other.ground_y else -18) * UNIT, 535 * UNIT, 655 * UNIT)
-				actor.y = actor.ground_y - lift
+	OpenBorMotion.constrain(world, actor, old_x, old_lane)
 
 
 func damage(prop: Dictionary, amount: int) -> void:

@@ -21,7 +21,7 @@ var camera_x: float = 0.0
 var next_id: int = 1
 var freeze_ticks: int = 0
 var powers := PowerSystem.new()
-var combat := FuryCombat.new()
+var combat := OpenBorCombat.new()
 var spawn_queue: Array = []
 var spawn_due: int = 0
 var projectiles: Array:
@@ -32,7 +32,7 @@ var projectiles: Array:
 func _init(character: CharacterData, first_act: int = 0) -> void:
 	LegacyRoster.load_catalog()
 	objects = StoryObjects.new(self)
-	hero = FighterModel.new(FuryCombat.character(character), 0, 220)
+	hero = FighterModel.new(OpenBorCombat.character(character), 0, 220)
 	hero.campaign_costs = true
 	hero.meter = 0
 	act_index = first_act
@@ -51,7 +51,7 @@ func _start_act() -> void:
 	powers.projectiles.clear()
 	var charge := hero.meter
 	var life := mini(1000, hero.health + 300)
-	hero = FighterModel.new(FuryCombat.character(hero.character), 0, 220)
+	hero = FighterModel.new(OpenBorCombat.character(hero.character), 0, 220)
 	hero.health = life
 	hero.campaign_costs = true
 	hero.meter = charge
@@ -120,18 +120,20 @@ func step(value: CombatInput) -> void:
 				)
 			f.record_input(CombatInput.new(), tick)
 			f.begin_tick(f.x + f.facing * UNIT)
+			combat.advance_throw(self, f)
 			f.end_tick()
 			continue
 		alive += 1
 		var profile: Dictionary = LegacyRoster.catalog.story.enemies[enemy.kind]
 		var enemy_lane := f.ground_y
 		var enemy_x := f.x
-		var enemy_input := StoryEnemyMotion.intent(self, enemy, hero)
+		var enemy_input := OpenBorEnemyMotion.intent(self, enemy, hero)
 		f.record_input(enemy_input, tick)
 		f.begin_tick(hero.x)
-		StoryEnemyMotion.finish(f, profile, enemy_x, enemy_lane)
+		OpenBorEnemyMotion.finish(f, profile, enemy_x, enemy_lane)
+		combat.advance_throw(self, f)
 		objects.constrain_actor(f, enemy_x, enemy_lane)
-		StoryEnemyMotion.record_walk(f, enemy_x, enemy_lane)
+		OpenBorEnemyMotion.record_walk(f, enemy_x, enemy_lane)
 		if f.state == FighterState.Id.ATTACK and f.current_move().phase(f.move_tick) == "ACTIVE":
 			if enemy.attack_mode == "shot" and not enemy.fired:
 				objects.fire_enemy(enemy)
@@ -249,7 +251,7 @@ func snapshot() -> Dictionary:
 		e.fighter = enemy.fighter.snapshot()
 		values.append(e)
 	return {
-		"story_revision": 25,
+		"story_revision": 26,
 		"combat": combat.snapshot(),
 		"spawn_queue": spawn_queue.duplicate(true),
 		"spawn_due": spawn_due,

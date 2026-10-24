@@ -65,6 +65,7 @@ func _run() -> void:
 	StoryV23Tests.run(self)
 	StoryV24Tests.run(self)
 	StoryV25Tests.run(self)
+	StoryV26Tests.run(self)
 	print("COMBAT TESTS: %d checks, %d failures" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 

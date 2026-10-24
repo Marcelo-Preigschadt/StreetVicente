@@ -325,7 +325,7 @@ func _hud() -> void:
 			16,
 			PAPER
 		)
-	_footer("A/D MOVER · W/S PROFUNDIDADE · ESPAÇO SALTAR · T/F/Y SOCOS · V/G/B CHUTES · R DEFESA · E OBJETO · ESC PAUSA"
+	_footer("A/D MOVER · W/S PROFUNDIDADE · ESPAÇO SALTAR · T/F/Y SOCOS · V/G/B CHUTES · R DEFESA · E INTERAGIR · ESC PAUSA"
 		if story_mode else "A/D MOVER · W PULAR · T/F/Y SOCOS · V/G/B CHUTES · R DEFESA · H PODER · U GANCHO · Q ESPECIAL · ESC PAUSA")
 	if game.mode == "training" and not story_mode:
 		ArcadeTheme.plate(self, Rect2(16, 108, 625, 27), Color(INK, 0.85), 7)
@@ -380,6 +380,15 @@ func _hud() -> void:
 				if score < closest:
 					closest = score
 					prompt = "E  ·  GOLPEAR MESA" if prop.kind == "table" else "E  ·  LANÇAR COM CHUTE" if prop.kind == "chair" else "E  ·  DERRUBAR ESTANTE"
+		if prompt.is_empty() and actor.grounded() and FighterState.actionable(actor.state):
+			for enemy in game.story.enemies:
+				var target: FighterModel = enemy.fighter
+				if target.health > 0 and target.grounded() and target.invincible_ticks == 0 \
+					and target.state not in [FighterState.Id.KNOCKDOWN, FighterState.Id.WAKEUP] \
+					and absi(target.x - actor.x) < 120 * FighterModel.SCALE \
+					and absi(target.ground_y - actor.ground_y) <= 24 * FighterModel.SCALE:
+					prompt = "E  ·  AGARRAR E ARREMESSAR"
+					break
 		if not prompt.is_empty():
 			ArcadeTheme.plate(self, Rect2(451, 643, 378, 30), Color(INK, .9), 8)
 			centered(Vector2(640, 665), prompt, 16, GOLD)
