@@ -3,18 +3,22 @@ const assert=require('node:assert/strict');
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 async function release(page){for(const key of ['a','d','w','s','r'])await page.keyboard.up(key);}
 async function fightUntil(page,done,{timeout=60000}={}){
- const deadline=Date.now()+timeout;let strike=0,jump=0;
+ const deadline=Date.now()+timeout;let strike=0,jump=0,statusAt=0;
  try{
   while(Date.now()<deadline){
    const q=await page.evaluate(()=>window.svfQA.story);assert(q,'Campaign observation exists');
    if(done(q))return q;
+   if(Date.now()-statusAt>8000){console.log('STORY DRIVER',JSON.stringify({wave:q.wave,hp:q.hp,meter:q.meter,x:Math.round(q.x/256),state:q.state,foes:q.enemy_states.filter(e=>e.hp>0).map(e=>[e.kind,e.hp,Math.round(e.x/256)])}));statusAt=Date.now();}
    assert(q.hp>0,'Campaign hero stays alive while earning energy');
    const live=q.enemy_states.filter(e=>e.hp>0);
    const ground=live.filter(e=>!['snack','book','archaeologist'].includes(e.kind));
-   if(!ground.length&&live.length&&q.meter>=100){
+   if(live.length&&q.meter>=100){
     await release(page);
-    await page.waitForFunction(()=>window.svfQA.story.state==='IDLE',null,{timeout:4000});
-    await page.keyboard.press('q');await delay(500);continue;
+    for(let i=0;i<30;i++){
+     await page.keyboard.press('q');await delay(70);
+     if((await page.evaluate(()=>window.svfQA.story.meter))<100)break;
+    }
+    await delay(500);continue;
    }
    const target=(ground.length?ground:live).sort((a,b)=>Math.abs(a.x-q.x)-Math.abs(b.x-q.x))[0];
    const desired=[];
