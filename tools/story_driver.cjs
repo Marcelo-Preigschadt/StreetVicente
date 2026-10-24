@@ -11,7 +11,7 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true}={}){
    if(Date.now()-statusAt>8000){console.log('STORY DRIVER',JSON.stringify({wave:q.wave,hp:q.hp,meter:q.meter,x:Math.round(q.x/256),state:q.state,foes:q.enemy_states.filter(e=>e.hp>0).map(e=>[e.kind,e.hp,Math.round(e.x/256)])}));statusAt=Date.now();}
    assert(q.hp>0,'Campaign hero stays alive while earning energy');
    const live=q.enemy_states.filter(e=>e.hp>0);
-   if(useSuper&&live.length&&q.meter>=100){
+   if(useSuper&&live.length&&q.meter>=100&&['IDLE','WALK','BLOCK'].includes(q.state)&&q.facing===(live.slice().sort((a,b)=>Math.abs(a.x-q.x)-Math.abs(b.x-q.x))[0].x>q.x?1:-1)){
     await release(page);
     for(let i=0;i<30;i++){
      await page.keyboard.press('q');await delay(70);
