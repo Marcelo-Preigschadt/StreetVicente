@@ -33,6 +33,22 @@ static func character(source: CharacterData) -> CharacterData:
 			move.legacy.launch = 570
 		c.moves[move.id] = move
 		c.moves["fury:%d" % i] = move
+	# A visible grip needs time to read before release. Retiming is session-only
+	# and reuses the authored drawings; the versus character data stay intact.
+	for strength in 3:
+		var original := source.get_move("throw", strength)
+		if original == null or original.startup >= 16:
+			continue
+		var grab: MoveData = original.duplicate(true)
+		grab.legacy = original.legacy.duplicate(true)
+		var frames: Array = original.legacy.frames
+		var timed: Array = []
+		for tick in 32:
+			timed.append(frames[mini(frames.size() - 1, tick * original.startup * 2 / 32)])
+		timed.append_array(frames.slice(original.startup * 2))
+		grab.startup = 16
+		grab.legacy.frames = timed
+		c.moves[grab.id] = grab
 	return c
 
 
@@ -116,12 +132,12 @@ func advance(world: StorySimulation, f: FighterModel, gear: StoryObjects, raw: C
 		if lane_axis != 0 and raw.axis_x() != 0:
 			f.x = old_x + (f.x - old_x) * 181 / 256
 			lane_speed = lane_speed * 181 / 256
-		f.ground_y = clampi(old_lane + lane_axis * lane_speed, 535 * UNIT, 655 * UNIT)
+		f.ground_y = clampi(old_lane + lane_axis * lane_speed, StoryLayout.MIN_LANE * UNIT, StoryLayout.MAX_LANE * UNIT)
 		f.y = f.ground_y
 		if f.x != old_x or f.ground_y != old_lane:
 			f.transition(FighterState.Id.WALK)
 	gear.constrain_actor(f, old_x, old_lane)
-	var gate := mini(3560, 880 + world.wave_index * 820) * UNIT
+	var gate := StoryLayout.gate(world.wave_index) * UNIT
 	f.x = clampi(f.x, 70 * UNIT, gate)
 	if f.state == FighterState.Id.WALK:
 		var dx := absi(f.x - old_x)
@@ -211,6 +227,7 @@ func _try_grab(world: StorySimulation, f: FighterModel, data: Dictionary) -> voi
 	nearest.vx = 0
 	nearest.vy = 0
 	f._start_move(move)
+	f.invincible_ticks = (move.startup + move.active) * 2
 	nearest.transition(FighterState.Id.HITSTUN)
 	nearest.stun_ticks = 2
 	data.grab_target = nearest.slot
@@ -234,6 +251,7 @@ func _update_grab(world: StorySimulation, f: FighterModel, data: Dictionary) -> 
 	data.grab_target = -1
 	f.hit_targets.append(target.slot)
 	var throw_move: MoveData = f.current_move().duplicate(true)
+	throw_move.legacy = f.current_move().legacy.duplicate(true)
 	throw_move.legacy.knockdown = true
 	throw_move.legacy.launch = 720
 	throw_move.push_pixels = 0

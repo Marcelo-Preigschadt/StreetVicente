@@ -33,9 +33,19 @@ static func intent(world: StorySimulation, enemy: Dictionary, target: FighterMod
 	# Keep a stable approach side; waiting actors use depth rather than pushing
 	# another enemy across the hero. No position reservation or teleportation.
 	var offset_z := 0
+	var rank := 0
+	for other in world.enemies:
+		if other.id == enemy.id or other.fighter.health <= 0 or int(other.id) > int(enemy.id):
+			continue
+		var same_side: bool = (other.fighter.x - target.x) * side > 0
+		if same_side and absi(other.fighter.ground_y - target.ground_y) < 80 * UNIT:
+			rank += 1
 	if attackers >= 2 or int(enemy.cooldown) > 65:
-		offset_z = (-34 if int(enemy.id) % 2 else 34) * UNIT
-	var goal := Vector2i(target.x + side * reach, clampi(target.ground_y + offset_z, 540 * UNIT, 650 * UNIT))
+		offset_z = (-42 if int(enemy.id) % 2 else 42) * UNIT
+	if rank > 0:
+		reach += rank * 80 * UNIT
+		offset_z = (-45 if int(enemy.id) % 2 else 45) * UNIT
+	var goal := Vector2i(target.x + side * reach, clampi(target.ground_y + offset_z, (StoryLayout.MIN_LANE + 6) * UNIT, (StoryLayout.MAX_LANE - 6) * UNIT))
 	# The ideal attack distance can lie inside a table. End the approach on
 	# the target's side of that footprint instead of routing back into it.
 	for prop in world.props:

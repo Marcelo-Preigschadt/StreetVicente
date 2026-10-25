@@ -46,7 +46,7 @@ static func run(s: SceneTree) -> void:
 		s.check(first != next, "Ciclo muda quadros pelo trajeto, não desliza uma imagem: " + kind)
 		f.health = 0
 		enemy.dead_tick = 0
-		s.check(StoryEnemyArt.sample(enemy, 50).index == 15, "Queda tem desfecho próprio: " + kind)
+		s.check(StoryEnemyArt.sample(enemy, 200).index == int(atlas.sequences.fall[-1]), "Queda tem desfecho próprio: " + kind)
 	var coop := CoopStorySimulation.new(LegacyRoster.get_character("marcelo"), LegacyRoster.get_character("khauany"))
 	s.check(coop.heroes.all(func(f): return f.campaign_costs and f.meter == 0), "Coop usa a mesma energia e custos nos dois jogadores")
 	for wave in 4:
@@ -54,7 +54,7 @@ static func run(s: SceneTree) -> void:
 		bounded.wave_index = wave
 		bounded.enemies.clear()
 		bounded._spawn_wave()
-		var edge := mini(3560, 880 + wave * 820) * UNIT
+		var edge := StoryLayout.gate(wave) * UNIT
 		for enemy in bounded.enemies:
 			var f: FighterModel = enemy.fighter
 			s.check(f.x <= edge - 80 * UNIT, "Formação nasce dentro da área acessível da onda")

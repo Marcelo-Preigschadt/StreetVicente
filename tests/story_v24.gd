@@ -24,7 +24,7 @@ static func run(s: SceneTree) -> void:
 		s.check(f.ground_y == lane and input.held == 0, "IA não arrasta máquina durante reação/queda: " + FighterState.NAMES[state])
 	f.state = FighterState.Id.WAKEUP
 	f.state_tick = 0
-	s.check(StoryEnemyArt.sample(enemy, 100).index == 15, "Recuperação começa deitada, sem salto para a pose em pé")
+	s.check(StoryEnemyArt.sample(enemy, 100).index == 22, "Recuperação começa deitada, sem salto para a pose em pé")
 	f.state_tick = 35
 	s.check(StoryEnemyArt.sample(enemy, 135).index == 0, "Recuperação termina na pose neutra")
 	var drone: Dictionary = world.enemies[0]
@@ -40,14 +40,14 @@ static func run(s: SceneTree) -> void:
 	s.check(flyer.move_id == "enemy_shot", "Drone usa ataque de máquina, não o chute aéreo do manequim")
 	var original: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/story/enemy-animation-v23.json"))
 	var cleaner := StoryEnemyArt.atlas("cleaner")
-	s.check(cleaner.frames[9].bottom < original.enemies.cleaner.frames[9].bottom - 20, "Arco elétrico não desloca a base do robô")
+	s.check(JSON.parse_string(FileAccess.get_file_as_string("res://data/story/enemy-registration-v24.json")).enemies.cleaner[9].bottom < original.enemies.cleaner.frames[9].bottom - 20, "Arco elétrico não desloca a base do robô")
 	var legacy := world.snapshot()
 	legacy.erase("story_revision")
 	legacy.props[1].x = 1040 * UNIT
 	legacy.props[2].x = 1260 * UNIT
 	var resumed := StorySimulation.new(world.hero.character)
 	resumed.restore(legacy)
-	s.check(resumed.props[1].x == 985 * UNIT and resumed.props[2].x == 1315 * UNIT, "Save antigo reposiciona cadeiras para a escala adulta")
+	s.check(resumed.props[1].x == 2635 * UNIT and resumed.props[2].x == 2965 * UNIT, "Save antigo integra cadeiras à área atual da cantina")
 	var copy := StorySimulation.new(world.hero.character)
 	copy.restore(JSON.parse_string(JSON.stringify(world.snapshot())))
 	for tick in 180:

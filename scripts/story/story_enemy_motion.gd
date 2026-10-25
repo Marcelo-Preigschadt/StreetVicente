@@ -20,7 +20,7 @@ static func intent(world: StorySimulation, enemy: Dictionary, actor: FighterMode
 		Vector2i(-reach - 150, -65), Vector2i(reach + 150, 65),
 		Vector2i(-reach - 280, 60), Vector2i(reach + 280, -60)]
 	var offset: Vector2i = offsets[clampi(slot, 0, 5)]
-	var gate := mini(3560, 880 + world.wave_index * 820)
+	var gate := StoryLayout.gate(world.wave_index)
 	var destination := Vector2i(clampi(actor.x + offset.x * UNIT, 100 * UNIT, (gate - 75) * UNIT),
 		clampi(actor.ground_y + offset.y * UNIT, 540 * UNIT, 650 * UNIT))
 	var dx := destination.x - f.x

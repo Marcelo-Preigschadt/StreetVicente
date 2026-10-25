@@ -9,11 +9,18 @@ const MAX_ACTIVE := 3
 static func begin(world: StorySimulation) -> void:
 	world.spawn_queue.clear()
 	var kinds: Array = world.act().waves[world.wave_index] if world.wave_index < 3 else [world.act().boss]
-	var edge := mini(3560, 880 + world.wave_index * 820)
-	var start := mini(650 + world.wave_index * 820, edge - 80 - mini(2, kinds.size() - 1) * 90)
+	var edge := StoryLayout.gate(world.wave_index)
+	var start := edge - 400
 	for i in kinds.size():
-		world.spawn_queue.append({"kind": kinds[i], "x": start + (i % 3) * 90,
-			"lane": 565 + (i % 3) * 35, "cooldown": 60 + i * 28})
+		var entry_x := start + (i % 3) * 150
+		var lane: int = [510, 625, 565][i % 3]
+		if world.wave_index == 3:
+			lane = 625
+			entry_x = edge - 230
+		if i % 3 == 2:
+			entry_x = 110 if world.wave_index == 0 else maxi(110, edge - 1280)
+		world.spawn_queue.append({"kind": kinds[i], "x": entry_x,
+			"lane": lane, "cooldown": 100 + i * 28})
 	world.spawn_due = world.tick
 	pump(world)
 

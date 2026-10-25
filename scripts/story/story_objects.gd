@@ -37,11 +37,11 @@ func setup(act: int) -> void:
 	world.props.clear()
 	if act == 0:
 		# Two seating groups on the foreground floor; the vending machine stays by the wall.
-		for x in [1150, 2600]:
-			_add_prop("table", x, 560, 160)
-			_add_prop("chair", x - 165, 590, 80)
-			_add_prop("chair", x + 165, 535, 80)
-		_add_prop("soda", 3260, 540, 200)
+		for x in [2800, 3260]:
+			_add_prop("table", x, 505, 160)
+			_add_prop("chair", x - 165, 535, 80)
+			_add_prop("chair", x + 165, 480, 80)
+		_add_prop("soda", 3430, 505, 200)
 	elif act == 2:
 		for x in [800, 1690, 2760]:
 			_add_prop("shelf", x, 548, 110)
@@ -94,6 +94,26 @@ func migrate_layout() -> void:
 				prop.x = (table_x - 165) * UNIT
 			elif int(prop.x) == (table_x + 110) * UNIT:
 				prop.x = (table_x + 165) * UNIT
+
+
+func migrate_stage() -> void:
+	if world.act_index != 0:
+		return
+	var tables := 0
+	var chairs := 0
+	for prop in world.props:
+		if prop.kind == "table" and tables < 2:
+			prop.x = [2800, 3260][tables] * UNIT
+			prop.lane = 505 * UNIT
+			tables += 1
+		elif prop.kind == "chair" and chairs < 4:
+			var group := chairs / 2
+			prop.x = ([2800, 3260][group] + (-165 if chairs % 2 == 0 else 165)) * UNIT
+			prop.lane = (535 if chairs % 2 == 0 else 480) * UNIT
+			chairs += 1
+		elif prop.kind == "soda":
+			prop.x = 3430 * UNIT
+			prop.lane = 505 * UNIT
 
 
 func input(value: CombatInput) -> CombatInput:

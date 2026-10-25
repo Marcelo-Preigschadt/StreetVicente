@@ -1,1 +1,1 @@
-Campanha Godot 4: protótipo v26 com cenário ilustrado e adaptação de rotinas de movimento/agarrão do OpenBOR. Ver docs/STORY_V26.md e third_party/openbor/README.md para implementação, origem e limites.
+Campanha Godot 4: revisão v27 com corredor/cantina, inimigos animados e cenário integrado ao chão. Ver docs/STORY_V27.md. A origem das rotinas de movimento/agarrão está em third_party/openbor/README.md.

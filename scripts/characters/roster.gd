@@ -10,6 +10,7 @@ static func load_catalog() -> void:
 	if not catalog.is_empty():
 		return
 	catalog = JSON.parse_string(FileAccess.get_file_as_string("res://data/legacy/catalog.json"))
+	StoryDirection.apply(catalog.story)
 	for raw in catalog.roster:
 		var c := CharacterData.new()
 		c.id = raw.id

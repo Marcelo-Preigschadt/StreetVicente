@@ -6,9 +6,9 @@ async function release(page){for(const key of ['a','d','w','s','r'])await page.k
 // Observations stay read-only; the route is executed with normal keyboard keys.
 function corridorKeys(q){
  const unit=256,step=8,x0=q.x/unit,y0=q.ground_y/unit;
- const gate=Math.min(3560,880+q.wave*820);
+ const gate=q.gate||Math.min(3560,880+q.wave*820);
  const minX=Math.ceil((Math.max(70,x0-400)-x0)/step),maxX=Math.floor((gate-55-x0)/step);
- const minY=Math.ceil((535-y0)/step),maxY=Math.floor((655-y0)/step);
+ const minY=Math.ceil(((q.lane_min||480)-y0)/step),maxY=Math.floor(((q.lane_max||665)-y0)/step);
  const props=q.props.filter(p=>!p.used&&p.hp>0&&p.kind!=='medkit');
  const blocked=(ix,iy)=>{
   const x=x0+ix*step,y=y0+iy*step;

@@ -51,11 +51,11 @@ const wait=(fn,arg=null,timeout=15000)=>page.waitForFunction(fn,arg,{timeout}).t
  await wait(({id,hp})=>window.svfQA.story.enemy_states.some(e=>e.id===id&&e.hp<hp&&e.y<e.lane-25*256),{id:victim.id,hp:victim.hp});
  await page.keyboard.press('Escape');await wait(()=>window.svfQA.paused);
  const after=(await state()).story;
- assert.equal(after.presentation_revision,26);
+ assert.equal(after.presentation_revision,27);
  assert(after.enemy_states.find(e=>e.id===victim.id).hp<victim.hp,'Release delivers damage to the linked victim');
  await page.screenshot({path:'test-results/31-story-v26-throw.png'});
  assert.deepEqual(errors,[]);
- fs.writeFileSync('test-results/story-v26-smoke.json',JSON.stringify({status:'passed',revision:26,
+ fs.writeFileSync('test-results/story-v26-smoke.json',JSON.stringify({status:'passed',revision:27,
   checks:['Real keyboard approach','E links a grounded enemy','Authored release frame damages and tosses the victim','No browser script errors'],errors},null,2));
  console.log('STORY V26 WEB PASSED: real approach, grab link, release, airborne victim');
 })().catch(async e=>{console.error(e);if(page){console.error(JSON.stringify(await state().catch(()=>({}))));await page.screenshot({path:'test-results/31-story-v26-failure.png'}).catch(()=>{});}process.exitCode=1;})

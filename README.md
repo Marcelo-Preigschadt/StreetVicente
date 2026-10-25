@@ -1,6 +1,6 @@
 # Street Vicente Fighter · Godot 4
 
-**História v25 — base Fists of Fury:** combos confirmados, posições reservadas de ataque, reforços por vaga, objetos destrutíveis e cadeiras lançadas por chutes. Rostos e poderes aprovados preservados. [Integração, controles e validação](docs/STORY_V25.md). [Licença MIT e origem](third_party/fists_of_fury/README.md).
+**História v27 — corredor e cantina:** nova composição do primeiro ato, 66 desenhos de inimigos, piso e objetos na mesma projeção, câmera por área de combate, HUD compacto e PCK identificado pelo conteúdo para evitar versões antigas em cache. Rostos, vozes e poderes aprovados preservados. [Revisão e validação](docs/STORY_V27.md) · [Vídeo](docs/previews/story-v27-preview.mp4).
 
 **Online v22:** Versus e História cooperativa para duas pessoas, salas por código, busca de partida, escolha individual entre os 13 personagens, pausa sincronizada e retomada após queda de conexão ou reload. [Como jogar e funcionamento](docs/ONLINE_V22.md). As artes dos personagens permanecem preservadas.
 

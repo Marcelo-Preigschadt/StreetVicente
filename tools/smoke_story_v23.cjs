@@ -6,7 +6,7 @@ process.chdir(path.resolve(__dirname,'..'));fs.mkdirSync('test-results',{recursi
 if(!fs.existsSync('build/StreetVicente'))fs.symlinkSync('web','build/StreetVicente');
 const server=spawn('python3',['-m','http.server','8074','--directory','build','--bind','127.0.0.1'],{stdio:'ignore'});
 const target=process.env.SVF_STORY_URL||'http://127.0.0.1:8074/StreetVicente/?qa=1';
-let browser,page;const errors=[];const report={revision:26,checks:[],errors};
+let browser,page;const errors=[];const report={revision:27,checks:[],errors};
 const state=()=>page.evaluate(()=>window.svfQA);
 const wait=(f,arg=null,timeout=30000)=>page.waitForFunction(f,arg,{timeout}).then(h=>h.dispose());
 async function shot(name){
@@ -42,7 +42,7 @@ async function walkTo(x,lane){
  for(let i=0;i<3;i++)await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await wait(()=>window.svfQA.screen==='selection');
  let q=await state();for(let i=0;i<(q.roster_ids.indexOf('marcelo')-q.cursor+13)%13;i++)await page.keyboard.press('ArrowRight');
  await page.keyboard.press('Enter');await wait(()=>window.svfQA.screen==='story_dialog');await page.keyboard.press('Enter');await wait(()=>window.svfQA.screen==='story');
- q=(await state()).story;assert.equal(q.meter,0);assert.equal(q.presentation_revision,26);assert.equal(q.scene_scale,.8);
+ q=(await state()).story;assert.equal(q.meter,0);assert.equal(q.presentation_revision,27);assert.equal(q.scene_scale,.8);
  await page.keyboard.press('h');await delay(120);assert.equal((await state()).story.projectiles,0);
  const cels=new Map();for(let i=0;i<10;i++){
   for(const e of (await state()).story.enemy_states){if(!cels.has(e.kind))cels.set(e.kind,new Set());cels.get(e.kind).add(e.cel);}
@@ -55,12 +55,12 @@ async function walkTo(x,lane){
  const energy=(await state()).story.meter;await page.keyboard.press('h');
  await wait(()=>window.svfQA.story.projectiles>0);assert.equal((await state()).story.meter,energy-25);
  await shot('power');report.checks.push('Real melee contacts earn energy and H spends 25');
- await fightUntil(page,q=>q.wave>=2,{timeout:90000,useSuper:true});
- console.log('STORY V25: two waves defeated through normal combat');
+ await fightUntil(page,q=>q.wave>=3,{timeout:150000,useSuper:true});
+ console.log('STORY V27: three waves defeated through normal combat');
  // Return to the cleared seating group while the next wave remains far
  // ahead. Furniture is inspected through ordinary movement and interaction.
  const table=(await state()).story.props.filter(p=>p.kind==='table').sort((a,b)=>a.x-b.x)[0];
- const gate=Math.min(3560,880+(await state()).story.wave*820)*256;
+ const gate=(await state()).story.gate*256;
  await walkTo((await state()).story.x,650*256);
  await walkTo(table.x+((await state()).story.prop_sizes.table[0]/2+35)*256,650*256);
  await walkTo((await state()).story.x,table.lane+20*256);
@@ -72,7 +72,7 @@ async function walkTo(x,lane){
  }
  assert((await state()).story.props.find(p=>p.id===table.id).used,'Table breaks through real combat contacts');
  await shot('table-broken');report.checks.push('Table is a physical destructible obstacle; E never glues it to a fist');
- const chair=(await state()).story.props.filter(p=>p.kind==='chair'&&!p.used&&p.x<1800*256).sort((a,b)=>a.x-b.x)[0];
+ const chair=(await state()).story.props.filter(p=>p.kind==='chair'&&!p.used&&p.x<table.x).sort((a,b)=>a.x-b.x)[0];
  assert(chair,'A chair in the cleared seating group remains');
  await walkTo((await state()).story.x-150*256,(await state()).story.ground_y);
  await walkTo((await state()).story.x,chair.lane+25*256);
@@ -86,6 +86,8 @@ async function walkTo(x,lane){
  await wait(()=>window.svfQA.story.thrown.some(p=>p.kind==='chair'),null,5000);
  q=await shot('chair-kick');assert.equal(Object.keys(q.story.carry).length,0);
  report.checks.push('Chair leaves the floor on the actual kick contact frame and follows ballistic flight');
+ await fightUntil(page,q=>q.act>=1,{timeout:180000,useSuper:true});
+ await page.screenshot({path:'test-results/30-story-v27-act-complete.png'});report.checks.push('Full first act and commander defeated through ordinary controls');
  assert.deepEqual(errors,[]);report.status='passed';
  fs.writeFileSync('test-results/story-v23-smoke.json',JSON.stringify(report,null,2));
  console.log('STORY V25 WEB PASSED:',report.checks.join('; '));

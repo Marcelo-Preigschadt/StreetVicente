@@ -85,7 +85,7 @@ func step_party(values: Array[CombatInput]) -> void:
 			events.append({"id": "%d:revive:%d" % [tick, i], "kind": "revive", "slot": partner.slot})
 		actions.append(_move_actor(value))
 		hero.x = clampi(hero.x, partner.x - 1040 * UNIT, partner.x + 1040 * UNIT)
-	var gate := mini(3560, 880 + wave_index * 820) * UNIT
+	var gate := StoryLayout.gate(wave_index) * UNIT
 	var alive := spawn_queue.size()
 	for enemy in enemies:
 		var f: FighterModel = enemy.fighter
@@ -129,17 +129,20 @@ func step_party(values: Array[CombatInput]) -> void:
 			var power: MoveData = actions[i].power
 			if hero.health > 0 and absi(hero.ground_y - f.ground_y) <= 50 * UNIT:
 				var contact := false
+				var impact := Vector2i(f.x, f.y - 130 * UNIT)
 				for hit in boxes:
 					for hurt in f.hurtboxes():
 						if BoxMath.overlap(hit, hurt):
 							contact = true
+							var overlap := hit.intersection(hurt)
+							impact = overlap.position + overlap.size / 2
 				if (
 					contact
 					and not enemy.id in hero.hit_targets
 					and (not RollMotion.active(hero) or RollMotion.can_contact(hero, f))
 				):
 					hero.hit_targets.append(enemy.id)
-					_apply_hero_hit(f, power, hero.facing, false, f.x, f.y - 130 * UNIT, "", 0)
+					_apply_hero_hit(f, power, hero.facing, false, impact.x, impact.y, "", 0)
 				var enemy_boxes: Array[Rect2i] = []
 				if enemy.attack_mode != "shot":
 					enemy_boxes.assign(f.attack_boxes())
@@ -183,7 +186,7 @@ func step_party(values: Array[CombatInput]) -> void:
 		hero.end_tick()
 	hero = heroes[0]
 	objects = gear[0]
-	camera_x = clampf((heroes[0].x + heroes[1].x) / (2.0 * UNIT) - 640, 0, 2320)
+	update_camera((heroes[0].x + heroes[1].x) / 2 - 640 * UNIT)
 	if heroes.all(func(actor): return actor.health <= 0):
 		defeated = true
 		tick += 1
@@ -286,4 +289,4 @@ func restore(data: Dictionary) -> void:
 	heroes[1].restore(SnapshotCodec.integers(data.partner))
 	heroes[1].campaign_costs = true
 	gear[1].restore(SnapshotCodec.integers(data.get("partner_gear", {})))
-	camera_x = clampf((heroes[0].x + heroes[1].x) / (2.0 * UNIT) - 640, 0, 2320)
+	camera_units = int(data.get("camera_units", clampi((heroes[0].x + heroes[1].x) / 2 - 640 * UNIT, 0, StoryLayout.camera_limit(wave_index) * UNIT)))

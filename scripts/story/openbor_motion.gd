@@ -2,8 +2,8 @@ class_name OpenBorMotion
 extends RefCounted
 ## Fixed-point port of OpenBOR testmove/common_trymove. See third_party/openbor/.
 const UNIT := FighterModel.SCALE
-const MIN_LANE := 535 * UNIT
-const MAX_LANE := 655 * UNIT
+const MIN_LANE := StoryLayout.MIN_LANE * UNIT
+const MAX_LANE := StoryLayout.MAX_LANE * UNIT
 
 
 static func footprint(prop: Dictionary) -> Rect2i:
@@ -22,7 +22,7 @@ static func inside(rect: Rect2i, point: Vector2i) -> bool:
 
 
 static func test_position(world: StorySimulation, actor: FighterModel, point: Vector2i) -> bool:
-	var gate := mini(3560, 880 + world.wave_index * 820) * UNIT
+	var gate := StoryLayout.gate(world.wave_index) * UNIT
 	if point.x < 70 * UNIT or point.x > gate or point.y < MIN_LANE or point.y > MAX_LANE:
 		return false
 	for prop in world.props:
@@ -35,7 +35,7 @@ static func constrain(world: StorySimulation, actor: FighterModel, old_x: int, o
 	var lift := actor.ground_y - actor.y
 	var position := Vector2i(old_x, old_z)
 	var wanted := Vector2i(actor.x, actor.ground_y)
-	wanted.x = clampi(wanted.x, 70 * UNIT, mini(3560, 880 + world.wave_index * 820) * UNIT)
+	wanted.x = clampi(wanted.x, 70 * UNIT, StoryLayout.gate(world.wave_index) * UNIT)
 	wanted.y = clampi(wanted.y, MIN_LANE, MAX_LANE)
 	var blockers: Array[Rect2i] = []
 	for prop in world.props:
@@ -51,7 +51,9 @@ static func constrain(world: StorySimulation, actor: FighterModel, old_x: int, o
 			if other == actor or other.health <= 0 or not other.grounded() \
 				or other.state in [FighterState.Id.KNOCKDOWN, FighterState.Id.WAKEUP]:
 				continue
-			people.append(Rect2i(other.x - 65 * UNIT, other.ground_y - 18 * UNIT, 130 * UNIT, 36 * UNIT))
+			var own_radius := _radius(actor)
+			var radius := own_radius + _radius(other)
+			people.append(Rect2i(other.x - radius, other.ground_y - 26 * UNIT, radius * 2, 52 * UNIT))
 		var start := Vector2i(old_x, old_z)
 		start.x = _axis(start, position.x, people, true)
 		start.y = _axis(start, position.y, people, false)
@@ -59,6 +61,13 @@ static func constrain(world: StorySimulation, actor: FighterModel, old_x: int, o
 	actor.x = position.x
 	actor.ground_y = position.y
 	actor.y = position.y - lift
+
+
+static func _radius(actor: FighterModel) -> int:
+	if actor.character.id.begins_with("enemy_"):
+		var profile: Dictionary = LegacyRoster.catalog.story.enemies[actor.character.id.trim_prefix("enemy_")]
+		return roundi(float(profile.w) * .40 * UNIT)
+	return 40 * UNIT
 
 
 static func _axis(from: Vector2i, desired: int, rectangles: Array[Rect2i], horizontal: bool) -> int:

@@ -598,7 +598,7 @@ func _publish_qa() -> void:
 			else "legacy"
 		)
 		data.state = FighterState.NAMES[sim.fighters[0].state]
-	if screen == "story" and story != null:
+	if screen in ["story", "story_dialog"] and story != null:
 		data.story = {
 			"character": story.hero.character.id,
 			"pose": CharacterArt.frame(story.hero).key,
@@ -616,7 +616,7 @@ func _publish_qa() -> void:
 			"pickup_ticks": story.objects.pickup_ticks,
 			"thrown": story.objects.thrown.duplicate(true),
 			"props": story.props.duplicate(true),
-			"presentation_revision": 26,
+			"presentation_revision": 27,
 			"combat_base": "openbor-motion-grab-port",
 			"campaign_combo": story.combat.actors.get(str(story.hero.slot), {}).duplicate(),
 			"debris": story.objects.debris.size(),
@@ -624,6 +624,9 @@ func _publish_qa() -> void:
 			"move_tick": story.hero.move_tick,
 			"facing": story.hero.facing,
 			"scene_scale": StoryLayout.SCALE,
+			"camera_x": story.camera_x,
+			"gate": StoryLayout.gate(story.wave_index),
+			"zone": StoryLayout.zone(story.hero.x / FighterModel.SCALE),
 			"enemy_states": story.enemies.map(func(e: Dictionary) -> Dictionary:
 				var f: FighterModel = e.fighter
 				return {"id": e.id, "kind": e.kind, "x": f.x, "y": f.y, "lane": f.ground_y, "hp": f.health, "state": FighterState.NAMES[f.state], "cel": StoryEnemyArt.sample(e, story.tick).index, "engagement_slot": e.get("engagement_slot", -1), "attack_mode": e.attack_mode}),
