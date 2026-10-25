@@ -254,7 +254,7 @@ static func run(s: SceneTree) -> void:
 		campaign.spawn_due = campaign.tick
 		for enemy in campaign.enemies:
 			enemy.fighter.health = 0
-		var gate := mini(3560, 880 + campaign.wave_index * 820)
+		var gate := StoryLayout.gate(campaign.wave_index)
 		for actor in campaign.heroes:
 			actor.x = (gate - 150) * 256
 		campaign.step_party([CombatInput.new(), CombatInput.new()])

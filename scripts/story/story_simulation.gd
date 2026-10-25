@@ -17,11 +17,16 @@ var act_start_ticks: int = 900 * 120
 var completed: bool = false
 var defeated: bool = false
 var events: Array = []
-var camera_x: float = 0.0
+var camera_units: int = 0
+var camera_x: float:
+	get:
+		return float(camera_units) / UNIT
+	set(value):
+		camera_units = roundi(value * UNIT)
 var next_id: int = 1
 var freeze_ticks: int = 0
 var powers := PowerSystem.new()
-var combat := FuryCombat.new()
+var combat := OpenBorCombat.new()
 var spawn_queue: Array = []
 var spawn_due: int = 0
 var projectiles: Array:
@@ -32,7 +37,7 @@ var projectiles: Array:
 func _init(character: CharacterData, first_act: int = 0) -> void:
 	LegacyRoster.load_catalog()
 	objects = StoryObjects.new(self)
-	hero = FighterModel.new(FuryCombat.character(character), 0, 220)
+	hero = FighterModel.new(OpenBorCombat.character(character), 0, 220)
 	hero.campaign_costs = true
 	hero.meter = 0
 	act_index = first_act
@@ -51,7 +56,7 @@ func _start_act() -> void:
 	powers.projectiles.clear()
 	var charge := hero.meter
 	var life := mini(1000, hero.health + 300)
-	hero = FighterModel.new(FuryCombat.character(hero.character), 0, 220)
+	hero = FighterModel.new(OpenBorCombat.character(hero.character), 0, 220)
 	hero.health = life
 	hero.campaign_costs = true
 	hero.meter = charge
@@ -60,6 +65,7 @@ func _start_act() -> void:
 	hero.y = 625 * UNIT
 	hero.ground_y = 625 * UNIT
 	hero.transition(FighterState.Id.IDLE)
+	camera_units = 0
 	boss_phase = 1
 	objects.setup(act_index)
 	_spawn_wave()
@@ -100,7 +106,7 @@ func step(value: CombatInput) -> void:
 	value = combat.take_input(hero, value)
 	value = objects.input(value)
 	var action := combat.advance(self, hero, objects, value)
-	var gate := mini(3560, 880 + wave_index * 820) * UNIT
+	var gate := StoryLayout.gate(wave_index) * UNIT
 	var boxes: Array[Rect2i] = action.boxes
 	var power: MoveData = action.power
 	if powers.emit(hero, tick, true):
@@ -120,18 +126,20 @@ func step(value: CombatInput) -> void:
 				)
 			f.record_input(CombatInput.new(), tick)
 			f.begin_tick(f.x + f.facing * UNIT)
+			combat.advance_throw(self, f)
 			f.end_tick()
 			continue
 		alive += 1
 		var profile: Dictionary = LegacyRoster.catalog.story.enemies[enemy.kind]
 		var enemy_lane := f.ground_y
 		var enemy_x := f.x
-		var enemy_input := StoryEnemyMotion.intent(self, enemy, hero)
+		var enemy_input := OpenBorEnemyMotion.intent(self, enemy, hero)
 		f.record_input(enemy_input, tick)
 		f.begin_tick(hero.x)
-		StoryEnemyMotion.finish(f, profile, enemy_x, enemy_lane)
+		OpenBorEnemyMotion.finish(f, profile, enemy_x, enemy_lane)
+		combat.advance_throw(self, f)
 		objects.constrain_actor(f, enemy_x, enemy_lane)
-		StoryEnemyMotion.record_walk(f, enemy_x, enemy_lane)
+		OpenBorEnemyMotion.record_walk(f, enemy_x, enemy_lane)
 		if f.state == FighterState.Id.ATTACK and f.current_move().phase(f.move_tick) == "ACTIVE":
 			if enemy.attack_mode == "shot" and not enemy.fired:
 				objects.fire_enemy(enemy)
@@ -144,17 +152,20 @@ func step(value: CombatInput) -> void:
 				f.x = clampi(f.x + f.facing * 460 * UNIT / 120, 70 * UNIT, 3530 * UNIT)
 		if absi(hero.ground_y - f.ground_y) <= 42 * UNIT:
 			var contact := false
+			var impact := Vector2i(f.x, f.y - 130 * UNIT)
 			for hit in boxes:
 				for hurt in f.hurtboxes():
 					if BoxMath.overlap(hit, hurt):
 						contact = true
+						var overlap := hit.intersection(hurt)
+						impact = overlap.position + overlap.size / 2
 			if (
 				contact
 				and not enemy.id in hero.hit_targets
 				and (not RollMotion.active(hero) or RollMotion.can_contact(hero, f))
 			):
 				hero.hit_targets.append(enemy.id)
-				_apply_hero_hit(f, power, hero.facing, false, f.x, f.y - 130 * UNIT, "", 0)
+				_apply_hero_hit(f, power, hero.facing, false, impact.x, impact.y, "", 0)
 			var enemy_boxes: Array[Rect2i] = []
 			if enemy.attack_mode != "shot":
 				enemy_boxes.assign(f.attack_boxes())
@@ -200,7 +211,7 @@ func step(value: CombatInput) -> void:
 	powers.events.clear()
 	objects.step(boxes, power)
 	hero.end_tick()
-	camera_x = clampf(float(hero.x) / UNIT - 420, 0, 2320)
+	update_camera(hero.x - 420 * UNIT)
 	if hero.health <= 0:
 		defeated = true
 	if alive == 0 and wave_index == 3 and act_index == 3 and boss_phase == 1:
@@ -249,7 +260,8 @@ func snapshot() -> Dictionary:
 		e.fighter = enemy.fighter.snapshot()
 		values.append(e)
 	return {
-		"story_revision": 25,
+		"story_revision": 27,
+		"camera_units": camera_units,
 		"combat": combat.snapshot(),
 		"spawn_queue": spawn_queue.duplicate(true),
 		"spawn_due": spawn_due,
@@ -406,9 +418,16 @@ func restore(data: Dictionary) -> void:
 		objects.migrate_layout()
 	boss_phase = int(data.get("boss_phase", 1))
 	objects.restore(data.get("objects", {}))
+	if int(data.get("story_revision", 23)) < 27:
+		objects.migrate_stage()
 	powers.restore(data.powers)
-	camera_x = clampf(float(hero.x) / UNIT - 420, 0, 2320)
+	camera_units = int(data.get("camera_units", clampi(hero.x - 420 * UNIT, 0, StoryLayout.camera_limit(wave_index) * UNIT)))
 	events.clear()
+
+
+func update_camera(target: int) -> void:
+	target = clampi(target, 0, StoryLayout.camera_limit(wave_index) * UNIT)
+	camera_units += clampi(target - camera_units, -8 * UNIT, 8 * UNIT)
 
 
 func retry_act() -> void:
@@ -441,9 +460,9 @@ func _prepare_enemy_attack(enemy: Dictionary) -> void:
 	enemy.attack_mode = mode
 	var move := MoveData.new()
 	move.id = "enemy_" + mode
-	move.startup = 30 if p.get("boss", false) else 23
+	move.startup = 28 if p.get("boss", false) else 20
 	move.active = 45 if mode == "flame" else 33 if mode == "charge" else 6
-	move.recovery = 27 if p.get("boss", false) else 20
+	move.recovery = 24 if p.get("boss", false) else 18
 	move.damage = roundi(float(p.damage) * (1.0 if p.get("boss", false) else 1.25))
 	move.hitstun = 18
 	move.level = MoveData.Level.LOW if mode == "slam" else MoveData.Level.MID
@@ -453,7 +472,13 @@ func _prepare_enemy_attack(enemy: Dictionary) -> void:
 		"launch": 300 if mode in ["charge", "slam", "grab"] else 0
 	}
 	var box := HitboxData.new()
-	box.rect = Rect2i(0, -int(p.h), int(p.range), int(p.h))
+	# The arm strikes at chest height; a whole torso-sized rectangle caused
+	# invisible hits during unrelated poses. Charges/slams retain body contact.
+	box.rect = Rect2i(35, -205, maxi(45, int(p.range) - 35), 70)
+	if mode in ["charge", "grab", "flame"]:
+		box.rect = Rect2i(0, -int(p.h) * 3 / 4, int(p.range), int(p.h) * 3 / 4)
+	elif mode == "slam":
+		box.rect = Rect2i(0, -90, int(p.range), 90)
 	box.first_frame = move.startup
 	box.end_frame = move.startup + move.active
 	move.hitboxes.assign([box])

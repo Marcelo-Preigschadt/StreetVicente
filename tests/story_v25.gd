@@ -17,7 +17,7 @@ static func run(s: SceneTree) -> void:
 	for tick in 12:
 		world.step(CombatInput.new(CombatInput.DOWN))
 	s.check(world.hero.ground_y == lane, "Ataque mantém pés e profundidade durante a animação")
-	s.check(not c.moves.has("fury:0") and world.hero.character.moves.has("fury:0"), "Adaptação não altera os moves do versus")
+	s.check(not c.moves.has("bor:0") and world.hero.character.moves.has("bor:0"), "Adaptação não altera os moves do versus")
 	# Four confirmed normals and the knockdown finisher on a full-height target.
 	var fight := StorySimulation.new(c)
 	fight.enemies.clear()
@@ -46,7 +46,7 @@ static func run(s: SceneTree) -> void:
 			if target.health < before:
 				break
 		s.check(target.health < before, "Normal confirmado por colisão real: %d" % step)
-	s.check(steps == ["fury:0", "fury:1", "fury:2", "fury:3"], "Combo importado progride soco/soco/chute/finalizador")
+	s.check(steps == ["bor:0", "bor:1", "bor:2", "bor:3"], "Combo da campanha progride soco/soco/chute/finalizador")
 	s.check(target.knockdown_pending and target.vy < 0, "Quarto golpe derruba e lança o inimigo")
 	# Real contact-frame object interaction, then airborne save/replay.
 	var objects := StorySimulation.new(c)

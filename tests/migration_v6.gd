@@ -288,7 +288,7 @@ static func _story(s: SceneTree) -> void:
 		run.spawn_due = run.tick
 		for enemy in run.enemies:
 			enemy.fighter.health = 0
-		run.hero.x = mini(3560, 880 + run.wave_index * 820) * UNIT
+		run.hero.x = StoryLayout.gate(run.wave_index) * UNIT
 		run.step(CombatInput.new())
 		phases += 1
 	s.check(

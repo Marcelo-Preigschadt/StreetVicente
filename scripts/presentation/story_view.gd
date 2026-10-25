@@ -74,13 +74,20 @@ func _draw() -> void:
 		return
 	var camera := render_camera()
 	var act: Dictionary = LegacyRoster.catalog.story.acts[mini(world.act_index, 3)]
-	var texture := LegacyRoster.texture(act.background)
-	var height := 760.0
-	var width := height * texture.get_width() / texture.get_height()
-	var pan := maxf(0.0, width - 1280.0) / 2320.0
-	var screen_rect := Rect2(Vector2(-camera * pan, -40), Vector2(width, height))
-	draw_texture_rect(texture, Rect2((screen_rect.position - StoryLayout.ORIGIN) / StoryLayout.SCALE,
-		screen_rect.size / StoryLayout.SCALE), false)
+	var texture: Texture2D
+	if world.act_index == 0:
+		texture = LegacyRoster.texture("res://assets/stages/v27/corridor.png")
+		var canteen := LegacyRoster.texture("res://assets/stages/v27/canteen.png")
+		# Both architectural panels and the continuous ground plane use the
+		# actors' world projection. Furniture cannot slide against the pavement.
+		_paint(texture, Rect2(StoryLayout.floor_left(camera), 440 - 864 * .578, 1728, 864))
+		_paint(canteen, Rect2(1728 + StoryLayout.floor_left(camera), 440 - 864 * .548, 1728, 864))
+	else:
+		texture = LegacyRoster.texture(str(act.background))
+		_paint(texture, Rect2(StoryLayout.floor_left(camera), -40, 3456, 800))
+	var floor_rect := Rect2(Vector2(StoryLayout.floor_left(camera), 440), Vector2(3456, 320))
+	var floor_source := Rect2(0, texture.get_height() * .585, texture.get_width(), texture.get_height() * .415)
+	draw_texture_rect_region(texture, _local(floor_rect), floor_source)
 	for enemy in world.enemies:
 		var f: FighterModel = enemy.fighter
 		if f.health <= 0 and enemy.dead_tick >= 0 and world.tick - int(enemy.dead_tick) > 100:
@@ -96,6 +103,14 @@ func _draw() -> void:
 		for prop in gear.thrown:
 			_shadow(Vector2(float(prop.x) / FighterModel.SCALE - camera, float(prop.lane) / FighterModel.SCALE), StoryLayout.prop_size(str(prop.kind)).x * .35)
 	_draw_hazards(camera)
+
+
+func _local(rect: Rect2) -> Rect2:
+	return Rect2((rect.position - StoryLayout.ORIGIN) / StoryLayout.SCALE, rect.size / StoryLayout.SCALE)
+
+
+func _paint(texture: Texture2D, rect: Rect2) -> void:
+	draw_texture_rect(texture, _local(rect), false)
 
 
 func _shadow(at: Vector2, radius: float) -> void:

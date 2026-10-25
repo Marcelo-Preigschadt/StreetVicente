@@ -4,6 +4,9 @@ extends RefCounted
 const SCALE := 0.80
 const ORIGIN := Vector2(128, 125)
 const Z_BASE := -1000
+const MIN_LANE := 480
+const MAX_LANE := 665
+const GATES := [1440, 2160, 2880, 3560]
 const PROP_SIZES := {
 	# A standing fighter is 300 units tall. Preserve each source image's
 	# aspect ratio: chair back 57%, table top 45%, vending machine 103%.
@@ -15,11 +18,30 @@ const PROP_SIZES := {
 
 
 static func prop_size(kind: String) -> Vector2:
+	var revised := StoryDirection.prop_size(kind)
+	if revised != Vector2.ZERO:
+		return revised
 	return PROP_SIZES.get(kind, Vector2(70, 120))
 
 
+static func gate(wave: int) -> int:
+	return GATES[clampi(wave, 0, 3)]
+
+
+static func camera_limit(wave: int) -> int:
+	return maxi(0, gate(wave) - 1440)
+
+
+static func floor_left(camera: float) -> float:
+	return -camera * SCALE
+
+
+static func zone(x: int) -> String:
+	return "CORREDOR" if x < 1700 else "CANTINA" if x < 3000 else "BLOCO A"
+
+
 static func depth(lane: float) -> float:
-	return lerpf(0.96, 1.04, clampf((lane - 535.0) / 120.0, 0.0, 1.0))
+	return lerpf(0.96, 1.04, clampf((lane - MIN_LANE) / float(MAX_LANE - MIN_LANE), 0.0, 1.0))
 
 
 static func grip(kind: String) -> Vector2:

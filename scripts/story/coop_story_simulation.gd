@@ -8,7 +8,7 @@ var gear: Array = []
 
 func _init(first: CharacterData, second: CharacterData) -> void:
 	super(first)
-	heroes = [hero, FighterModel.new(FuryCombat.character(second), PARTNER_SLOT, 320)]
+	heroes = [hero, FighterModel.new(OpenBorCombat.character(second), PARTNER_SLOT, 320)]
 	heroes[1].ground_y = 590 * UNIT
 	heroes[1].y = heroes[1].ground_y
 	heroes[1].campaign_costs = true
@@ -85,7 +85,7 @@ func step_party(values: Array[CombatInput]) -> void:
 			events.append({"id": "%d:revive:%d" % [tick, i], "kind": "revive", "slot": partner.slot})
 		actions.append(_move_actor(value))
 		hero.x = clampi(hero.x, partner.x - 1040 * UNIT, partner.x + 1040 * UNIT)
-	var gate := mini(3560, 880 + wave_index * 820) * UNIT
+	var gate := StoryLayout.gate(wave_index) * UNIT
 	var alive := spawn_queue.size()
 	for enemy in enemies:
 		var f: FighterModel = enemy.fighter
@@ -95,6 +95,7 @@ func step_party(values: Array[CombatInput]) -> void:
 				score += 1000 if LegacyRoster.catalog.story.enemies[enemy.kind].get("boss", false) else 100
 			f.record_input(CombatInput.new(), tick)
 			f.begin_tick(f.x + f.facing * UNIT)
+			combat.advance_throw(self, f)
 			f.end_tick()
 			continue
 		alive += 1
@@ -103,13 +104,14 @@ func step_party(values: Array[CombatInput]) -> void:
 		var profile: Dictionary = LegacyRoster.catalog.story.enemies[enemy.kind]
 		var enemy_lane := f.ground_y
 		var enemy_x := f.x
-		var enemy_input := StoryEnemyMotion.intent(self, enemy, hero)
+		var enemy_input := OpenBorEnemyMotion.intent(self, enemy, hero)
 		var delta_lane := hero.ground_y - f.ground_y
 		f.record_input(enemy_input, tick)
 		f.begin_tick(hero.x)
-		StoryEnemyMotion.finish(f, profile, enemy_x, enemy_lane)
+		OpenBorEnemyMotion.finish(f, profile, enemy_x, enemy_lane)
+		combat.advance_throw(self, f)
 		objects.constrain_actor(f, enemy_x, enemy_lane)
-		StoryEnemyMotion.record_walk(f, enemy_x, enemy_lane)
+		OpenBorEnemyMotion.record_walk(f, enemy_x, enemy_lane)
 		if f.state == FighterState.Id.ATTACK and f.current_move().phase(f.move_tick) == "ACTIVE":
 			if enemy.attack_mode == "shot" and not enemy.fired:
 				objects.fire_enemy(enemy)
@@ -127,17 +129,20 @@ func step_party(values: Array[CombatInput]) -> void:
 			var power: MoveData = actions[i].power
 			if hero.health > 0 and absi(hero.ground_y - f.ground_y) <= 50 * UNIT:
 				var contact := false
+				var impact := Vector2i(f.x, f.y - 130 * UNIT)
 				for hit in boxes:
 					for hurt in f.hurtboxes():
 						if BoxMath.overlap(hit, hurt):
 							contact = true
+							var overlap := hit.intersection(hurt)
+							impact = overlap.position + overlap.size / 2
 				if (
 					contact
 					and not enemy.id in hero.hit_targets
 					and (not RollMotion.active(hero) or RollMotion.can_contact(hero, f))
 				):
 					hero.hit_targets.append(enemy.id)
-					_apply_hero_hit(f, power, hero.facing, false, f.x, f.y - 130 * UNIT, "", 0)
+					_apply_hero_hit(f, power, hero.facing, false, impact.x, impact.y, "", 0)
 				var enemy_boxes: Array[Rect2i] = []
 				if enemy.attack_mode != "shot":
 					enemy_boxes.assign(f.attack_boxes())
@@ -181,7 +186,7 @@ func step_party(values: Array[CombatInput]) -> void:
 		hero.end_tick()
 	hero = heroes[0]
 	objects = gear[0]
-	camera_x = clampf((heroes[0].x + heroes[1].x) / (2.0 * UNIT) - 640, 0, 2320)
+	update_camera((heroes[0].x + heroes[1].x) / 2 - 640 * UNIT)
 	if heroes.all(func(actor): return actor.health <= 0):
 		defeated = true
 		tick += 1
@@ -249,7 +254,7 @@ func _new_act() -> void:
 	objects = gear[0]
 	_start_act()
 	heroes[0] = hero
-	heroes[1] = FighterModel.new(FuryCombat.character(partner.character), PARTNER_SLOT, 320)
+	heroes[1] = FighterModel.new(OpenBorCombat.character(partner.character), PARTNER_SLOT, 320)
 	heroes[1].health = mini(1000, partner.health + 300)
 	heroes[1].meter = partner.meter
 	heroes[1].campaign_costs = true
@@ -284,4 +289,4 @@ func restore(data: Dictionary) -> void:
 	heroes[1].restore(SnapshotCodec.integers(data.partner))
 	heroes[1].campaign_costs = true
 	gear[1].restore(SnapshotCodec.integers(data.get("partner_gear", {})))
-	camera_x = clampf((heroes[0].x + heroes[1].x) / (2.0 * UNIT) - 640, 0, 2320)
+	camera_units = int(data.get("camera_units", clampi((heroes[0].x + heroes[1].x) / 2 - 640 * UNIT, 0, StoryLayout.camera_limit(wave_index) * UNIT)))

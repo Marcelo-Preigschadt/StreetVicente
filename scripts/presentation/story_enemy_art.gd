@@ -11,6 +11,8 @@ static func load_data() -> void:
 		for kind in registration:
 			for index in registration[kind].size():
 				revised[kind].frames[index].merge(registration[kind][index], true)
+		for kind in StoryDirection.PROFILES:
+			revised[kind] = StoryDirection.atlas(kind)
 
 
 static func atlas(kind: String) -> Dictionary:
@@ -28,23 +30,31 @@ static func sample(enemy: Dictionary, tick: int) -> Dictionary:
 		var age := tick - int(enemy.dead_tick) if int(enemy.dead_tick) >= 0 else f.state_tick
 		index = int(fall[clampi(age / 18, 0, fall.size() - 1)])
 	elif f.state == FighterState.Id.WAKEUP:
-		var rise: Array = seq.get("fall", [13, 14, 15]).duplicate()
-		rise.reverse()
-		rise.append(int(seq.get("hit", 12)))
-		rise.append(int(seq.get("idle", 0)))
+		var rise: Array = seq.get("wake", []).duplicate()
+		if rise.is_empty():
+			rise = seq.get("fall", [13, 14, 15]).duplicate()
+			rise.reverse()
+			rise.append(int(seq.get("hit", 12)))
+			rise.append(int(seq.get("idle", 0)))
 		index = int(rise[clampi(f.state_tick * rise.size() / (32 if f.quick_rise else 36), 0, rise.size() - 1)])
 	elif f.state in [FighterState.Id.HITSTUN, FighterState.Id.DIZZY]:
-		index = int(seq.get("hit", 12))
+		var hurt: Array = seq.get("hurtFrames", [int(seq.get("hit", 12))])
+		index = int(hurt[clampi((f.hit_duration - f.stun_ticks) * hurt.size() / maxi(1, f.hit_duration), 0, hurt.size() - 1)])
 	elif f.state == FighterState.Id.ATTACK:
 		var windup := int(seq.get("windup", 8))
 		index = FighterPose.move_key(f.move_tick, f.current_move(),
-			[windup, int(seq.get("acceleration", windup))],
-			[int(seq.get("contacts", {}).get(str(enemy.attack_mode), seq.get("contact", 10)))],
-			[int(seq.get("recovery", 11))])
+			seq.get("windupFrames", [windup, int(seq.get("acceleration", windup))]),
+			seq.get("contactFrames", [int(seq.get("contacts", {}).get(str(enemy.attack_mode), seq.get("contact", 10)))]),
+			seq.get("recoveryFrames", [int(seq.get("recovery", 11))]))
+		if enemy.attack_mode == "charge" and f.current_move().phase(f.move_tick) == "ACTIVE":
+			var rush: Array = seq.get("walk", [0])
+			index = int(rush[posmod(int(f.walk_distance * rush.size() / (112 * FighterModel.SCALE)), rush.size())])
 	elif f.state == FighterState.Id.WALK or (seq.get("walkUnits", "distance") == "time" and (enemy.kind in ["snack", "book", "projector"] or LegacyRoster.catalog.story.enemies[enemy.kind].get("fly", 0) > 0)):
 		var walk: Array = seq.get("walk", [0, 1, 2, 3, 4, 5, 6, 7])
 		var tempo := maxi(1, int(seq.get("walkTempo", 150)))
 		var step := int((tick + int(enemy.get("id", 0)) * 7) / tempo) if seq.get("walkUnits", "distance") == "time" else int(f.walk_distance * walk.size() / (tempo * FighterModel.SCALE))
+		if seq.get("walkUnits", "distance") == "distance" and f.input.axis_x() == -f.facing:
+			step = -step
 		index = int(walk[posmod(step, walk.size())])
 	index = clampi(index, 0, ani.frames.size() - 1)
 	return {"index": index, "frame": ani.frames[index], "sheet": ani}

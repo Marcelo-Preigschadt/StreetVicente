@@ -317,16 +317,16 @@ func _hud() -> void:
 				)
 	elif b == null:
 		var act: Dictionary = LegacyRoster.catalog.story.acts[mini(game.story.act_index, 3)]
-		ArcadeTheme.plate(self, Rect2(720, 15, 560, 65), INK, 15)
-		text_at(Vector2(760, 40), str(act.place), 22, GOLD)
+		ArcadeTheme.plate(self, Rect2(964, 16, 290, 64), Color(INK, .84), 10)
+		text_at(Vector2(984, 40), StoryLayout.zone(game.story.hero.x / FighterModel.SCALE) if game.story.act_index == 0 else str(act.place), 18, GOLD)
 		text_at(
-			Vector2(760, 65),
-			"ONDA %d / 4     PONTOS %d" % [mini(game.story.wave_index + 1, 4), game.story.score],
-			16,
+			Vector2(984, 63),
+			"%d/4   %08d   %02d:%02d" % [mini(game.story.wave_index + 1, 4), game.story.score, int(game.story.remaining_ticks / 7200), int(game.story.remaining_ticks / 120) % 60],
+			14,
 			PAPER
 		)
-	_footer("A/D MOVER · W/S PROFUNDIDADE · ESPAÇO SALTAR · T/F/Y SOCOS · V/G/B CHUTES · R DEFESA · E OBJETO · ESC PAUSA"
-		if story_mode else "A/D MOVER · W PULAR · T/F/Y SOCOS · V/G/B CHUTES · R DEFESA · H PODER · U GANCHO · Q ESPECIAL · ESC PAUSA")
+	if not story_mode:
+		_footer("A/D MOVER · W PULAR · T/F/Y SOCOS · V/G/B CHUTES · R DEFESA · H PODER · U GANCHO · Q ESPECIAL · ESC PAUSA")
 	if game.mode == "training" and not story_mode:
 		ArcadeTheme.plate(self, Rect2(16, 108, 625, 27), Color(INK, 0.85), 7)
 		text_at(
@@ -346,19 +346,13 @@ func _hud() -> void:
 		text_at(Vector2(36, 128), "PONTOS  %08d" % game.arcade.score, 17, GOLD)
 		centered(Vector2(640, 128), "CIRCUITO  %02d / 12" % (game.arcade.index + 1), 15, PAPER)
 		text_at(Vector2(970, 128), "RECORDE  %08d" % game.progress.record, 15, BLUE)
-	if story_mode and not game.online_active():
-		ArcadeTheme.plate(self, Rect2(16, 105, 694, 30), Color(INK, .9), 7)
+	if story_mode and not game.online_active() and game.story.tick < 600:
+		ArcadeTheme.plate(self, Rect2(20, 679, 700, 26), Color(INK, .72), 7)
 		text_at(
-			Vector2(28, 125),
-			(
-				"F COMBO · G CHUTE · ESPAÇO SALTAR · E INTERAGIR · TURNO %02d:%02d"
-				% [
-					int(game.story.remaining_ticks / 7200),
-					int(game.story.remaining_ticks / 120) % 60
-				]
-			),
+			Vector2(32, 697),
+			"A/D MOVER · W/S PROFUNDIDADE · F/G GOLPES · ESPAÇO SALTO · E AGARRAR",
 			13,
-			GOLD
+			PAPER
 		)
 	if story_mode:
 		var local_slot: int = game.net_session.slot if game.online_active() else 0
@@ -380,12 +374,23 @@ func _hud() -> void:
 				if score < closest:
 					closest = score
 					prompt = "E  ·  GOLPEAR MESA" if prop.kind == "table" else "E  ·  LANÇAR COM CHUTE" if prop.kind == "chair" else "E  ·  DERRUBAR ESTANTE"
+		if prompt.is_empty() and actor.grounded() and FighterState.actionable(actor.state):
+			for enemy in game.story.enemies:
+				var target: FighterModel = enemy.fighter
+				if target.health > 0 and target.grounded() and target.invincible_ticks == 0 \
+					and target.state not in [FighterState.Id.KNOCKDOWN, FighterState.Id.WAKEUP] \
+					and absi(target.x - actor.x) < 120 * FighterModel.SCALE \
+					and absi(target.ground_y - actor.ground_y) <= 24 * FighterModel.SCALE:
+					prompt = "E  ·  AGARRAR E ARREMESSAR"
+					break
 		if not prompt.is_empty():
-			ArcadeTheme.plate(self, Rect2(451, 643, 378, 30), Color(INK, .9), 8)
-			centered(Vector2(640, 665), prompt, 16, GOLD)
+			ArcadeTheme.plate(self, Rect2(451, 679, 378, 26), Color(INK, .84), 8)
+			centered(Vector2(640, 697), prompt, 14, GOLD)
+		if game.story.spawn_queue.is_empty() and game.story.enemies.all(func(e): return e.fighter.health <= 0) and not game.story.completed:
+			var at := Vector2(1140, 350 + sin(game.story.tick * .05) * 4)
+			text_at(at - Vector2(48, 8), "SIGA", 22, GOLD)
+			draw_polyline(PackedVector2Array([at + Vector2(20, -24), at + Vector2(42, -9), at + Vector2(20, 6)]), GOLD, 5, true)
 	for f in [a, b]:
-		if f != null and f.campaign_costs:
-			text_at(Vector2(40 if f == a else 870, 633), "H / U  25  ·  Z  40  ·  Q  100  /  ACERTE INIMIGOS", 12, BLUE if f == a else RED)
 		if f != null and f.custom_ticks > 0:
 			text_at(Vector2(52 if f == a else 987, 602), "CUSTOM  %d/8" % f.custom_moves, 21, GOLD)
 		if f != null and f.state == FighterState.Id.DIZZY:
@@ -465,6 +470,9 @@ func _round_call() -> void:
 
 
 func _draw_player(f: FighterModel, right: bool, color: Color) -> void:
+	if f.campaign_costs:
+		_draw_story_player(f, right, color)
+		return
 	var base := 718.0 if right else 24.0
 	var x := base if right else base + 88
 	var id := f.character.id + str(f.slot)
@@ -506,6 +514,22 @@ func _draw_player(f: FighterModel, right: bool, color: Color) -> void:
 	if f.meter == 100:
 		text_at(Vector2(meter_x + 193, 663), "MAX", 12, INK)
 	text_at(Vector2(x, 88), str(f.character.legacy.style).to_upper(), 12, color)
+
+
+func _draw_story_player(f: FighterModel, right: bool, color: Color) -> void:
+	var base := 490.0 if right else 24.0
+	ArcadeTheme.plate(self, Rect2(base - 8, 12, 428, 80), Color(INK, .86), 10)
+	_portrait(f.character, Rect2(base, 20, 50, 50))
+	text_at(Vector2(base + 66, 34), f.character.display_name.to_upper(), 17, PAPER)
+	var health := Rect2(base + 66, 43, 334, 15)
+	panel(health.grow(1), PAPER)
+	panel(health, Color("352639"))
+	panel(Rect2(health.position, Vector2(health.size.x * f.health / f.character.max_health, 15)), GOLD)
+	text_at(Vector2(base + 66, 78), "ENERGIA", 11, color)
+	var meter := Rect2(base + 131, 67, 195, 8)
+	panel(meter, Color("283341"))
+	panel(Rect2(meter.position, Vector2(meter.size.x * f.meter / 100, 8)), GOLD if f.meter >= 100 else color)
+	text_at(Vector2(base + 336, 78), "Q SUPER" if f.meter >= 100 else "H/U 25", 11, GOLD if f.meter >= 100 else PAPER)
 
 
 func _online() -> void:
