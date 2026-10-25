@@ -191,7 +191,7 @@ func _try_grab(world: StorySimulation, f: FighterModel, data: Dictionary) -> voi
 		var other: FighterModel = enemy.fighter
 		if other.health <= 0 or not other.grounded() or other.invincible_ticks > 0 \
 			or other.state in [FighterState.Id.KNOCKDOWN, FighterState.Id.WAKEUP] \
-			or absi(other.ground_y - f.ground_y) > 24 * UNIT:
+			or absi(other.ground_y - f.ground_y) > OpenBorMotion.BODY_HALF_DEPTH + 6 * UNIT:
 			continue
 		var gap := absi(other.x - f.x)
 		if gap < distance:

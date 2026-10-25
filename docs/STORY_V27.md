@@ -29,6 +29,8 @@ refeições, deixando a passagem da luta livre.
   golpes do jogador são posicionados na interseção real das caixas.
 - O agarrão tem preparação legível e proteção durante a soltura. Os desenhos
   aprovados dos jogadores foram preservados.
+- O alcance em profundidade do agarrão e dos golpes de IA inclui a borda
+  corporal: uma aproximação diagonal não exige atravessar a própria colisão.
 
 ## Entrega e carregamento
 

@@ -23,7 +23,7 @@ static func intent(world: StorySimulation, enemy: Dictionary, target: FighterMod
 			attackers += 1
 	# OpenBOR range is tested on the floor plane before selecting an attack.
 	# A recovering/invulnerable target isn't attacked by the normal AI.
-	if absi(dx) <= int(profile.range) * UNIT and absi(dz) <= 24 * UNIT \
+	if absi(dx) <= int(profile.range) * UNIT and absi(dz) <= OpenBorMotion.BODY_HALF_DEPTH \
 		and enemy.cooldown == 0 and attackers < 2 and target.health > 0 \
 		and target.invincible_ticks == 0 and target.state not in [FighterState.Id.KNOCKDOWN, FighterState.Id.WAKEUP]:
 		world._prepare_enemy_attack(enemy)

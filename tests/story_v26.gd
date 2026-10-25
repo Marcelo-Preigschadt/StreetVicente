@@ -80,6 +80,16 @@ static func run(s: SceneTree) -> void:
 	s.check(replay_ok, "Vínculo, corpo arremessado e colisão sobrevivem a save JSON/rollback")
 	s.check(target.x > release_x + 120 * UNIT, "Corpo arremessado mantém impulso independente da reação")
 	s.check(bystander.health < other_hp, "Corpo arremessado atinge outro inimigo")
+	# A diagonal approach stops at the body's depth boundary. Grab/attack reach
+	# must include that boundary rather than requiring two bodies to overlap.
+	var edge := arena()
+	edge._spawn_enemy({"kind": "lab", "x": 310, "lane": 599, "cooldown": 99999})
+	edge.hero.ground_y = 615 * UNIT
+	edge.hero.y = edge.hero.ground_y
+	edge.objects.constrain_actor(edge.hero, edge.hero.x, 625 * UNIT)
+	s.check(edge.hero.ground_y == 625 * UNIT, "Aproximação lateral para na borda corporal de profundidade")
+	edge.step(CombatInput.new(0, CombatInput.THROW))
+	s.check(edge.hero.move_id == "throw:1", "Agarrão alcança corpo na borda física sem exigir sobreposição")
 	var empty := arena()
 	empty.step(CombatInput.new(0, CombatInput.THROW))
 	s.check(empty.hero.state != FighterState.Id.ATTACK, "Agarrão vazio não causa ataque invisível à distância")

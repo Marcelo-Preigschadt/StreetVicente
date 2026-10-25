@@ -38,7 +38,7 @@ const wait=(fn,arg=null,timeout=15000)=>page.waitForFunction(fn,arg,{timeout}).t
   if(Math.abs(dx)>108*256)keys.push(dx>0?'d':'a');
   if(Math.abs(dz)>12*256)keys.push(dz>0?'s':'w');
   for(const key of ['a','d','w','s','r'])await page.keyboard[keys.includes(key)?'down':'up'](key);
-  if(Math.abs(dx)<115*256&&Math.abs(dz)<22*256&&['IDLE','WALK','CROUCH'].includes(q.state)){
+  if(Math.abs(dx)<115*256&&Math.abs(dz)<30*256&&['IDLE','WALK','CROUCH'].includes(q.state)){
    await release(page);await page.keyboard.press('e');await delay(20);
   }else await delay(45);
  }

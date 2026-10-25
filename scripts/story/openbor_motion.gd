@@ -4,6 +4,7 @@ extends RefCounted
 const UNIT := FighterModel.SCALE
 const MIN_LANE := StoryLayout.MIN_LANE * UNIT
 const MAX_LANE := StoryLayout.MAX_LANE * UNIT
+const BODY_HALF_DEPTH := 26 * UNIT
 
 
 static func footprint(prop: Dictionary) -> Rect2i:
@@ -53,7 +54,7 @@ static func constrain(world: StorySimulation, actor: FighterModel, old_x: int, o
 				continue
 			var own_radius := _radius(actor)
 			var radius := own_radius + _radius(other)
-			people.append(Rect2i(other.x - radius, other.ground_y - 26 * UNIT, radius * 2, 52 * UNIT))
+			people.append(Rect2i(other.x - radius, other.ground_y - BODY_HALF_DEPTH, radius * 2, BODY_HALF_DEPTH * 2))
 		var start := Vector2i(old_x, old_z)
 		start.x = _axis(start, position.x, people, true)
 		start.y = _axis(start, position.y, people, false)
