@@ -72,8 +72,10 @@ async function walkTo(x,lane){
  }
  assert((await state()).story.props.find(p=>p.id===table.id).used,'Table breaks through real combat contacts');
  await shot('table-broken');report.checks.push('Table is a physical destructible obstacle; E never glues it to a fist');
- const chair=(await state()).story.props.filter(p=>p.kind==='chair'&&!p.used&&p.x<table.x).sort((a,b)=>a.x-b.x)[0];
- assert(chair,'A chair in the cleared seating group remains');
+ // Ordinary combat can already break either chair of this seating group.
+ // Use the nearest remaining chair rather than requiring one exact prop.
+ const chair=(await state()).story.props.filter(p=>p.kind==='chair'&&!p.used).sort((a,b)=>Math.abs(a.x-table.x)-Math.abs(b.x-table.x))[0];
+ assert(chair,'An intact chair remains after combat');
  await walkTo((await state()).story.x-150*256,(await state()).story.ground_y);
  await walkTo((await state()).story.x,chair.lane+25*256);
  await walkTo(chair.x-((await state()).story.prop_sizes.chair[0]/2+25)*256,chair.lane+25*256);
