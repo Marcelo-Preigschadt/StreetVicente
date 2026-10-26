@@ -178,7 +178,10 @@ func bounds(prop: Dictionary) -> Rect2i:
 
 
 func melee_contact(f: FighterModel, box: Rect2i, prop: Dictionary) -> bool:
-	if BoxMath.overlap(box, bounds(prop)):
+	# Depth is checked separately; compare local heights on one floor plane.
+	var target := bounds(prop)
+	target.position.y += f.ground_y - int(prop.lane)
+	if BoxMath.overlap(box, target):
 		return true
 	# The active shin/forearm spans from the body to the authored strike box.
 	# A close chair can be hit by that limb even when the toe extends past it.
@@ -187,7 +190,7 @@ func melee_contact(f: FighterModel, box: Rect2i, prop: Dictionary) -> bool:
 		or str(f.current_move().legacy.get("name", "")) not in ["punch", "crouchPunch", "kick", "sweep", "airKick"]:
 		return false
 	var shoulder := Rect2i(f.x + f.facing * 24 * UNIT, box.position.y, UNIT, box.size.y)
-	return BoxMath.overlap(box.merge(shoulder), bounds(prop))
+	return BoxMath.overlap(box.merge(shoulder), target)
 
 
 func strike_prop(f: FighterModel, prop: Dictionary, move: MoveData) -> void:

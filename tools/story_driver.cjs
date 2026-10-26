@@ -29,12 +29,15 @@ function corridorKeys(q,destination=null){
  if(!route.length)return ['d'];
  const first=route[0];return first.x>0?['d']:first.x<0?['a']:first.y>0?['s']:['w'];
 }
-async function fightUntil(page,done,{timeout=60000,useSuper=true}={}){
+async function fightUntil(page,done,{timeout=60000,useSuper=true,maxX=Infinity}={}){
  const deadline=Date.now()+timeout;let strike=0,statusAt=0,navigating=false;
  try{
   while(Date.now()<deadline){
    const q=await page.evaluate(()=>window.svfQA.story);assert(q,'Campaign observation exists');
    if(done(q))return q;
+   if(q.x>(maxX+20)*256&&['IDLE','WALK','BLOCK'].includes(q.state)){
+    await release(page);await page.keyboard.down('a');await delay(90);continue;
+   }
    if(Date.now()-statusAt>8000){console.log('STORY DRIVER',JSON.stringify({wave:q.wave,hp:q.hp,meter:q.meter,x:Math.round(q.x/256),state:q.state,foes:q.enemy_states.filter(e=>e.hp>0).map(e=>[e.kind,e.hp,Math.round(e.x/256)])}));statusAt=Date.now();}
    assert(q.hp>0,'Campaign hero stays alive while earning energy');
    const live=q.enemy_states.filter(e=>e.hp>0);
@@ -42,7 +45,7 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true}={}){
    if(danger&&['IDLE','WALK','BLOCK'].includes(q.state)){
     await release(page);await page.keyboard.down(q.ground_y>=danger.lane?'s':'w');await delay(160);continue;
    }
-   const medicine=q.hp<650?q.props.filter(p=>p.kind==='medkit'&&!p.used&&Math.abs(p.x-q.x)<800*256).sort((a,b)=>Math.abs(a.x-q.x)-Math.abs(b.x-q.x))[0]:null;
+   const medicine=q.hp<650?q.props.filter(p=>p.kind==='medkit'&&!p.used&&p.x<=maxX*256&&Math.abs(p.x-q.x)<800*256).sort((a,b)=>Math.abs(a.x-q.x)-Math.abs(b.x-q.x))[0]:null;
    if(medicine){
     const route=corridorKeys(q,[medicine.x/256,medicine.lane/256]);
     for(const key of ['a','d','w','s','r'])await page.keyboard[route.includes(key)?'down':'up'](key);
@@ -73,13 +76,14 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true}={}){
      (p.x-q.x)*Math.sign(dx)>0&&Math.abs(p.x-q.x)<=(q.prop_sizes[p.kind][0]*.38+30)*256&&
      Math.abs(p.lane-q.ground_y)<(p.kind==='table'?34:26)*256);
     if(navigating||barrier){
-     navigating=true;const route=corridorKeys(q);
+     navigating=true;const route=q.x>=maxX*256?['s']:corridorKeys(q);
      for(const key of ['a','d','w','s','r'])await page.keyboard[route.includes(key)?'down':'up'](key);
      await delay(90);continue;
     }
     if(Math.abs(dx)>(reach+15)*256)desired.push(dx>0?'d':'a');
     else if(Math.abs(dx)<70*256)desired.push(dx>0?'a':'d');
     if(Math.abs(dy)>12*256)desired.push(dy>0?'s':'w');
+    if(q.x>=maxX*256&&desired.includes('d'))desired.splice(desired.indexOf('d'),1);
     if(Math.abs(dx)<(reach+25)*256&&Math.abs(dy)<25*256&&!desired.length)desired.push('r');
     for(const k of ['a','d','w','s','r'])await page.keyboard[desired.includes(k)?'down':'up'](k);
     // Let the current attack finish before turning. Queuing more attacks

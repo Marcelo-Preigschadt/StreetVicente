@@ -31,6 +31,10 @@ F/G atingem móveis diretamente no quadro ativo. O contato considera o segmento
 do braço ou da perna até a caixa desenhada, preservando altura, direção e faixa
 de profundidade. Não há dano em móveis distantes ou atrás do personagem.
 
+A altura de contato é comparada no plano do ator; a profundidade é verificada
+separadamente. Pequenos desvios de profundidade não fazem o chute passar abaixo
+dos pés da cadeira.
+
 Em móveis baixos, F usa os golpes baixos já desenhados do personagem, alternando
 as variantes. Isso evita que um soco passando acima do tampo cause dano fictício.
 Chutes comuns lançam cadeiras; socos e chutes quebram outros móveis. O E continua
@@ -49,6 +53,10 @@ rajadas. Recuar não concede defesa automática aos robôs.
 
 A biblioteca combina sentinelas terrestres e drones, substituindo a composição
 anterior inteiramente formada por atiradores.
+
+O número de ataques simultâneos acompanha o número de jogadores ativos. Após
+um golpe recebido, a proteção cobre a reação e mais 18 ticks (150 ms) para agir.
+A regra é exclusiva da campanha; o versus conserva seus combos.
 
 Os combos do jogador conservam os desenhos aprovados. F,F,G antecipa o
 finalizador; um contato permite salto durante a recuperação. A entrada tem uma

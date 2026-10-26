@@ -547,6 +547,9 @@ func receive_hit(
 				vy = -roundi(float(move.legacy.launch) * SCALE / 120.0)
 		stun_ticks = move.hitstun * 2
 		hit_duration = stun_ticks
+		if campaign_costs and not character.id.begins_with("enemy_") and health > 0:
+			# Give the campaign hero an actionable window between crowd hits.
+			invincible_ticks = maxi(invincible_ticks, stun_ticks + 18)
 		transition(FighterState.Id.KO if health == 0 else FighterState.Id.HITSTUN)
 
 

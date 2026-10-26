@@ -159,10 +159,12 @@ func step(value: CombatInput) -> void:
 			var contact := false
 			var impact := Vector2i(f.x, f.y - 130 * UNIT)
 			for hit in boxes:
+				var aligned := hit
+				aligned.position.y += f.ground_y - hero.ground_y
 				for hurt in f.hurtboxes():
-					if BoxMath.overlap(hit, hurt):
+					if BoxMath.overlap(aligned, hurt):
 						contact = true
-						var overlap := hit.intersection(hurt)
+						var overlap := aligned.intersection(hurt)
 						impact = overlap.position + overlap.size / 2
 			if (
 				contact
@@ -175,10 +177,12 @@ func step(value: CombatInput) -> void:
 			if enemy.attack_mode != "shot":
 				enemy_boxes.assign(f.attack_boxes())
 			for hit in enemy_boxes:
+				var aligned := hit
+				aligned.position.y += hero.ground_y - f.ground_y
 				if 0 in f.hit_targets:
 					continue
 				for hurt in hero.hurtboxes():
-					if BoxMath.overlap(hit, hurt):
+					if BoxMath.overlap(aligned, hurt):
 						f.hit_targets.append(0)
 						var guarded: bool = (
 							hero.blocking(f.current_move().level) and enemy.attack_mode != "grab"

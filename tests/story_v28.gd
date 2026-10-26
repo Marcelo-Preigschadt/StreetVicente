@@ -47,6 +47,30 @@ static func run(s: SceneTree) -> void:
 			launched = launched or not chair.objects.thrown.is_empty()
 		s.check(launched and chair.props[0].used, "Chute comum lança cadeira no contato, sem E: " + id)
 		s.check(chair.objects.carry.is_empty() and chair.objects.interaction_phase.is_empty(), "Ataque comum não toma controle para posicionar móvel: " + id)
+		for depth in [-30, 30]:
+			var offset := clear_world(id)
+			offset.objects._add_prop("chair", 330, 625, 80)
+			offset.hero.x = 240 * UNIT
+			offset.hero.ground_y = (625 + depth) * UNIT
+			offset.hero.y = offset.hero.ground_y
+			offset.hero.facing = 1
+			offset.step(CombatInput.new(0, CombatInput.KICK))
+			var offset_launched := false
+			for tick in 110:
+				offset.step(CombatInput.new())
+				offset_launched = offset_launched or not offset.objects.thrown.is_empty()
+			s.check(offset_launched, "Chute alcança cadeira com deslocamento de profundidade: %s %d" % [id, depth])
+	var crowd := clear_world()
+	for i in 3:
+		crowd._spawn_enemy({"kind": "cleaner", "x": 300 + i * 15, "lane": 625, "cooldown": 0})
+	crowd.step(CombatInput.new())
+	s.check(crowd.enemies.filter(func(e): return e.fighter.state == FighterState.Id.ATTACK).size() == 1, "Um atacante compromete golpe por vez no solo")
+	var protected := clear_world()
+	protected.hero.receive_hit(protected.hero.character.jab, -1, false, 99)
+	s.check(protected.hero.invincible_ticks == protected.hero.stun_ticks + 18, "Proteção cobre reação e janela para resposta")
+	for tick in protected.hero.stun_ticks + 1:
+		protected.step(CombatInput.new())
+	s.check(protected.hero.invincible_ticks > 0 and protected.hero.state != FighterState.Id.HITSTUN, "Proteção continua brevemente quando jogador já pode agir")
 	var miss := clear_world()
 	miss.objects._add_prop("table", 900, 625, 160)
 	miss.objects._add_prop("table", 90, 625, 160)

@@ -35,13 +35,14 @@ static func intent(world: StorySimulation, enemy: Dictionary, target: FighterMod
 		enemy.behavior = "guard"
 		return CombatInput.new(CombatInput.GUARD)
 	var attackers := 0
+	var attack_budget := clampi(world.players().filter(func(p: FighterModel): return p.health > 0).size(), 1, 2)
 	for other in world.enemies:
 		if other.id != enemy.id and other.fighter.health > 0 and other.fighter.state == FighterState.Id.ATTACK:
 			attackers += 1
 	# OpenBOR range is tested on the floor plane before selecting an attack.
 	# A recovering/invulnerable target isn't attacked by the normal AI.
 	if absi(dx) <= int(profile.range) * UNIT and absi(dz) <= OpenBorMotion.BODY_HALF_DEPTH \
-		and enemy.cooldown == 0 and attackers < 2 and target.health > 0 \
+		and enemy.cooldown == 0 and attackers < attack_budget and target.health > 0 \
 		and target.invincible_ticks == 0 and target.state not in [FighterState.Id.KNOCKDOWN, FighterState.Id.WAKEUP]:
 		world._prepare_enemy_attack(enemy)
 		enemy.cooldown = (126 if ranged else 94) + int(enemy.id) % 3 * 18 if not profile.get("boss", false) else 80
@@ -59,7 +60,7 @@ static func intent(world: StorySimulation, enemy: Dictionary, target: FighterMod
 		var same_side: bool = (other.fighter.x - target.x) * side > 0
 		if same_side and absi(other.fighter.ground_y - target.ground_y) < 80 * UNIT:
 			rank += 1
-	if attackers >= 2 or int(enemy.cooldown) > 65:
+	if attackers >= attack_budget or int(enemy.cooldown) > 65:
 		offset_z = (-42 if int(enemy.id) % 2 else 42) * UNIT
 		enemy.behavior = "reposition"
 		if int(enemy.attack_serial) > 0:
