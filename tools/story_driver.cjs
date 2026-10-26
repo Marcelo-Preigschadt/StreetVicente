@@ -63,7 +63,7 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true,maxX=Infinity}=
    const incoming=live.find(e=>e.state==='ATTACK'&&e.attack_phase!=='RECOVERY'&&Math.abs(e.x-q.x)<((e.range||220)+25)*256&&Math.abs(e.lane-q.ground_y)<42*256);
    if(incoming&&['IDLE','WALK','BLOCK'].includes(q.state)){
     await release(page);
-    if(['grab','charge','dash'].includes(incoming.attack_mode))await page.keyboard.down(q.ground_y>570*256?'w':'s');
+    if(['grab','charge','dash'].includes(incoming.attack_mode))await page.keyboard.down(incoming.lane>570*256?'w':'s');
     else{guardLow=incoming.attack_mode==='sweep';guardUntil=Date.now()+(incoming.attack_mode==='shot'?500:140);await page.keyboard.down('r');if(guardLow)await page.keyboard.down('s');}
     await delay(90);continue;
    }
