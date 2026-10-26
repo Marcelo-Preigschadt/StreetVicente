@@ -25,7 +25,7 @@ static func intent(world: StorySimulation, enemy: Dictionary, target: FighterMod
 		enemy.threat_since = -1
 	elif int(enemy.get("threat_since", -1)) < 0:
 		enemy.threat_since = world.tick
-	var reacting: bool = threatened and world.tick - int(enemy.get("threat_since", world.tick)) >= 12
+	var reacting: bool = threatened and world.tick - int(enemy.get("threat_since", world.tick)) >= 18
 	if armored and reacting and world.tick >= int(enemy.get("defend_after", 0)):
 		var incoming := target.current_move()
 		var cover := clampi((incoming.startup + incoming.active) * 2 - target.move_tick + 8, 28, 84)

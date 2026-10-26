@@ -482,8 +482,9 @@ func _prepare_enemy_attack(enemy: Dictionary) -> void:
 	move.active = 45 if mode == "flame" else 33 if mode == "charge" else 6
 	move.recovery = 24 if p.get("boss", false) else 18
 	if mode == "melee":
-		move.startup = 14
-		move.recovery = 14
+		# Readable wind-up and punishable recovery at 120 Hz, including crowds.
+		move.startup = 22
+		move.recovery = 20
 	elif mode == "heavy":
 		move.startup = 32
 		move.recovery = 30

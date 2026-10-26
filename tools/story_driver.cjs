@@ -51,6 +51,12 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true,maxX=Infinity}=
     for(const key of ['a','d','w','s','r'])await page.keyboard[route.includes(key)?'down':'up'](key);
     await delay(90);continue;
    }
+   // Spend earned power before waiting in guard; otherwise a backline drone
+   // can keep this keyboard driver defending forever without closing range.
+   const aim=live.slice().sort((a,b)=>Math.abs(a.x-q.x)-Math.abs(b.x-q.x))[0];
+   if(useSuper&&q.meter>=25&&aim&&['IDLE','WALK','BLOCK'].includes(q.state)&&q.facing===(aim.x>q.x?1:-1)){
+    await release(page);await page.keyboard.press(q.meter>=100?'q':'h');await delay(350);continue;
+   }
    if(Date.now()<guardUntil&&['IDLE','WALK','BLOCK'].includes(q.state)){
     await release(page);await page.keyboard.down('r');if(guardLow)await page.keyboard.down('s');await delay(70);continue;
    }
@@ -60,14 +66,6 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true,maxX=Infinity}=
     if(['grab','charge','dash'].includes(incoming.attack_mode))await page.keyboard.down(q.ground_y>570*256?'w':'s');
     else{guardLow=incoming.attack_mode==='sweep';guardUntil=Date.now()+(incoming.attack_mode==='shot'?500:140);await page.keyboard.down('r');if(guardLow)await page.keyboard.down('s');}
     await delay(90);continue;
-   }
-   if(useSuper&&live.length&&q.meter>=100&&['IDLE','WALK','BLOCK'].includes(q.state)&&q.facing===(live.slice().sort((a,b)=>Math.abs(a.x-q.x)-Math.abs(b.x-q.x))[0].x>q.x?1:-1)){
-    await release(page);
-    for(let i=0;i<30;i++){
-     await page.keyboard.press('q');await delay(70);
-     if((await page.evaluate(()=>window.svfQA.story.meter))<100)break;
-    }
-    await delay(500);continue;
    }
    const target=live.sort((a,b)=>Math.abs(a.x-q.x)-Math.abs(b.x-q.x))[0];
    const desired=[];
@@ -111,7 +109,7 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true,maxX=Infinity}=
  }finally{await release(page);}
 }
 async function chargeStory(page,minimum){
- const result=await fightUntil(page,q=>q.meter>=minimum);
+ const result=await fightUntil(page,q=>q.meter>=minimum,{useSuper:false});
  assert(result.meter>=minimum,'Energy was earned through actual combat');
  return result;
 }

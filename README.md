@@ -90,7 +90,7 @@ No online, cada pessoa usa o mapa **P1** em seu computador. Esc pausa os dois; E
 | Custom / contra-ataque da guarda | C / X | M / , |
 | Passo de avanço / recuo | Duplo toque A ou D | Duplo toque ← ou → |
 
-Teclado segue o **mapa original do Canvas**, com força por botão. **F8** reinicia (R voltou a defender); **F1** caixas, **F2** alvo de treino, **F3** demonstração, **F4** compara arte, **Esc** pausa/menu, **Enter** continua. No História, W/S muda profundidade e Espaço pula; F/E pega objetos e F arremessa. F8 repete o ato ou rival; Continue zera pontos e mantém recorde.
+Teclado segue o **mapa original do Canvas**, com força por botão. **F8** reinicia (R voltou a defender); **F1** caixas, **F2** alvo de treino, **F3** demonstração, **F4** compara arte, **Esc** pausa/menu, **Enter** continua. No História, W/S muda profundidade e Espaço pula; F/G golpeiam e quebram móveis, G lança cadeiras e E agarra inimigos ou aciona a interação opcional. F8 repete o ato ou rival; Continue zera pontos e mantém recorde.
 
 Os botões **CONTROLE USB** e **TELA CHEIA** ficam no rodapé de todas as telas. **F10** abre o painel USB; **F11** também alterna tela cheia. Conecte o controle e pressione um botão para o navegador reconhecê-lo. No painel, escolha jogador/dispositivo, clique na ação e pressione o botão ou mova um eixo; ajuste a zona morta e restaure padrões quando necessário. Mapas são salvos por modelo de dispositivo no navegador; dois controles têm slots separados. Ao desconectar ou trocar um controle, o combate pausa.
 

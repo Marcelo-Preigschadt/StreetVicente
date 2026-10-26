@@ -51,6 +51,10 @@ sentinelas defendem por uma janela limitada; o segundo atacante pode flanquear
 por outra profundidade. Atiradores recuam, reposicionam e alternam disparos e
 rajadas. Recuar não concede defesa automática aos robôs.
 
+Os ataques leves dos robôs têm preparação de 367 ms e recuperação de 333 ms.
+A reação defensiva começa após 150 ms de ameaça visível; golpes rápidos têm
+mais chance de conectar antes da esquiva.
+
 A biblioteca combina sentinelas terrestres e drones, substituindo a composição
 anterior inteiramente formada por atiradores.
 
