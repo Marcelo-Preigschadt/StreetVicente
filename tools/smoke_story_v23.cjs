@@ -91,12 +91,25 @@ async function walkTo(x,lane){
  await walkTo(chairStand,chair.lane+25*256);
  await page.keyboard.press(chairSide>0?'a':'d',{delay:30});
  await release(page);await wait(()=>window.svfQA.story.state==='IDLE');
+ // Keep a read-only frame sample: a chair can collide and disappear between
+ // two CI protocol round trips. The physical launch still has to occur.
+ await page.evaluate(()=>{
+  window.svfChairFlight={existing:window.svfQA.story.thrown.map(p=>p.id),frame:null};
+  const observe=()=>{
+   const q=window.svfQA?.story,trace=window.svfChairFlight;
+   const flying=q?.thrown.find(p=>p.kind==='chair'&&!trace.existing.includes(p.id)&&p.y<p.lane-25*256);
+   if(flying&&!trace.frame)trace.frame={...flying};
+   requestAnimationFrame(observe);
+  };observe();
+ });
  for(let i=0;i<12;i++){
   await page.keyboard.press('g');await delay(30);
-  if((await state()).story.thrown.some(p=>p.kind==='chair'))break;
+  if(await page.evaluate(()=>!!window.svfChairFlight.frame))break;
   await delay(250);
  }
- await wait(()=>window.svfQA.story.thrown.some(p=>p.kind==='chair'),null,5000);
+ await wait(()=>!!window.svfChairFlight.frame,null,5000);
+ report.chair_flight=await page.evaluate(()=>window.svfChairFlight.frame);
+ assert(report.chair_flight.y<report.chair_flight.lane-25*256,'A real frame shows the newly kicked chair airborne');
  q=await shot('chair-kick');assert.equal(Object.keys(q.story.carry).length,0);
  report.checks.push('Chair leaves the floor on the actual kick contact frame and follows ballistic flight');
  await fightUntil(page,q=>q.act>=1,{timeout:180000,useSuper:true});
