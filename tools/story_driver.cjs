@@ -74,7 +74,7 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true,maxX=Infinity}=
    if(target){
     const dx=target.x-q.x,dy=target.lane-q.ground_y;
     const guarded=target.state==='BLOCK'||target.behavior==='guard';
-    const reach=guarded?(target.grab_range||120)-20:['snack','book','projector'].includes(target.kind)?170:135;
+    const reach=guarded?(target.grab_range||120)-8:Math.max(['snack','book','projector'].includes(target.kind)?170:135,(target.grab_range||120)+10);
     if(navigating&&q.ground_y>=640*256)navigating=false;
     const barrier=Math.abs(dx)>(reach+15)*256&&q.props.some(p=>!p.used&&p.hp>0&&p.kind!=='medkit'&&
      (p.x-q.x)*Math.sign(dx)>0&&Math.abs(p.x-q.x)<=(q.prop_sizes[p.kind][0]*.38+30)*256&&
@@ -84,7 +84,7 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true,maxX=Infinity}=
      for(const key of ['a','d','w','s','r'])await page.keyboard[route.includes(key)?'down':'up'](key);
      await delay(90);continue;
     }
-    if(Math.abs(dx)>(reach+15)*256)desired.push(dx>0?'d':'a');
+    if(Math.abs(dx)>reach*256)desired.push(dx>0?'d':'a');
     else if(Math.abs(dx)<70*256)desired.push(dx>0?'a':'d');
     if(Math.abs(dy)>12*256)desired.push(dy>0?'s':'w');
     if(q.x>=maxX*256&&desired.includes('d'))desired.splice(desired.indexOf('d'),1);
