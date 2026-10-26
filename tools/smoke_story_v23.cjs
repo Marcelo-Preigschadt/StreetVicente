@@ -82,10 +82,14 @@ async function walkTo(x,lane){
  // Use the nearest remaining chair rather than requiring one exact prop.
  const chair=(await state()).story.props.filter(p=>p.kind==='chair'&&!p.used).sort((a,b)=>Math.abs(a.x-table.x)-Math.abs(b.x-table.x))[0];
  assert(chair,'An intact chair remains after combat');
- await walkTo((await state()).story.x-150*256,(await state()).story.ground_y);
- await walkTo((await state()).story.x,chair.lane+25*256);
- await walkTo(chair.x-((await state()).story.prop_sizes.chair[0]/2+25)*256,chair.lane+25*256);
- await page.keyboard.press('d',{delay:30});
+ // Approach from the current side through the clear front passage. Do not
+ // require the keyboard driver to walk through the solid chair itself.
+ const chairSide=(await state()).story.x>=chair.x?1:-1;
+ const chairStand=chair.x+chairSide*((await state()).story.prop_sizes.chair[0]/2+25)*256;
+ await walkTo((await state()).story.x,650*256);
+ await walkTo(chairStand,650*256);
+ await walkTo(chairStand,chair.lane+25*256);
+ await page.keyboard.press(chairSide>0?'a':'d',{delay:30});
  await release(page);await wait(()=>window.svfQA.story.state==='IDLE');
  for(let i=0;i<12;i++){
   await page.keyboard.press('g');await delay(30);
