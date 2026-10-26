@@ -48,7 +48,18 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true,maxX=Infinity}=
    const medicine=q.hp<650?q.props.filter(p=>p.kind==='medkit'&&!p.used&&p.x<=maxX*256&&Math.abs(p.x-q.x)<800*256).sort((a,b)=>Math.abs(a.x-q.x)-Math.abs(b.x-q.x))[0]:null;
    if(medicine){
     const route=corridorKeys(q,[medicine.x/256,medicine.lane/256]);
-    for(const key of ['a','d','w','s','r'])await page.keyboard[route.includes(key)?'down':'up'](key);
+    await Promise.all(['a','d','w','s','r'].map(key=>page.keyboard[route.includes(key)?'down':'up'](key)));
+    await delay(90);continue;
+   }
+   const incoming=live.find(e=>e.state==='ATTACK'&&e.attack_phase!=='RECOVERY'&&Math.abs(e.x-q.x)<((e.range||220)+25)*256&&Math.abs(e.lane-q.ground_y)<42*256);
+   // Boss tells take priority over spending energy. Do not queue another
+   // normal during an existing attack when the next action must be defense.
+   if(incoming&&['inspector','fairRobot','substitute','aula','exo'].includes(incoming.kind)){
+    await release(page);
+    if(['IDLE','WALK','BLOCK'].includes(q.state)){
+     if(['grab','charge','dash'].includes(incoming.attack_mode))await page.keyboard.down(incoming.lane>570*256?'w':'s');
+     else{await page.keyboard.down('r');if(['sweep','slam'].includes(incoming.attack_mode))await page.keyboard.down('s');}
+    }
     await delay(90);continue;
    }
    // Spend earned power before waiting in guard; otherwise a backline drone
@@ -60,7 +71,6 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true,maxX=Infinity}=
    if(Date.now()<guardUntil&&['IDLE','WALK','BLOCK'].includes(q.state)){
     await release(page);await page.keyboard.down('r');if(guardLow)await page.keyboard.down('s');await delay(70);continue;
    }
-   const incoming=live.find(e=>e.state==='ATTACK'&&e.attack_phase!=='RECOVERY'&&Math.abs(e.x-q.x)<((e.range||220)+25)*256&&Math.abs(e.lane-q.ground_y)<42*256);
    if(incoming&&['IDLE','WALK','BLOCK'].includes(q.state)){
     await release(page);
     if(['grab','charge','dash'].includes(incoming.attack_mode))await page.keyboard.down(incoming.lane>570*256?'w':'s');
@@ -79,7 +89,7 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true,maxX=Infinity}=
      Math.abs(p.lane-q.ground_y)<(p.kind==='table'?34:26)*256);
     if(navigating||barrier){
      navigating=true;const route=q.x>=maxX*256?['s']:corridorKeys(q);
-     for(const key of ['a','d','w','s','r'])await page.keyboard[route.includes(key)?'down':'up'](key);
+     await Promise.all(['a','d','w','s','r'].map(key=>page.keyboard[route.includes(key)?'down':'up'](key)));
      await delay(90);continue;
     }
     if(Math.abs(dx)>reach*256)desired.push(dx>0?'d':'a');
@@ -87,7 +97,7 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true,maxX=Infinity}=
     if(Math.abs(dy)>12*256)desired.push(dy>0?'s':'w');
     if(q.x>=maxX*256&&desired.includes('d'))desired.splice(desired.indexOf('d'),1);
     if(Math.abs(dx)<(reach+25)*256&&Math.abs(dy)<25*256&&!desired.length)desired.push('r');
-    for(const k of ['a','d','w','s','r'])await page.keyboard[desired.includes(k)?'down':'up'](k);
+    await Promise.all(['a','d','w','s','r'].map(key=>page.keyboard[desired.includes(key)?'down':'up'](key)));
     // Let the current attack finish before turning. Queuing more attacks
     // while facing away would intentionally keep a real player facing away.
     if(q.facing!==(dx>0?1:-1)&&Math.abs(dx)>=8*256){
@@ -101,7 +111,7 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true,maxX=Infinity}=
     }
    }else{
     const route=corridorKeys(q);
-    for(const key of ['a','d','w','s','r'])await page.keyboard[route.includes(key)?'down':'up'](key);
+    await Promise.all(['a','d','w','s','r'].map(key=>page.keyboard[route.includes(key)?'down':'up'](key)));
    }
    await delay(90);
   }
