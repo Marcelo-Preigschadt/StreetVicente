@@ -75,6 +75,9 @@ async function leave(c) {
  await wait(c,()=>window.svfQA.screen==='menu');
 }
 async function pause(a,b){
+ // A matching checkpoint can arrive while recovery is still in progress.
+ // Escape intentionally leaves a recovering session, so wait for play first.
+ await playing(a,b,(await state(a)).screen);
  await a.page.keyboard.press('Escape');
  for(const c of [a,b])await wait(c,()=>window.svfQA.online.phase==='paused');
  const before=await state(a);await delay(400);assert.equal((await state(a)).online.tick,before.online.tick);

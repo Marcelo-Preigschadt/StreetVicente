@@ -30,7 +30,7 @@ function corridorKeys(q,destination=null){
  const first=route[0];return first.x>0?['d']:first.x<0?['a']:first.y>0?['s']:['w'];
 }
 async function fightUntil(page,done,{timeout=60000,useSuper=true,maxX=Infinity}={}){
- const deadline=Date.now()+timeout;let strike=0,statusAt=0,navigating=false;
+ const deadline=Date.now()+timeout;let strike=0,statusAt=0,navigating=false,guardUntil=0,guardLow=false;
  try{
   while(Date.now()<deadline){
    const q=await page.evaluate(()=>window.svfQA.story);assert(q,'Campaign observation exists');
@@ -51,11 +51,14 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true,maxX=Infinity}=
     for(const key of ['a','d','w','s','r'])await page.keyboard[route.includes(key)?'down':'up'](key);
     await delay(90);continue;
    }
+   if(Date.now()<guardUntil&&['IDLE','WALK','BLOCK'].includes(q.state)){
+    await release(page);await page.keyboard.down('r');if(guardLow)await page.keyboard.down('s');await delay(70);continue;
+   }
    const incoming=live.find(e=>e.state==='ATTACK'&&e.attack_phase!=='RECOVERY'&&Math.abs(e.x-q.x)<((e.range||220)+25)*256&&Math.abs(e.lane-q.ground_y)<42*256);
    if(incoming&&['IDLE','WALK','BLOCK'].includes(q.state)){
     await release(page);
     if(['grab','charge','dash'].includes(incoming.attack_mode))await page.keyboard.down(q.ground_y>570*256?'w':'s');
-    else{await page.keyboard.down('r');if(incoming.attack_mode==='sweep')await page.keyboard.down('s');}
+    else{guardLow=incoming.attack_mode==='sweep';guardUntil=Date.now()+(incoming.attack_mode==='shot'?500:140);await page.keyboard.down('r');if(guardLow)await page.keyboard.down('s');}
     await delay(90);continue;
    }
    if(useSuper&&live.length&&q.meter>=100&&['IDLE','WALK','BLOCK'].includes(q.state)&&q.facing===(live.slice().sort((a,b)=>Math.abs(a.x-q.x)-Math.abs(b.x-q.x))[0].x>q.x?1:-1)){
@@ -70,7 +73,8 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true,maxX=Infinity}=
    const desired=[];
    if(target){
     const dx=target.x-q.x,dy=target.lane-q.ground_y;
-    const reach=target.kind==='snack'||target.kind==='book'||target.kind==='archaeologist'?170:135;
+    const guarded=target.state==='BLOCK'||target.behavior==='guard';
+    const reach=guarded?(target.grab_range||120)-20:['snack','book','projector'].includes(target.kind)?170:135;
     if(navigating&&q.ground_y>=640*256)navigating=false;
     const barrier=Math.abs(dx)>(reach+15)*256&&q.props.some(p=>!p.used&&p.hp>0&&p.kind!=='medkit'&&
      (p.x-q.x)*Math.sign(dx)>0&&Math.abs(p.x-q.x)<=(q.prop_sizes[p.kind][0]*.38+30)*256&&
@@ -91,9 +95,9 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true,maxX=Infinity}=
     if(q.facing!==(dx>0?1:-1)&&Math.abs(dx)>=70*256){
      await release(page);await page.keyboard.press(dx>0?'d':'a',{delay:50});continue;
     }
-    if(Math.abs(dx)>=75*256&&Math.abs(dx)<240*256&&Math.abs(dy)<42*256&&Date.now()-strike>300){
+    if(Math.abs(dx)>=75*256&&Math.abs(dx)<(reach+5)*256&&Math.abs(dy)<42*256&&Date.now()-strike>300){
      await release(page);
-     const grip=target.state==='BLOCK'&&Math.abs(dx)<((target.grab_range||120)-2)*256&&Math.abs(dy)<30*256;
+     const grip=guarded&&Math.abs(dx)<((target.grab_range||120)-2)*256&&Math.abs(dy)<30*256;
      const finisher=[1,2].includes(q.campaign_combo?.index);
      await page.keyboard.press(grip?'e':['snack','book','archaeologist'].includes(target.kind)||finisher?'g':'f');strike=Date.now();
     }
