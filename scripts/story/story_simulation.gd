@@ -496,6 +496,12 @@ func _prepare_enemy_attack(enemy: Dictionary) -> void:
 		move.recovery = 28
 	elif mode == "shot":
 		move.startup = 30
+	elif mode == "grab":
+		move.startup = 36
+		move.recovery = 32
+	elif mode == "charge":
+		move.startup = 40
+		move.recovery = 34
 	move.damage = roundi(float(p.damage) * (1.2 if mode == "heavy" else .85 if mode == "melee" else 1.0))
 	move.hitstun = 18
 	move.level = MoveData.Level.LOW if mode in ["slam", "sweep"] else MoveData.Level.OVERHEAD if mode == "heavy" else MoveData.Level.MID

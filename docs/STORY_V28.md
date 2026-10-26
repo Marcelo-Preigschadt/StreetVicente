@@ -53,7 +53,9 @@ rajadas. Recuar não concede defesa automática aos robôs.
 
 Os ataques leves dos robôs têm preparação de 367 ms e recuperação de 333 ms.
 A reação defensiva começa após 150 ms de ameaça visível; golpes rápidos têm
-mais chance de conectar antes da esquiva.
+mais chance de conectar antes da esquiva. Agarrões de chefes têm 600 ms de
+preparação e investidas 667 ms, com recuperação suficiente para contra-atacar.
+As animações usam essas fases reais, sem alterar a velocidade dos jogadores.
 
 A biblioteca combina sentinelas terrestres e drones, substituindo a composição
 anterior inteiramente formada por atiradores.
