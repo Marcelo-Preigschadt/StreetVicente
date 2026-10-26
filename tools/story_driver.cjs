@@ -4,10 +4,10 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));
 async function release(page){for(const key of ['a','d','w','s','r'])await page.keyboard.up(key);}
 // Plan through the actual furniture footprints when a checkpoint is clear.
 // Observations stay read-only; the route is executed with normal keyboard keys.
-function corridorKeys(q){
+function corridorKeys(q,destination=null){
  const unit=256,step=8,x0=q.x/unit,y0=q.ground_y/unit;
  const gate=q.gate||Math.min(3560,880+q.wave*820);
- const minX=Math.ceil((Math.max(70,x0-400)-x0)/step),maxX=Math.floor((gate-55-x0)/step);
+ const minX=Math.ceil(((destination?70:Math.max(70,x0-400))-x0)/step),maxX=Math.floor((gate-55-x0)/step);
  const minY=Math.ceil(((q.lane_min||480)-y0)/step),maxY=Math.floor(((q.lane_max||665)-y0)/step);
  const props=q.props.filter(p=>!p.used&&p.hp>0&&p.kind!=='medkit');
  const blocked=(ix,iy)=>{
@@ -17,7 +17,7 @@ function corridorKeys(q){
  const nodes=[{x:0,y:0,parent:-1}],seen=new Set(['0,0']);let found=-1;
  for(let at=0;at<nodes.length;at++){
   const n=nodes[at];
-  if(x0+n.x*step>=gate-100&&y0+n.y*step>=640){found=at;break;}
+  if(destination?Math.abs(x0+n.x*step-destination[0])<=72&&Math.abs(y0+n.y*step-destination[1])<=24:x0+n.x*step>=gate-100&&y0+n.y*step>=640){found=at;break;}
   for(const [dx,dy] of [[0,1],[1,0],[-1,0],[0,-1]]){
    const x=n.x+dx,y=n.y+dy,key=x+','+y;
    if(x<minX||x>maxX||y<minY||y>maxY||seen.has(key)||blocked(x,y))continue;
@@ -38,6 +38,23 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true}={}){
    if(Date.now()-statusAt>8000){console.log('STORY DRIVER',JSON.stringify({wave:q.wave,hp:q.hp,meter:q.meter,x:Math.round(q.x/256),state:q.state,foes:q.enemy_states.filter(e=>e.hp>0).map(e=>[e.kind,e.hp,Math.round(e.x/256)])}));statusAt=Date.now();}
    assert(q.hp>0,'Campaign hero stays alive while earning energy');
    const live=q.enemy_states.filter(e=>e.hp>0);
+   const danger=(q.hazards||[]).find(h=>{const cycle=h.clock%h.period;return cycle>=h.warning&&cycle<h.warning+h.active&&Math.abs(h.x-q.x)<(h.width/2+40)*256&&Math.abs(h.lane-q.ground_y)<65*256;});
+   if(danger&&['IDLE','WALK','BLOCK'].includes(q.state)){
+    await release(page);await page.keyboard.down(q.ground_y>=danger.lane?'s':'w');await delay(160);continue;
+   }
+   const medicine=q.hp<650?q.props.filter(p=>p.kind==='medkit'&&!p.used&&Math.abs(p.x-q.x)<800*256).sort((a,b)=>Math.abs(a.x-q.x)-Math.abs(b.x-q.x))[0]:null;
+   if(medicine){
+    const route=corridorKeys(q,[medicine.x/256,medicine.lane/256]);
+    for(const key of ['a','d','w','s','r'])await page.keyboard[route.includes(key)?'down':'up'](key);
+    await delay(90);continue;
+   }
+   const incoming=live.find(e=>e.state==='ATTACK'&&e.attack_phase!=='RECOVERY'&&Math.abs(e.x-q.x)<((e.range||220)+25)*256&&Math.abs(e.lane-q.ground_y)<42*256);
+   if(incoming&&['IDLE','WALK','BLOCK'].includes(q.state)){
+    await release(page);
+    if(['grab','charge','dash'].includes(incoming.attack_mode))await page.keyboard.down(q.ground_y>570*256?'w':'s');
+    else{await page.keyboard.down('r');if(incoming.attack_mode==='sweep')await page.keyboard.down('s');}
+    await delay(90);continue;
+   }
    if(useSuper&&live.length&&q.meter>=100&&['IDLE','WALK','BLOCK'].includes(q.state)&&q.facing===(live.slice().sort((a,b)=>Math.abs(a.x-q.x)-Math.abs(b.x-q.x))[0].x>q.x?1:-1)){
     await release(page);
     for(let i=0;i<30;i++){
@@ -72,7 +89,9 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true}={}){
     }
     if(Math.abs(dx)>=75*256&&Math.abs(dx)<240*256&&Math.abs(dy)<42*256&&Date.now()-strike>300){
      await release(page);
-     await page.keyboard.press(['snack','book','archaeologist'].includes(target.kind)?'g':'f');strike=Date.now();
+     const grip=target.state==='BLOCK'&&Math.abs(dx)<((target.grab_range||120)-2)*256&&Math.abs(dy)<30*256;
+     const finisher=[1,2].includes(q.campaign_combo?.index);
+     await page.keyboard.press(grip?'e':['snack','book','archaeologist'].includes(target.kind)||finisher?'g':'f');strike=Date.now();
     }
    }else{
     const route=corridorKeys(q);

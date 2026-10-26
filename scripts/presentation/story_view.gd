@@ -20,6 +20,8 @@ func sync(snap := false) -> void:
 	if snap:
 		previous_camera = current_camera
 	var retained: Dictionary = {}
+	for decoration in StoryScenery.decorations(world.act_index):
+		_bind("decor:%d:%d" % [world.act_index, int(decoration.id)], "decor", decoration, retained, snap)
 	for enemy in world.enemies:
 		if enemy.fighter.health > 0 or enemy.dead_tick < 0 or world.tick - int(enemy.dead_tick) < 132:
 			_bind("enemy:" + str(enemy.id), "enemy", enemy, retained, snap)
@@ -99,6 +101,10 @@ func _draw() -> void:
 			continue
 		var size := StoryLayout.prop_size(str(prop.kind))
 		_shadow(Vector2(float(prop.x) / FighterModel.SCALE - camera, float(prop.lane) / FighterModel.SCALE), size.x * .46)
+	for decoration in StoryScenery.decorations(world.act_index):
+		if decoration.shadow:
+			var size := StoryLayout.prop_size(str(decoration.kind)) * float(decoration.scale)
+			_shadow(Vector2(float(decoration.x) / FighterModel.SCALE - camera, float(decoration.lane) / FighterModel.SCALE), size.x * .4)
 	for gear in world.object_sets():
 		for prop in gear.thrown:
 			_shadow(Vector2(float(prop.x) / FighterModel.SCALE - camera, float(prop.lane) / FighterModel.SCALE), StoryLayout.prop_size(str(prop.kind)).x * .35)
@@ -144,6 +150,8 @@ func _draw_hazards(camera: float) -> void:
 				for i in 9:
 					draw_circle(Vector2(x - w * .45 + i * w / 10, y - 13 - sin(world.tick * .1 + i) * 6), 10, Color(color, .75))
 	for p in world.objects.bolts:
+		if int(p.age) < 0:
+			continue
 		var at := Vector2(float(p.x) / FighterModel.SCALE - camera, float(p.y) / FighterModel.SCALE)
 		var color := Color(p.color)
 		var tail := Vector2(float(p.vx), float(p.vy)).normalized() * 32

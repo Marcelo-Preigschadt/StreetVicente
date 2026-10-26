@@ -2,6 +2,7 @@ class_name StoryEnemyArt
 extends RefCounted
 ## The simulation supplies distance and attack phase; cels never drive combat.
 static var revised: Dictionary = {}
+static var actions: Dictionary = {}
 
 
 static func load_data() -> void:
@@ -13,6 +14,7 @@ static func load_data() -> void:
 				revised[kind].frames[index].merge(registration[kind][index], true)
 		for kind in StoryDirection.PROFILES:
 			revised[kind] = StoryDirection.atlas(kind)
+		actions = JSON.parse_string(FileAccess.get_file_as_string("res://data/story/actions-v28.json")).atlases
 
 
 static func atlas(kind: String) -> Dictionary:
@@ -23,6 +25,23 @@ static func atlas(kind: String) -> Dictionary:
 static func sample(enemy: Dictionary, tick: int) -> Dictionary:
 	var ani := atlas(str(enemy.kind))
 	var f: FighterModel = enemy.fighter
+	var family: String = StoryDirection.PROFILES[str(enemy.kind)].atlas
+	if actions.has(family) and f.health > 0:
+		var extra: Dictionary = actions[family]
+		var mode := str(enemy.attack_mode)
+		if mode in ["staff", "grab", "flame"]:
+			mode = "heavy"
+		var action_index := -1
+		if f.state == FighterState.Id.BLOCK:
+			action_index = int(extra.sequences.block)
+		elif f.state == FighterState.Id.ATTACK and extra.sequences.has(mode):
+			var sequence: Array = extra.sequences[mode]
+			action_index = FighterPose.move_key(f.move_tick, f.current_move(), [sequence[0]],
+				[sequence[1]], sequence.slice(2))
+		if action_index >= 0:
+			var sheet := extra.duplicate()
+			sheet.scale = float(StoryDirection.PROFILES[str(enemy.kind)].h) / float(extra.referenceHeight)
+			return {"index": action_index, "frame": extra.frames[action_index], "sheet": sheet}
 	var seq: Dictionary = ani.get("sequences", {})
 	var index := 0
 	if f.health <= 0 or f.state in [FighterState.Id.KO, FighterState.Id.KNOCKDOWN]:
@@ -48,7 +67,7 @@ static func sample(enemy: Dictionary, tick: int) -> Dictionary:
 			seq.get("recoveryFrames", [int(seq.get("recovery", 11))]))
 		if enemy.attack_mode == "charge" and f.current_move().phase(f.move_tick) == "ACTIVE":
 			var rush: Array = seq.get("walk", [0])
-			index = int(rush[posmod(int(f.walk_distance * rush.size() / (112 * FighterModel.SCALE)), rush.size())])
+			index = int(rush[posmod(int(f.walk_distance * rush.size() / (int(seq.get("walkTempo", 112)) * FighterModel.SCALE)), rush.size())])
 	elif f.state == FighterState.Id.WALK or (seq.get("walkUnits", "distance") == "time" and (enemy.kind in ["snack", "book", "projector"] or LegacyRoster.catalog.story.enemies[enemy.kind].get("fly", 0) > 0)):
 		var walk: Array = seq.get("walk", [0, 1, 2, 3, 4, 5, 6, 7])
 		var tempo := maxi(1, int(seq.get("walkTempo", 150)))

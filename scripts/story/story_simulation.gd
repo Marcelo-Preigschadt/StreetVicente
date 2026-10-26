@@ -148,8 +148,13 @@ func step(value: CombatInput) -> void:
 				f.x = clampi(hero.x - f.facing * 250 * UNIT, 100 * UNIT, 3500 * UNIT)
 				f.invincible_ticks = 22
 				enemy.fired = true
-			elif enemy.attack_mode == "charge":
+			elif enemy.attack_mode in ["charge", "dash"]:
+				var from_x := f.x
 				f.x = clampi(f.x + f.facing * 460 * UNIT / 120, 70 * UNIT, 3530 * UNIT)
+				objects.constrain_actor(f, from_x, f.ground_y)
+				f.walk_distance += absi(f.x - from_x)
+				if f.x == from_x:
+					f.move_tick = (f.current_move().startup + f.current_move().active) * 2
 		if absi(hero.ground_y - f.ground_y) <= 42 * UNIT:
 			var contact := false
 			var impact := Vector2i(f.x, f.y - 130 * UNIT)
@@ -165,7 +170,7 @@ func step(value: CombatInput) -> void:
 				and (not RollMotion.active(hero) or RollMotion.can_contact(hero, f))
 			):
 				hero.hit_targets.append(enemy.id)
-				_apply_hero_hit(f, power, hero.facing, false, impact.x, impact.y, "", 0)
+				_apply_hero_hit(f, power, hero.facing, f.blocking(power.level), impact.x, impact.y, "", 0)
 			var enemy_boxes: Array[Rect2i] = []
 			if enemy.attack_mode != "shot":
 				enemy_boxes.assign(f.attack_boxes())
@@ -260,7 +265,7 @@ func snapshot() -> Dictionary:
 		e.fighter = enemy.fighter.snapshot()
 		values.append(e)
 	return {
-		"story_revision": 27,
+		"story_revision": 28,
 		"camera_units": camera_units,
 		"combat": combat.snapshot(),
 		"spawn_queue": spawn_queue.duplicate(true),
@@ -420,6 +425,8 @@ func restore(data: Dictionary) -> void:
 	objects.restore(data.get("objects", {}))
 	if int(data.get("story_revision", 23)) < 27:
 		objects.migrate_stage()
+	if int(data.get("story_revision", 23)) < 28:
+		StoryScenery.populate(self)
 	powers.restore(data.powers)
 	camera_units = int(data.get("camera_units", clampi(hero.x - 420 * UNIT, 0, StoryLayout.camera_limit(wave_index) * UNIT)))
 	events.clear()
@@ -446,6 +453,13 @@ func _prepare_enemy_attack(enemy: Dictionary) -> void:
 	enemy.fired = false
 	var serial := int(enemy.attack_serial)
 	var mode := "shot" if p.get("ranged", false) else "melee"
+	if not p.get("ranged", false) and not p.get("boss", false):
+		var pattern: Array = ["melee", "kick", "heavy", "sweep"]
+		if str(enemy.kind) in ["cleaner", "kungfu"]:
+			pattern = ["melee", "kick", "dash", "sweep"]
+		elif str(enemy.kind) == "elite":
+			pattern = ["kick", "heavy", "dash", "melee"]
+		mode = str(pattern[(serial - 1 + int(enemy.id) % 2) % pattern.size()])
 	match str(enemy.kind):
 		"inspector":
 			mode = "charge" if serial % 3 == 0 else "grab" if serial % 3 == 2 else "staff"
@@ -463,18 +477,40 @@ func _prepare_enemy_attack(enemy: Dictionary) -> void:
 	move.startup = 28 if p.get("boss", false) else 20
 	move.active = 45 if mode == "flame" else 33 if mode == "charge" else 6
 	move.recovery = 24 if p.get("boss", false) else 18
-	move.damage = roundi(float(p.damage) * (1.0 if p.get("boss", false) else 1.25))
+	if mode == "melee":
+		move.startup = 14
+		move.recovery = 14
+	elif mode == "heavy":
+		move.startup = 32
+		move.recovery = 30
+	elif mode == "sweep":
+		move.startup = 25
+	elif mode == "dash":
+		move.startup = 26
+		move.active = 16
+		move.recovery = 28
+	elif mode == "shot":
+		move.startup = 30
+	move.damage = roundi(float(p.damage) * (1.2 if mode == "heavy" else .85 if mode == "melee" else 1.0))
 	move.hitstun = 18
-	move.level = MoveData.Level.LOW if mode == "slam" else MoveData.Level.MID
+	move.level = MoveData.Level.LOW if mode in ["slam", "sweep"] else MoveData.Level.OVERHEAD if mode == "heavy" else MoveData.Level.MID
 	move.legacy = {
 		"name": mode,
-		"knockdown": mode in ["charge", "slam", "grab"],
-		"launch": 300 if mode in ["charge", "slam", "grab"] else 0
+		"knockdown": mode in ["charge", "slam", "grab", "heavy"],
+		"launch": 300 if mode in ["charge", "slam", "grab", "heavy"] else 0
 	}
 	var box := HitboxData.new()
 	# The arm strikes at chest height; a whole torso-sized rectangle caused
 	# invisible hits during unrelated poses. Charges/slams retain body contact.
-	box.rect = Rect2i(35, -205, maxi(45, int(p.range) - 35), 70)
+	box.rect = Rect2i(35, -roundi(float(p.h) * .76), maxi(45, int(p.range) - 35), roundi(float(p.h) * .25))
+	if mode == "kick":
+		box.rect = Rect2i(45, -roundi(float(p.h) * .61), maxi(60, int(p.range) - 30), roundi(float(p.h) * .2))
+	elif mode == "sweep":
+		box.rect = Rect2i(35, -95, maxi(80, int(p.range) - 15), 80)
+	elif mode == "heavy":
+		box.rect = Rect2i(25, -roundi(float(p.h) * .74), int(p.range), roundi(float(p.h) * .4))
+	elif mode == "dash":
+		box.rect = Rect2i(0, -roundi(float(p.h) * .76), 145, roundi(float(p.h) * .56))
 	if mode in ["charge", "grab", "flame"]:
 		box.rect = Rect2i(0, -int(p.h) * 3 / 4, int(p.range), int(p.h) * 3 / 4)
 	elif mode == "slam":

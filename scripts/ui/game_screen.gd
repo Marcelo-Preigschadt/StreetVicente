@@ -318,7 +318,7 @@ func _hud() -> void:
 	elif b == null:
 		var act: Dictionary = LegacyRoster.catalog.story.acts[mini(game.story.act_index, 3)]
 		ArcadeTheme.plate(self, Rect2(964, 16, 290, 64), Color(INK, .84), 10)
-		text_at(Vector2(984, 40), StoryLayout.zone(game.story.hero.x / FighterModel.SCALE) if game.story.act_index == 0 else str(act.place), 18, GOLD)
+		text_at(Vector2(984, 40), StoryLayout.zone(game.story.hero.x / FighterModel.SCALE, game.story.act_index), 18, GOLD)
 		text_at(
 			Vector2(984, 63),
 			"%d/4   %08d   %02d:%02d" % [mini(game.story.wave_index + 1, 4), game.story.score, int(game.story.remaining_ticks / 7200), int(game.story.remaining_ticks / 120) % 60],
@@ -373,14 +373,14 @@ func _hud() -> void:
 				var score := maxi(0, absi(int(prop.x) - actor.x) - gear.bounds(prop).size.x / 2) + 3 * absi(int(prop.lane) - actor.ground_y)
 				if score < closest:
 					closest = score
-					prompt = "E  ·  GOLPEAR MESA" if prop.kind == "table" else "E  ·  LANÇAR COM CHUTE" if prop.kind == "chair" else "E  ·  DERRUBAR ESTANTE"
+					prompt = "G  ·  CHUTAR CADEIRA" if prop.kind == "chair" else "F / G  ·  QUEBRAR"
 		if prompt.is_empty() and actor.grounded() and FighterState.actionable(actor.state):
 			for enemy in game.story.enemies:
 				var target: FighterModel = enemy.fighter
 				if target.health > 0 and target.grounded() and target.invincible_ticks == 0 \
 					and target.state not in [FighterState.Id.KNOCKDOWN, FighterState.Id.WAKEUP] \
-					and absi(target.x - actor.x) < 120 * FighterModel.SCALE \
-					and absi(target.ground_y - actor.ground_y) <= 24 * FighterModel.SCALE:
+					and absi(target.x - actor.x) <= OpenBorCombat.grab_reach(actor, target) \
+					and absi(target.ground_y - actor.ground_y) <= OpenBorMotion.BODY_HALF_DEPTH + 6 * FighterModel.SCALE:
 					prompt = "E  ·  AGARRAR E ARREMESSAR"
 					break
 		if not prompt.is_empty():

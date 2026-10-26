@@ -606,6 +606,8 @@ func _publish_qa() -> void:
 			"art_face_revision": CharacterArt.frame(story.hero).frame.get("face_revision", 0),
 			"ground_y": story.hero.ground_y,
 			"act": story.act_index,
+			"completed": story.completed,
+			"defeated": story.defeated,
 			"wave": story.wave_index,
 			"enemies": story.enemies.size(),
 			"queued_enemies": story.spawn_queue.size(),
@@ -616,8 +618,10 @@ func _publish_qa() -> void:
 			"pickup_ticks": story.objects.pickup_ticks,
 			"thrown": story.objects.thrown.duplicate(true),
 			"props": story.props.duplicate(true),
-			"presentation_revision": 27,
+			"hazards": story.objects.hazards.duplicate(true),
+			"presentation_revision": 28,
 			"combat_base": "openbor-motion-grab-port",
+			"decorations": StoryScenery.decorations(story.act_index).size(),
 			"campaign_combo": story.combat.actors.get(str(story.hero.slot), {}).duplicate(),
 			"debris": story.objects.debris.size(),
 			"move": story.hero.move_id,
@@ -626,10 +630,10 @@ func _publish_qa() -> void:
 			"scene_scale": StoryLayout.SCALE,
 			"camera_x": story.camera_x,
 			"gate": StoryLayout.gate(story.wave_index),
-			"zone": StoryLayout.zone(story.hero.x / FighterModel.SCALE),
+			"zone": StoryLayout.zone(story.hero.x / FighterModel.SCALE, story.act_index),
 			"enemy_states": story.enemies.map(func(e: Dictionary) -> Dictionary:
 				var f: FighterModel = e.fighter
-				return {"id": e.id, "kind": e.kind, "x": f.x, "y": f.y, "lane": f.ground_y, "hp": f.health, "state": FighterState.NAMES[f.state], "cel": StoryEnemyArt.sample(e, story.tick).index, "engagement_slot": e.get("engagement_slot", -1), "attack_mode": e.attack_mode}),
+				return {"id": e.id, "kind": e.kind, "height": int(LegacyRoster.catalog.story.enemies[e.kind].h), "range": int(LegacyRoster.catalog.story.enemies[e.kind].range), "grab_range": OpenBorCombat.grab_reach(story.hero, f) / FighterModel.SCALE, "behavior": e.get("behavior", "approach"), "x": f.x, "y": f.y, "lane": f.ground_y, "hp": f.health, "state": FighterState.NAMES[f.state], "attack_phase": f.current_move().phase(f.move_tick) if f.state == FighterState.Id.ATTACK else "", "cel": StoryEnemyArt.sample(e, story.tick).index, "engagement_slot": e.get("engagement_slot", -1), "attack_mode": e.attack_mode}),
 			"projectiles": story.projectiles.size(),
 			"power_sprites": power_view.visible,
 			"power_kinds": story.projectiles.map(func(p: Dictionary) -> String: return str(p.kind)),
@@ -638,7 +642,7 @@ func _publish_qa() -> void:
 		}
 	if screen == "story" and story != null:
 		data.story.prop_sizes = {}
-		for kind in StoryLayout.PROP_SIZES:
+		for kind in LegacyRoster.catalog.story.props:
 			var size: Vector2 = StoryLayout.prop_size(kind)
 			data.story.prop_sizes[kind] = [size.x, size.y]
 	data.controls_open = controls.visible

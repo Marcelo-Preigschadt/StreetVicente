@@ -36,7 +36,13 @@ static func floor_left(camera: float) -> float:
 	return -camera * SCALE
 
 
-static func zone(x: int) -> String:
+static func zone(x: int, act: int = 0) -> String:
+	if act == 1:
+		return "QUÍMICA" if x < 1700 else "REAGENTES" if x < 3000 else "REATOR"
+	if act == 2:
+		return "BIBLIOTECA" if x < 1700 else "ARQUIVO" if x < 3000 else "ACERVO"
+	if act >= 3:
+		return "NIT" if x < 1700 else "REDE" if x < 3000 else "SERVIDOR"
 	return "CORREDOR" if x < 1700 else "CANTINA" if x < 3000 else "BLOCO A"
 
 

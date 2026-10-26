@@ -13,12 +13,14 @@ static func begin(world: StorySimulation) -> void:
 	var start := edge - 400
 	for i in kinds.size():
 		var entry_x := start + (i % 3) * 150
-		var lane: int = [510, 625, 565][i % 3]
+		var lane: int = [530, 640, 575][i % 3]
 		if world.wave_index == 3:
 			lane = 625
 			entry_x = edge - 230
 		if i % 3 == 2:
-			entry_x = 110 if world.wave_index == 0 else maxi(110, edge - 1280)
+			entry_x = 85 if world.wave_index == 0 else maxi(110, edge - 1280)
+		if not OpenBorMotion.test_position(world, world.hero, Vector2i(entry_x * UNIT, lane * UNIT)):
+			lane = 640
 		world.spawn_queue.append({"kind": kinds[i], "x": entry_x,
 			"lane": lane, "cooldown": 100 + i * 28})
 	world.spawn_due = world.tick

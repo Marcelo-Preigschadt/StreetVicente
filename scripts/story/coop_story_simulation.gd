@@ -120,8 +120,13 @@ func step_party(values: Array[CombatInput]) -> void:
 				f.x = clampi(hero.x - f.facing * 250 * UNIT, 100 * UNIT, 3500 * UNIT)
 				f.invincible_ticks = 22
 				enemy.fired = true
-			elif enemy.attack_mode == "charge":
+			elif enemy.attack_mode in ["charge", "dash"]:
+				var from_x := f.x
 				f.x = clampi(f.x + f.facing * 460 * UNIT / 120, 70 * UNIT, 3530 * UNIT)
+				objects.constrain_actor(f, from_x, f.ground_y)
+				f.walk_distance += absi(f.x - from_x)
+				if f.x == from_x:
+					f.move_tick = (f.current_move().startup + f.current_move().active) * 2
 		for i in 2:
 			hero = heroes[i]
 			objects = gear[i]
@@ -142,7 +147,7 @@ func step_party(values: Array[CombatInput]) -> void:
 					and (not RollMotion.active(hero) or RollMotion.can_contact(hero, f))
 				):
 					hero.hit_targets.append(enemy.id)
-					_apply_hero_hit(f, power, hero.facing, false, impact.x, impact.y, "", 0)
+					_apply_hero_hit(f, power, hero.facing, f.blocking(power.level), impact.x, impact.y, "", 0)
 				var enemy_boxes: Array[Rect2i] = []
 				if enemy.attack_mode != "shot":
 					enemy_boxes.assign(f.attack_boxes())

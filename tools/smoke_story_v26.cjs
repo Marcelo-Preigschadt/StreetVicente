@@ -34,11 +34,11 @@ const wait=(fn,arg=null,timeout=15000)=>page.waitForFunction(fn,arg,{timeout}).t
   const target=q.enemy_states.filter(e=>e.hp>0&&e.y===e.lane&&!['KNOCKDOWN','WAKEUP','KO'].includes(e.state))
    .sort((a,b)=>Math.abs(a.x-q.x)+Math.abs(a.lane-q.ground_y)-Math.abs(b.x-q.x)-Math.abs(b.lane-q.ground_y))[0];
   if(!target){await delay(40);continue;}
-  const dx=target.x-q.x,dz=target.lane-q.ground_y,keys=[];
-  if(Math.abs(dx)>108*256)keys.push(dx>0?'d':'a');
+  const dx=target.x-q.x,dz=target.lane-q.ground_y,keys=[],reach=target.grab_range||120;
+  if(Math.abs(dx)>(reach-7)*256)keys.push(dx>0?'d':'a');
   if(Math.abs(dz)>12*256)keys.push(dz>0?'s':'w');
   for(const key of ['a','d','w','s','r'])await page.keyboard[keys.includes(key)?'down':'up'](key);
-  if(Math.abs(dx)<115*256&&Math.abs(dz)<30*256&&['IDLE','WALK','CROUCH'].includes(q.state)){
+  if(Math.abs(dx)<(reach-2)*256&&Math.abs(dz)<30*256&&['IDLE','WALK','CROUCH'].includes(q.state)){
    await release(page);await page.keyboard.press('e');await delay(20);
   }else await delay(45);
  }
@@ -51,11 +51,11 @@ const wait=(fn,arg=null,timeout=15000)=>page.waitForFunction(fn,arg,{timeout}).t
  await wait(({id,hp})=>window.svfQA.story.enemy_states.some(e=>e.id===id&&e.hp<hp&&e.y<e.lane-25*256),{id:victim.id,hp:victim.hp});
  await page.keyboard.press('Escape');await wait(()=>window.svfQA.paused);
  const after=(await state()).story;
- assert.equal(after.presentation_revision,27);
+ assert.equal(after.presentation_revision,28);
  assert(after.enemy_states.find(e=>e.id===victim.id).hp<victim.hp,'Release delivers damage to the linked victim');
  await page.screenshot({path:'test-results/31-story-v26-throw.png'});
  assert.deepEqual(errors,[]);
- fs.writeFileSync('test-results/story-v26-smoke.json',JSON.stringify({status:'passed',revision:27,
+ fs.writeFileSync('test-results/story-v26-smoke.json',JSON.stringify({status:'passed',revision:28,
   checks:['Real keyboard approach','E links a grounded enemy','Authored release frame damages and tosses the victim','No browser script errors'],errors},null,2));
  console.log('STORY V26 WEB PASSED: real approach, grab link, release, airborne victim');
 })().catch(async e=>{console.error(e);if(page){console.error(JSON.stringify(await state().catch(()=>({}))));await page.screenshot({path:'test-results/31-story-v26-failure.png'}).catch(()=>{});}process.exitCode=1;})

@@ -29,7 +29,7 @@ static func run(s: SceneTree) -> void:
 		f.input = CombatInput.new(CombatInput.RIGHT)
 		var enemy := {"kind": kind, "fighter": f, "dead_tick": -1, "attack_mode": "melee"}
 		var seen: Dictionary = {}
-		for distance in 112:
+		for distance in int(atlas.sequences.walkTempo):
 			f.walk_distance = distance * UNIT
 			seen[StoryEnemyArt.sample(enemy, 0).index] = true
 		s.check(seen.size() == 8, "Oito poses reais no ciclo completo de passos: " + kind)

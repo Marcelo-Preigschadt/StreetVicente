@@ -3,22 +3,22 @@ extends RefCounted
 ## Shared campaign art/profile definitions. Approved player art is untouched.
 static var art: Dictionary = {}
 const PROFILES := {
-	"snack": {"name": "Drone de vigilância", "atlas": "drone", "h": 105, "w": 150, "fly": 140},
-	"cleaner": {"name": "Guarda da cantina", "atlas": "guard", "h": 270, "w": 140, "range": 155, "palette": "559b85"},
-	"turnstile": {"name": "Sentinela de acesso", "atlas": "guard", "h": 282, "w": 150, "range": 165, "palette": "d69a52"},
-	"lab": {"atlas": "guard", "h": 275, "palette": "659ac5"},
-	"vial": {"name": "Androide de reagentes", "atlas": "guard", "h": 250, "w": 135, "palette": "ac799d"},
-	"scanner": {"atlas": "guard", "h": 265, "palette": "9a7dba"},
-	"book": {"name": "Drone de arquivo", "atlas": "drone", "h": 105, "fly": 155},
-	"archaeologist": {"atlas": "drone", "h": 120, "fly": 165},
-	"projector": {"name": "Drone projetor", "atlas": "drone", "h": 120, "fly": 145},
-	"elite": {"atlas": "guard", "h": 285, "palette": "5a9eaf"},
-	"kungfu": {"atlas": "guard", "h": 280, "palette": "b87564"},
-	"inspector": {"atlas": "heavy", "h": 315, "w": 195},
-	"fairRobot": {"atlas": "heavy", "h": 340, "w": 220},
-	"substitute": {"atlas": "heavy", "h": 305, "w": 185},
-	"aula": {"atlas": "heavy", "h": 305, "w": 190},
-	"exo": {"atlas": "heavy", "h": 355, "w": 235}
+	"snack": {"name": "Drone de vigilância", "atlas": "drone", "h": 155, "w": 215, "fly": 140},
+	"cleaner": {"name": "Guarda da cantina", "atlas": "guard", "h": 350, "w": 175, "range": 165, "palette": "559b85"},
+	"turnstile": {"name": "Sentinela de acesso", "atlas": "guard", "h": 365, "w": 188, "range": 175, "palette": "d69a52"},
+	"lab": {"atlas": "guard", "h": 360, "w": 190, "palette": "659ac5"},
+	"vial": {"name": "Androide de reagentes", "atlas": "guard", "h": 340, "w": 168, "palette": "ac799d"},
+	"scanner": {"name": "Sentinela do arquivo", "atlas": "guard", "h": 350, "w": 170, "ranged": false, "range": 205, "palette": "9a7dba"},
+	"book": {"name": "Drone de arquivo", "atlas": "drone", "h": 155, "w": 215, "fly": 155},
+	"archaeologist": {"name": "Guardião do acervo", "atlas": "guard", "h": 365, "w": 190, "fly": 0, "ranged": false, "range": 190, "palette": "c5a372"},
+	"projector": {"name": "Drone projetor", "atlas": "drone", "h": 170, "w": 225, "fly": 145},
+	"elite": {"atlas": "guard", "h": 370, "w": 195, "palette": "5a9eaf"},
+	"kungfu": {"atlas": "guard", "h": 365, "w": 185, "palette": "b87564"},
+	"inspector": {"atlas": "heavy", "h": 430, "w": 240},
+	"fairRobot": {"atlas": "heavy", "h": 450, "w": 260},
+	"substitute": {"atlas": "heavy", "h": 425, "w": 230},
+	"aula": {"atlas": "heavy", "h": 430, "w": 245},
+	"exo": {"atlas": "heavy", "h": 480, "w": 285}
 }
 
 
@@ -33,17 +33,23 @@ static func apply(story: Dictionary) -> void:
 		story.enemies[kind].merge(PROFILES[kind], true)
 	for kind in art.props:
 		story.props[kind].file = art.props[kind].file
+	StoryScenery.apply(story)
 
 
 static func atlas(kind: String) -> Dictionary:
 	load_data()
-	var result: Dictionary = art.atlases[PROFILES[kind].atlas].duplicate()
+	var result: Dictionary = art.atlases[PROFILES[kind].atlas].duplicate(true)
 	result.scale = float(PROFILES[kind].h) / float(result.referenceHeight)
+	if PROFILES[kind].atlas != "drone":
+		result.sequences.walkTempo = roundi(float(PROFILES[kind].h) * (.36 if PROFILES[kind].atlas == "heavy" else .42))
 	return result
 
 
 static func prop_size(kind: String) -> Vector2:
 	load_data()
+	var scenery := StoryScenery.size(kind)
+	if scenery != Vector2.ZERO:
+		return scenery
 	if not art.props.has(kind):
 		return Vector2.ZERO
 	var size: Array = art.props[kind].size

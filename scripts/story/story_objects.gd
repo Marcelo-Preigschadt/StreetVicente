@@ -63,6 +63,7 @@ func setup(act: int) -> void:
 				}
 			)
 			world.next_id += 1
+	StoryScenery.populate(world)
 
 
 func _add_prop(kind: String, x: int, lane: int, hp: int) -> void:
@@ -119,29 +120,26 @@ func migrate_stage() -> void:
 func input(value: CombatInput) -> CombatInput:
 	var f := world.hero
 	if interaction_phase == "align":
-		interaction_clock += 1
-		if value.axis_x() != 0 or value.has(CombatInput.UP) or value.has(CombatInput.DOWN) \
-			or interaction_clock > 120 or f.state not in [FighterState.Id.IDLE, FighterState.Id.WALK]:
-			interaction = -1
-			interaction_phase = ""
-			return value
-		var gap := interaction_x - f.x
-		if absi(gap) > 3 * UNIT:
-			return CombatInput.new(CombatInput.RIGHT if gap > 0 else CombatInput.LEFT)
-		interaction_phase = "strike"
-		return CombatInput.new(0, CombatInput.KICK)
+		# Old saves may contain a scripted alignment. Never seize movement.
+		interaction = -1
+		interaction_phase = ""
 	if value.pressed & CombatInput.THROW and f.grounded() and FighterState.actionable(f.state):
+		for enemy in world.enemies:
+			var target: FighterModel = enemy.fighter
+			if target.health > 0 and target.grounded() and target.invincible_ticks == 0 \
+				and target.state not in [FighterState.Id.KNOCKDOWN, FighterState.Id.WAKEUP] \
+				and absi(target.x - f.x) <= OpenBorCombat.grab_reach(f, target) \
+				and absi(target.ground_y - f.ground_y) <= OpenBorMotion.BODY_HALF_DEPTH + 6 * UNIT:
+				return value
 		var nearest := nearby(f)
 		if not nearest.is_empty():
 			interaction = int(nearest.id)
 			f.facing = 1 if int(nearest.x) >= f.x else -1
-			# The stance comes from this character's authored contact frame. A
-			# short visible backstep puts the actual foot onto the object.
-			interaction_x = int(nearest.x) - f.facing * maxi(_kick_reach(f), roundi(StoryLayout.prop_size(str(nearest.kind)).x * .38 * UNIT) + 20 * UNIT)
-			interaction_phase = "align"
+			interaction_x = f.x
+			interaction_phase = "strike"
 			interaction_clock = 0
 			world.combat.actor(f).queued = 0
-			return CombatInput.new()
+			return CombatInput.new(value.held, (value.pressed & ~CombatInput.THROW) | CombatInput.KICK)
 	return value
 
 
@@ -177,6 +175,30 @@ func bounds(prop: Dictionary) -> Rect2i:
 	var width := roundi(size.x * UNIT)
 	var height := roundi(size.y * UNIT)
 	return Rect2i(int(prop.x) - width / 2, int(prop.lane) - height, width, height)
+
+
+func melee_contact(f: FighterModel, box: Rect2i, prop: Dictionary) -> bool:
+	if BoxMath.overlap(box, bounds(prop)):
+		return true
+	# The active shin/forearm spans from the body to the authored strike box.
+	# A close chair can be hit by that limb even when the toe extends past it.
+	# Height, facing, active frames and floor depth remain authoritative.
+	if (int(prop.x) - f.x) * f.facing <= 0 or f.current_move() == null \
+		or str(f.current_move().legacy.get("name", "")) not in ["punch", "crouchPunch", "kick", "sweep", "airKick"]:
+		return false
+	var shoulder := Rect2i(f.x + f.facing * 24 * UNIT, box.position.y, UNIT, box.size.y)
+	return BoxMath.overlap(box.merge(shoulder), bounds(prop))
+
+
+func strike_prop(f: FighterModel, prop: Dictionary, move: MoveData) -> void:
+	var kick := str(move.legacy.get("name", "")) in ["kick", "sweep", "airKick"]
+	if prop.kind == "chair" and kick:
+		prop.used = true
+		_throw("chair", int(prop.x), int(prop.lane) - 86 * UNIT, int(prop.lane), f.facing, 650, -400)
+	else:
+		damage(prop, move.damage)
+	f.has_contact = true
+	world.combat.contact(f, world.tick)
 
 
 func constrain_actor(actor: FighterModel, old_x: int, old_lane: int) -> void:
@@ -228,16 +250,11 @@ func step(boxes: Array[Rect2i], move: MoveData, advance_environment: bool = true
 					continue
 				var contact := false
 				for box in boxes:
-					if BoxMath.overlap(box, bounds(prop)):
+					if melee_contact(f, box, prop):
 						contact = true
 				if contact and absi(int(prop.lane) - f.ground_y) <= 42 * UNIT:
 					f.hit_targets.append(prop.id)
-					if prop.kind == "chair":
-						prop.used = true
-						_throw("chair", int(prop.x), int(prop.lane) - 86 * UNIT,
-							int(prop.lane), f.facing, 650, -400)
-					else:
-						damage(prop, maxi(80, f.current_move().damage))
+					strike_prop(f, prop, f.current_move())
 					interaction = -1
 					interaction_phase = ""
 					break
@@ -275,9 +292,9 @@ func step(boxes: Array[Rect2i], move: MoveData, advance_environment: bool = true
 		):
 			continue
 		for box in boxes:
-			if BoxMath.overlap(box, bounds(p)):
+			if melee_contact(f, box, p):
 				f.hit_targets.append(p.id)
-				damage(p, move.damage)
+				strike_prop(f, p, move)
 				break
 	_step_thrown()
 	_step_debris()
@@ -480,8 +497,8 @@ func fire_enemy(enemy: Dictionary) -> void:
 	var f: FighterModel = enemy.fighter
 	var profile: Dictionary = LegacyRoster.catalog.story.enemies[enemy.kind]
 	var origin := Vector2i(
-		f.x + f.facing * 70 * UNIT,
-		f.y - int(profile.h) * UNIT / 2 if profile.get("fly", 0) > 0 else f.ground_y - 160 * UNIT
+		f.x + f.facing * roundi(float(profile.w) * .5 if profile.get("fly", 0) > 0 else float(profile.h) * .58) * UNIT,
+		f.y - int(profile.h) * UNIT / 2 if profile.get("fly", 0) > 0 else f.ground_y - roundi(float(profile.h) * .7) * UNIT
 	)
 	var target := Vector2i(world.hero.x, world.hero.y - 145 * UNIT)
 	var dx := target.x - origin.x
@@ -489,25 +506,22 @@ func fire_enemy(enemy: Dictionary) -> void:
 	var duration := maxi(
 		1, int(maxi(absi(dx), absi(dy)) / ((820 if enemy.kind == "scanner" else 460) * UNIT / 120))
 	)
-	bolts.append(
-		{
-			"x": origin.x,
-			"y": origin.y,
-			"vx": int(dx / duration),
-			"vy": int(dy / duration),
-			"lane": f.ground_y,
-			"age": 0,
-			"damage": roundi(float(profile.damage) * (1.0 if profile.get("boss", false) else 1.65)),
-			"color": profile.color,
-			"owner": f.slot
-		}
-	)
+	var count := 3 if int(enemy.attack_serial) % 3 == 0 and not profile.get("boss", false) else 1
+	for index in count:
+		bolts.append({"x": origin.x, "y": origin.y, "vx": int(dx / duration),
+			"vy": int((dy + (index - 1) * 18 * UNIT if count > 1 else dy) / duration),
+			"lane": f.ground_y, "age": -index * 8,
+			"damage": roundi(float(profile.damage) * (1.0 if profile.get("boss", false) else 1.4) / count),
+			"color": profile.color, "owner": f.slot})
 
 
 func _step_bolts() -> void:
 	var alive: Array = []
 	for p in bolts:
 		p.age += 1
+		if p.age <= 0:
+			alive.append(p)
+			continue
 		var from := Vector2i(int(p.x), int(p.y))
 		p.x += int(p.vx)
 		p.y += int(p.vy)

@@ -21,7 +21,7 @@ static func character(source: CharacterData) -> CharacterData:
 	for i in 8:
 		var step := i % 4
 		var low := i >= 4
-		var template := source.get_move(("crouchPunch" if step < 2 else "sweep") if low else ("punch" if step < 2 else "kick"), 1 + (step % 2))
+		var template := source.get_move(("crouchPunch" if step < 2 else "sweep") if low else ("punch" if step < 2 else "kick"), [1, 2, 0, 2][step])
 		var move: MoveData = template.duplicate(true)
 		move.id = "bor:%d" % i
 		move.legacy = template.legacy.duplicate(true)
@@ -33,6 +33,15 @@ static func character(source: CharacterData) -> CharacterData:
 			move.legacy.launch = 570
 		c.moves[move.id] = move
 		c.moves["fury:%d" % i] = move
+	# Low furniture is struck with the existing low kick drawings. Several
+	# fighters' crouching fists are still above a tabletop; don't invent damage
+	# above the surface or move their approved limbs to fake the contact.
+	for index in 3:
+		var source_move := source.get_move("sweep", [1, 0, 2][index])
+		var strike: MoveData = source_move.duplicate(true)
+		strike.legacy = source_move.legacy.duplicate(true)
+		strike.id = "bor:prop:%d" % index
+		c.moves[strike.id] = strike
 	# A visible grip needs time to read before release. Retiming is session-only
 	# and reuses the authored drawings; the versus character data stay intact.
 	for strength in 3:
@@ -89,7 +98,7 @@ func advance(world: StorySimulation, f: FighterModel, gear: StoryObjects, raw: C
 		data.confirmed = false
 	if raw.pressed & NORMALS:
 		data.queued = CombatInput.KICK if raw.pressed & CombatInput.KICK else CombatInput.PUNCH
-		data.queue_until = world.tick + 22
+		data.queue_until = world.tick + 36
 	if world.tick > int(data.queue_until):
 		data.queued = 0
 	if f.state in [FighterState.Id.HITSTUN, FighterState.Id.KO, FighterState.Id.KNOCKDOWN, FighterState.Id.DIZZY]:
@@ -99,16 +108,26 @@ func advance(world: StorySimulation, f: FighterModel, gear: StoryObjects, raw: C
 	var ready := FighterState.actionable(f.state) or (f.state == FighterState.Id.BLOCK and f.stun_ticks == 0)
 	var can_chain := f.state == FighterState.Id.ATTACK and f.move_id.begins_with("bor:") \
 		and f.has_contact and f.move_tick >= (f.current_move().startup + f.current_move().active) * 2
+	if can_chain and raw.pressed & CombatInput.JUMP and f.grounded():
+		f.transition(FighterState.Id.IDLE)
+		f.move_id = ""
+		ready = true
 	if int(data.queued) != 0 and (ready or can_chain):
 		var name := ""
 		if not f.grounded():
 			name = "airKick"
 		elif int(data.queued) == CombatInput.KICK:
-			name = "sweep" if gear.interaction >= 0 or _low_target(world, f) else "kick"
+			if data.confirmed and int(data.index) in [1, 2] and gear.interaction < 0:
+				data.index = 2  # F,F,G branches directly into the finisher.
+			else:
+				name = "sweep" if gear.interaction >= 0 or _low_target(world, f) else "kick"
 		var move: MoveData
 		if name.is_empty():
 			data.index = (int(data.index) + 1) % 4 if data.confirmed else 0
-			move = f.character.moves["bor:%d" % (int(data.index) + (4 if _low_target(world, f) else 0))]
+			if _low_target(world, f):
+				move = f.character.moves["bor:prop:%d" % (int(data.chain) % 3)]
+			else:
+				move = f.character.moves["bor:%d" % int(data.index)]
 		else:
 			move = f.character.get_move(name, 1)
 			data.index = -1
@@ -124,6 +143,8 @@ func advance(world: StorySimulation, f: FighterModel, gear: StoryObjects, raw: C
 		pressed |= CombatInput.UP
 	f.record_input(CombatInput.new(held, pressed), world.tick)
 	f.begin_tick(f.x + f.facing * 1000 * UNIT)
+	if f.state == FighterState.Id.ATTACK and f.move_id.begins_with("bor:") and f.move_tick <= 8:
+		f.x += f.facing * 2 * UNIT
 	if f.grounded() and f.state in [FighterState.Id.IDLE, FighterState.Id.WALK]:
 		var lane_axis := int(raw.has(CombatInput.DOWN)) - int(raw.has(CombatInput.UP))
 		if raw.has(CombatInput.GUARD):
@@ -168,6 +189,15 @@ static func _low_target(world: StorySimulation, f: FighterModel) -> bool:
 			var profile: Dictionary = LegacyRoster.catalog.story.enemies[enemy.kind]
 			nearest = gap
 			low = int(profile.h) < 230 and int(profile.get("fly", 0)) == 0
+	for prop in world.props:
+		if not OpenBorMotion.solid(prop) or absi(int(prop.lane) - f.ground_y) > 42 * UNIT \
+			or (int(prop.x) - f.x) * f.facing <= 0:
+			continue
+		var size := StoryLayout.prop_size(str(prop.kind))
+		var gap := maxi(0, absi(int(prop.x) - f.x) - roundi(size.x * .5 * UNIT))
+		if gap < nearest and gap <= 150 * UNIT:
+			nearest = gap
+			low = size.y < 220
 	return low
 
 
@@ -179,6 +209,10 @@ func restore(data: Dictionary) -> void:
 	actors = data.duplicate(true)
 
 
+static func grab_reach(a: FighterModel, b: FighterModel) -> int:
+	return maxi(120 * UNIT, OpenBorMotion._radius(a) + OpenBorMotion._radius(b) + 18 * UNIT)
+
+
 func _try_grab(world: StorySimulation, f: FighterModel, data: Dictionary) -> void:
 	if not f.grounded() or not FighterState.actionable(f.state):
 		return
@@ -186,7 +220,7 @@ func _try_grab(world: StorySimulation, f: FighterModel, data: Dictionary) -> voi
 	if move == null:
 		return
 	var nearest: FighterModel
-	var distance := 120 * UNIT
+	var distance := 200 * UNIT
 	for enemy in world.enemies:
 		var other: FighterModel = enemy.fighter
 		if other.health <= 0 or not other.grounded() or other.invincible_ticks > 0 \
@@ -194,7 +228,7 @@ func _try_grab(world: StorySimulation, f: FighterModel, data: Dictionary) -> voi
 			or absi(other.ground_y - f.ground_y) > OpenBorMotion.BODY_HALF_DEPTH + 6 * UNIT:
 			continue
 		var gap := absi(other.x - f.x)
-		if gap < distance:
+		if gap < distance and gap <= grab_reach(f, other):
 			nearest = other
 			distance = gap
 	if nearest == null:

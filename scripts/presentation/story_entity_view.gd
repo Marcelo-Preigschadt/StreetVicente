@@ -20,12 +20,12 @@ func sync(snap := false) -> void:
 		current = Vector2(f.x, f.y) / FighterModel.SCALE
 		lane = float(f.ground_y) / FighterModel.SCALE
 	else:
-		current = Vector2(float(entity.x), float(entity.lane if kind == "prop" else entity.y)) / FighterModel.SCALE
+		current = Vector2(float(entity.x), float(entity.lane if kind in ["prop", "decor"] else entity.y)) / FighterModel.SCALE
 		lane = float(entity.lane) / FighterModel.SCALE
 	if snap:
 		previous = current
 	z_index = roundi(lane)
-	scale = Vector2.ONE * StoryLayout.depth(lane)
+	scale = Vector2.ONE * StoryLayout.depth(lane) * (float(entity.get("scale", 1.0)) if kind == "decor" else 1.0)
 
 
 func _process(_delta: float) -> void:
@@ -79,7 +79,7 @@ func _draw_prop() -> void:
 	var tint := Color(1, .98, .94, 1) if presenter.world.act_index == 0 else Color.WHITE
 	var offset := Vector2.ZERO
 	var angle := 0.0
-	if kind == "prop":
+	if kind in ["prop", "decor"]:
 		if int(entity.get("fall", 0)) > 0:
 			angle = minf(PI / 2, float(entity.fall) / 102 * PI / 2)
 		offset = Vector2(-size.x / 2, -size.y)
@@ -92,10 +92,14 @@ func _draw_prop() -> void:
 		offset = -size / 2
 		if entity.get("landed", false):
 			tint.a = clampf((30.0 - int(entity.rest)) / 20, 0, 1)
-	if kind == "prop":
+	if kind in ["prop", "decor"]:
 		draw_set_transform(Vector2.ZERO, angle)
 	draw_texture_rect(LegacyRoster.texture(art.file), Rect2(offset, size), false, tint)
 	draw_set_transform(Vector2.ZERO)
+	if item in ["serverrack", "networkcabinet", "ups", "instrument"]:
+		for i in 4:
+			if (presenter.world.tick / 18 + int(entity.get("id", 0)) + i * 3) % 5 < 3:
+				draw_circle(Vector2(size.x * .12, -size.y * (.38 + i * .08)), 1.5, Color(.3, 1, .65, .75))
 
 
 func _draw_debris() -> void:

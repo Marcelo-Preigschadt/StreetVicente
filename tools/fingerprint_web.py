@@ -20,7 +20,7 @@ config['mainPack'] = name
 config['fileSizes'][name] = config['fileSizes'].pop('index.pck')
 html = html[:match.start(1)] + json.dumps(config, separators=(',', ':')) + html[match.end(1):]
 (root / 'index.html').write_text(html)
-manifest = {'presentation_revision': 27, 'pack': name, 'pack_sha256': digest,
+manifest = {'presentation_revision': 28, 'pack': name, 'pack_sha256': digest,
             'commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()}
 (root / 'build.json').write_text(json.dumps(manifest, separators=(',', ':')) + '\n')
 print('WEB CONTENT FINGERPRINT:', name)

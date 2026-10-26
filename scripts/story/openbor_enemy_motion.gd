@@ -7,7 +7,7 @@ const UNIT := FighterModel.SCALE
 
 static func intent(world: StorySimulation, enemy: Dictionary, target: FighterModel) -> CombatInput:
 	var f: FighterModel = enemy.fighter
-	if f.state not in [FighterState.Id.IDLE, FighterState.Id.WALK]:
+	if f.state not in [FighterState.Id.IDLE, FighterState.Id.WALK, FighterState.Id.BLOCK]:
 		return CombatInput.new()
 	var profile: Dictionary = LegacyRoster.catalog.story.enemies[enemy.kind]
 	enemy.cooldown = maxi(0, int(enemy.cooldown) - 1)
@@ -17,6 +17,23 @@ static func intent(world: StorySimulation, enemy: Dictionary, target: FighterMod
 		f.facing = 1 if dx > 0 else -1
 	var ranged: bool = profile.get("ranged", false)
 	var reach := roundi(float(profile.range) * (.78 if ranged else .70)) * UNIT
+	# Short defensive responses. Integer state is preserved by rollback/save.
+	var armored: bool = str(enemy.kind) in ["turnstile", "lab", "elite", "inspector", "exo"]
+	var threatened := target.state == FighterState.Id.ATTACK and absi(dx) < 250 * UNIT \
+		and absi(dz) < 42 * UNIT and target.current_move().phase(target.move_tick) == "STARTUP"
+	if not threatened:
+		enemy.threat_since = -1
+	elif int(enemy.get("threat_since", -1)) < 0:
+		enemy.threat_since = world.tick
+	var reacting: bool = threatened and world.tick - int(enemy.get("threat_since", world.tick)) >= 12
+	if armored and reacting and world.tick >= int(enemy.get("defend_after", 0)):
+		var incoming := target.current_move()
+		var cover := clampi((incoming.startup + incoming.active) * 2 - target.move_tick + 8, 28, 84)
+		enemy.guard_until = world.tick + cover
+		enemy.defend_after = world.tick + 210
+	if world.tick < int(enemy.get("guard_until", 0)):
+		enemy.behavior = "guard"
+		return CombatInput.new(CombatInput.GUARD)
 	var attackers := 0
 	for other in world.enemies:
 		if other.id != enemy.id and other.fighter.health > 0 and other.fighter.state == FighterState.Id.ATTACK:
@@ -27,12 +44,14 @@ static func intent(world: StorySimulation, enemy: Dictionary, target: FighterMod
 		and enemy.cooldown == 0 and attackers < 2 and target.health > 0 \
 		and target.invincible_ticks == 0 and target.state not in [FighterState.Id.KNOCKDOWN, FighterState.Id.WAKEUP]:
 		world._prepare_enemy_attack(enemy)
-		enemy.cooldown = 108 + int(enemy.id) % 3 * 18 if not profile.get("boss", false) else 72
+		enemy.cooldown = (126 if ranged else 94) + int(enemy.id) % 3 * 18 if not profile.get("boss", false) else 80
+		enemy.behavior = "attack"
 		return CombatInput.new(0, CombatInput.KICK)
 	var side := -1 if dx > 0 else 1
 	# Keep a stable approach side; waiting actors use depth rather than pushing
 	# another enemy across the hero. No position reservation or teleportation.
 	var offset_z := 0
+	enemy.behavior = "approach"
 	var rank := 0
 	for other in world.enemies:
 		if other.id == enemy.id or other.fighter.health <= 0 or int(other.id) > int(enemy.id):
@@ -42,10 +61,30 @@ static func intent(world: StorySimulation, enemy: Dictionary, target: FighterMod
 			rank += 1
 	if attackers >= 2 or int(enemy.cooldown) > 65:
 		offset_z = (-42 if int(enemy.id) % 2 else 42) * UNIT
+		enemy.behavior = "reposition"
+		if int(enemy.attack_serial) > 0:
+			reach += (65 if ranged else 45) * UNIT
+	if not armored and not ranged and reacting and world.tick >= int(enemy.get("defend_after", 0)):
+		enemy.evade_until = world.tick + 30
+		enemy.defend_after = world.tick + 210
+	if world.tick < int(enemy.get("evade_until", 0)):
+		offset_z = (-58 if int(enemy.id) % 2 else 58) * UNIT
+		enemy.behavior = "sidestep"
 	if rank > 0:
 		reach += rank * 80 * UNIT
 		offset_z = (-45 if int(enemy.id) % 2 else 45) * UNIT
+		if not ranged and world.tick >= int(enemy.get("flank_after", 0)):
+			enemy.flank_until = world.tick + 150
+			enemy.flank_after = world.tick + 420
+			enemy.flank_side = -side
+	if world.tick < int(enemy.get("flank_until", 0)):
+		enemy.behavior = "flank"
+		offset_z = (-66 if target.ground_y > 570 * UNIT else 66) * UNIT
+		if absi(dz) > 46 * UNIT:
+			side = int(enemy.flank_side)
+			reach = 150 * UNIT
 	var goal := Vector2i(target.x + side * reach, clampi(target.ground_y + offset_z, (StoryLayout.MIN_LANE + 6) * UNIT, (StoryLayout.MAX_LANE - 6) * UNIT))
+	goal.x = clampi(goal.x, 90 * UNIT, (StoryLayout.gate(world.wave_index) - 90) * UNIT)
 	# The ideal attack distance can lie inside a table. End the approach on
 	# the target's side of that footprint instead of routing back into it.
 	for prop in world.props:

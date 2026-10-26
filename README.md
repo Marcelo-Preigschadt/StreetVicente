@@ -1,6 +1,6 @@
 # Street Vicente Fighter · Godot 4
 
-**História v27 — corredor e cantina:** nova composição do primeiro ato, 66 desenhos de inimigos, piso e objetos na mesma projeção, câmera por área de combate, HUD compacto e PCK identificado pelo conteúdo para evitar versões antigas em cache. Rostos, vozes e poderes aprovados preservados. [Revisão e validação](docs/STORY_V27.md) · [Vídeo](docs/previews/story-v27-preview.mp4).
+**História v28 — ambientes e combate:** inimigos maiores, 36 novos objetos nos quatro atos, destruição por ataques comuns sem alinhamento pelo E, novos desenhos de ataques/defesa dos robôs, flanqueamento, combos mistos e salto encadeado. Rostos, vozes, poderes e controles aprovados preservados. [Revisão, artes e validação](docs/STORY_V28.md).
 
 **Online v22:** Versus e História cooperativa para duas pessoas, salas por código, busca de partida, escolha individual entre os 13 personagens, pausa sincronizada e retomada após queda de conexão ou reload. [Como jogar e funcionamento](docs/ONLINE_V22.md). As artes dos personagens permanecem preservadas.
 

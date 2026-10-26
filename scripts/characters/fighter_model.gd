@@ -430,6 +430,10 @@ func attack_boxes() -> Array[Rect2i]:
 
 
 func blocking(level: MoveData.Level) -> bool:
+	# Campaign machines guard through an explicit tactical action. Backing up
+	# to reposition must not grant the versus player's automatic back-guard.
+	if character.id.begins_with("enemy_") and not input.has(CombatInput.GUARD):
+		return false
 	if not grounded() or stun_ticks > 0 and state != FighterState.Id.BLOCK:
 		return false
 	if (
