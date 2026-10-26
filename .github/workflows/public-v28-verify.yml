@@ -1,0 +1,32 @@
+name: Verify published v28
+on:
+  push:
+    branches: [verify/v28-public]
+permissions:
+  contents: read
+jobs:
+  public:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /package.json
+            /package-lock.json
+            /tools/verify_public_v28.cjs
+      - name: Install browser
+        run: |
+          echo 'https://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Verify the published game through normal UI
+        run: node tools/verify_public_v28.cjs
+      - name: Save public verification
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: StreetVicente-Public-v28
+          path: test-results/public-v28/
+          if-no-files-found: ignore
