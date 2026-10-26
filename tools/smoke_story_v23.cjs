@@ -61,7 +61,7 @@ async function walkTo(x,lane){
  await fightUntil(page,q=>q.wave>=3,{timeout:150000,useSuper:true});
  console.log('STORY V28: three waves defeated through normal combat');
  // Clear the commander before inspecting the seating group, using ordinary inputs.
- await fightUntil(page,q=>q.act===0&&q.wave===3&&q.queued_enemies===0&&q.enemy_states.every(e=>e.hp<=0),{timeout:180000,useSuper:true,maxX:3200});
+ await fightUntil(page,q=>q.act===0&&q.wave===3&&q.queued_enemies===0&&q.enemy_states.every(e=>e.hp<=0),{timeout:180000,useSuper:true,maxX:2800});
  // Return to the cleared seating group while the next wave remains far
  // ahead. Furniture is inspected through ordinary movement and interaction.
  const table=(await state()).story.props.filter(p=>p.kind==='table').sort((a,b)=>a.x-b.x)[0];
