@@ -26,6 +26,26 @@ const wait=(fn,arg=null,timeout=15000)=>page.waitForFunction(fn,arg,{timeout}).t
  for(let i=0,n=(q.roster_ids.indexOf('marcos')-q.cursor+q.roster_ids.length)%q.roster_ids.length;i<n;i++)await page.keyboard.press('ArrowRight');
  await page.keyboard.press('Enter');await wait(()=>window.svfQA.screen==='story_dialog');
  await page.keyboard.press('Enter');await wait(()=>window.svfQA.screen==='story');
+ // Observe the actual rendered frames from before the link. A CI round
+ // trip can otherwise miss the short airborne window after key release.
+ // This trace only reads the public observer; it never changes game state.
+ await page.evaluate(()=>{
+  window.svfThrowTrace={};
+  const observe=()=>{
+   const q=window.svfQA?.story;
+   if(q){
+    const linked=q.campaign_combo.grab_target;
+    const victim=q.enemy_states.find(e=>e.id===linked);
+    if(victim&&!window.svfThrowTrace[linked])window.svfThrowTrace[linked]={hp:victim.hp};
+    for(const e of q.enemy_states){
+     const trace=window.svfThrowTrace[e.id];
+     if(trace&&!trace.release&&e.hp<trace.hp&&e.y<e.lane-25*256)
+      trace.release={hp:e.hp,y:e.y,lane:e.lane,state:e.state};
+    }
+   }
+   requestAnimationFrame(observe);
+  };observe();
+ });
  let grabbed=null;const deadline=Date.now()+35000;
  while(Date.now()<deadline){
   q=(await state()).story;
@@ -48,7 +68,9 @@ const wait=(fn,arg=null,timeout=15000)=>page.waitForFunction(fn,arg,{timeout}).t
  assert(victim,'Linked victim is a real campaign entity');
  assert(Math.abs(victim.x-grabbed.x)<=88*256,'Linked actors remain at physical grab range');
  await release(page);
- await wait(({id,hp})=>window.svfQA.story.enemy_states.some(e=>e.id===id&&e.hp<hp&&e.y<e.lane-25*256),{id:victim.id,hp:victim.hp});
+ await wait(id=>!!window.svfThrowTrace[id]?.release,victim.id);
+ const observed=await page.evaluate(id=>window.svfThrowTrace[id],victim.id);
+ assert(observed.release.hp<observed.hp&&observed.release.y<observed.release.lane-25*256,'A real frame shows simultaneous throw damage and airborne victim');
  await page.keyboard.press('Escape');await wait(()=>window.svfQA.paused);
  const after=(await state()).story;
  assert.equal(after.presentation_revision,28);
@@ -56,7 +78,7 @@ const wait=(fn,arg=null,timeout=15000)=>page.waitForFunction(fn,arg,{timeout}).t
  await page.screenshot({path:'test-results/31-story-v26-throw.png'});
  assert.deepEqual(errors,[]);
  fs.writeFileSync('test-results/story-v26-smoke.json',JSON.stringify({status:'passed',revision:28,
-  checks:['Real keyboard approach','E links a grounded enemy','Authored release frame damages and tosses the victim','No browser script errors'],errors},null,2));
+  release_observation:observed,checks:['Real keyboard approach','E links a grounded enemy','Authored release frame damages and tosses the victim','No browser script errors'],errors},null,2));
  console.log('STORY V26 WEB PASSED: real approach, grab link, release, airborne victim');
 })().catch(async e=>{console.error(e);if(page){console.error(JSON.stringify(await state().catch(()=>({}))));await page.screenshot({path:'test-results/31-story-v26-failure.png'}).catch(()=>{});}process.exitCode=1;})
 .finally(async()=>{if(browser)await browser.close();server.kill();});

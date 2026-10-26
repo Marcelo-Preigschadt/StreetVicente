@@ -1,7 +1,7 @@
 /* Play the campaign through its public keyboard and read-only observations. */
 const assert=require('node:assert/strict');
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
-async function release(page){for(const key of ['a','d','w','s','r'])await page.keyboard.up(key);}
+async function release(page){await Promise.all(['a','d','w','s','r'].map(key=>page.keyboard.up(key)));}
 // Plan through the actual furniture footprints when a checkpoint is clear.
 // Observations stay read-only; the route is executed with normal keyboard keys.
 function corridorKeys(q,destination=null){
