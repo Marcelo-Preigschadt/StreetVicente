@@ -92,10 +92,10 @@ async function fightUntil(page,done,{timeout=60000,useSuper=true,maxX=Infinity}=
     for(const k of ['a','d','w','s','r'])await page.keyboard[desired.includes(k)?'down':'up'](k);
     // Let the current attack finish before turning. Queuing more attacks
     // while facing away would intentionally keep a real player facing away.
-    if(q.facing!==(dx>0?1:-1)&&Math.abs(dx)>=70*256){
+    if(q.facing!==(dx>0?1:-1)&&Math.abs(dx)>=8*256){
      await release(page);await page.keyboard.press(dx>0?'d':'a',{delay:50});continue;
     }
-    if(Math.abs(dx)>=75*256&&Math.abs(dx)<(reach+5)*256&&Math.abs(dy)<42*256&&Date.now()-strike>300){
+    if(Math.abs(dx)<(reach+5)*256&&Math.abs(dy)<42*256&&Date.now()-strike>300){
      await release(page);
      const grip=guarded&&Math.abs(dx)<((target.grab_range||120)-2)*256&&Math.abs(dy)<30*256;
      const finisher=[1,2].includes(q.campaign_combo?.index);
